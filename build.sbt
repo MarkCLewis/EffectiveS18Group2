@@ -7,7 +7,7 @@ lazy val root = (project in file(".")).
 			scalaVersion := "2.12.4",
       version      := "0.1.0-SNAPSHOT"
     )),
-    name := "EffectiveS18Group1",
+    name := "EffectiveS18Group2",
 		crossPaths := false,
     libraryDependencies ++= Seq(
 			"org.apache.commons" % "commons-math3" % "3.1.1",
