@@ -11,6 +11,7 @@ lazy val root = (project in file(".")).
 		crossPaths := false,
     libraryDependencies ++= Seq(
 			"org.apache.commons" % "commons-math3" % "3.1.1",
-			"com.novocode" % "junit-interface" % "0.11" % Test
+			"com.novocode" % "junit-interface" % "0.11" % Test,
+            "org.lwjgl" % "lwjgl" % "3.1.6"
 		)
   )
