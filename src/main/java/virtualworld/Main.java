@@ -10,7 +10,6 @@ import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Sphere;
 import javafx.stage.Stage;
-
 /**
  * This is just a starter, place holder for the group.
  */
