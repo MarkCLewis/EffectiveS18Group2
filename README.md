@@ -2,12 +2,7 @@
 
 ## Analysis/Requirements
 
-# Graphics:
-Graphics are assigned to Kayla. Kayla is working on joggle and javafx to build a basic prototype for us to begin testing our world components.
-
-
-# World Components:
-
+Graphics: Kayla
 Terrain: Ian 
 Water: Ben
 Trees: Caroline
