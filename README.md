@@ -2,14 +2,14 @@
 
 ## Analysis/Requirements
 
-Graphics: Kayla
-Terrain: Ian 
-Water: Ben
-Trees: Caroline
-Roads: Amira
-Cities: Brian
-Sheep: Cristina
-Clouds: Thoai
+Graphics: Kayla  
+Terrain: Ian  
+Water: Ben  
+Trees: Caroline  
+Roads: Amira  
+Cities: Brian  
+Sheep: Cristina  
+Clouds: Thoai  
 
 
 
