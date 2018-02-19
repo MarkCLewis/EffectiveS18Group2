@@ -104,26 +104,26 @@ public class RenderEngine {
 	    public float getMaxLinearVelocity() {
 	    	return maxLinearVel;
 	    }
+	    public void stabilize() {
+	    	linearAcc.zero();
+	    }
 	}
 
-	private static class Display {
-		private static class Input {
+	private class Display {
+		private class Input {
 			private boolean[] keyDown = new boolean[GLFW.GLFW_KEY_LAST];
 		    private boolean leftMouseDown = false;
 		    private boolean rightMouseDown = false;
 		    private float mouseX = 0.0f;
 		    private float mouseY = 0.0f;
-		    
-		    private Display parentDisplay;
-			
+
 			private GLFWKeyCallback keyCallback;
 		    
 		    private GLFWCursorPosCallback cpCallback;
 		    
 		    private GLFWMouseButtonCallback mbCallback;
 		    
-		    public Input(Display d) {
-		    	parentDisplay = d;
+		    public Input() {
 		    	init();
 		    }
 		    
@@ -150,10 +150,10 @@ public class RenderEngine {
 		        };
 		        cpCallback = new GLFWCursorPosCallback() {
 		            public void invoke(long window, double xpos, double ypos) {
-		                float normX = (float) ((xpos - parentDisplay.getWidth()/2.0) / parentDisplay.getWidth() * 2.0);
-		                float normY = (float) ((ypos - parentDisplay.getHeight()/2.0) / parentDisplay.getHeight() * 2.0);
-		                mouseX = Math.max(-parentDisplay.getWidth()/2.0f, Math.min(parentDisplay.getWidth()/2.0f, normX));
-		                mouseY = Math.max(-parentDisplay.getHeight()/2.0f, Math.min(parentDisplay.getHeight()/2.0f, normY));
+		                float normX = (float) ((xpos - getWidth()/2.0) / getWidth() * 2.0);
+		                float normY = (float) ((ypos - getHeight()/2.0) / getHeight() * 2.0);
+		                mouseX = Math.max(-getWidth()/2.0f, Math.min(getWidth()/2.0f, normX));
+		                mouseY = Math.max(-getHeight()/2.0f, Math.min(getHeight()/2.0f, normY));
 		            }
 		        };
 		        mbCallback = new GLFWMouseButtonCallback() {
@@ -171,9 +171,9 @@ public class RenderEngine {
 		                }
 		            }
 		        };
-		        glfwSetKeyCallback(parentDisplay.getWindow(), keyCallback);
-		        glfwSetCursorPosCallback(parentDisplay.getWindow(), cpCallback);
-		        glfwSetMouseButtonCallback(parentDisplay.getWindow(), mbCallback);
+		        glfwSetKeyCallback(getWindow(), keyCallback);
+		        glfwSetCursorPosCallback(getWindow(), cpCallback);
+		        glfwSetMouseButtonCallback(getWindow(), mbCallback);
 			}
 			
 			private void close() {
@@ -183,8 +183,7 @@ public class RenderEngine {
 			}
 			
 			public void update(float dt) {
-				RenderEngine.getInstance().stabilizeCamera();
-				Camera camRef = RenderEngine.getInstance().getCamera();
+				camera.stabilize();;
 				float rotZ = 0.0f;
 		        if (keyDown[GLFW_KEY_W]) {
 		            // TODO: move forward
@@ -213,14 +212,14 @@ public class RenderEngine {
 		            // TODO
 		        }
 		        if (rightMouseDown) {
-		            camRef.angularAcc.set(2.0f*mouseY*mouseY*mouseY, 2.0f*mouseX*mouseX*mouseX, rotZ);
+		            camera.angularAcc.set(2.0f*mouseY*mouseY*mouseY, 2.0f*mouseX*mouseX*mouseX, rotZ);
 		        }
 		        else if (!rightMouseDown) {
-		            camRef.angularAcc.set(0, 0, rotZ);
+		            camera.angularAcc.set(0, 0, rotZ);
 		        }
-		        double linearVelAbs = camRef.linearVel.length();
-		        if (linearVelAbs > camRef.getMaxLinearVelocity()) {
-		            camRef.linearVel.normalize().mul(camRef.getMaxLinearVelocity());
+		        double linearVelAbs = camera.linearVel.length();
+		        if (linearVelAbs > camera.getMaxLinearVelocity()) {
+		            camera.linearVel.normalize().mul(camera.getMaxLinearVelocity());
 		        }
 			}
 		}
@@ -234,12 +233,13 @@ public class RenderEngine {
 	    private GLFWVidMode vidMode;
 	    
 	    private GLFWWindowSizeCallback wsCallback;
+	    private GLFWFramebufferSizeCallback fbCallback;
 	    
 	    private Input input;
 	    
 	    public Display() {
 	    	this.init();
-	    	input = new Input(this);
+	    	input = new Input();
 	    }
 	    
 	    private void init() throws AssertionError{
@@ -248,8 +248,8 @@ public class RenderEngine {
 	        if (!windowed) {
 	            width = vidMode.width();
 	            height = vidMode.height();
-	            RenderEngine.getInstance().setFBWidth(width);
-	            RenderEngine.getInstance().setFBHeight(height);
+	            fbWidth = width;
+	            fbHeight = height;
 	        }
 	    	window = glfwCreateWindow(width, height, Game.title, !windowed ? monitor : 0L, NULL);
 	        if (window == NULL) {
@@ -270,21 +270,31 @@ public class RenderEngine {
 	        };
 	        
 	        glfwSetWindowSizeCallback(window, wsCallback);
-
 	        glfwMakeContextCurrent(window);
 	        glfwSwapInterval(0);
 	        glfwShowWindow(window);
+	        
+	        fbCallback = new GLFWFramebufferSizeCallback() {
+		        @Override
+				public void invoke(long window, int _width, int _height) {
+		            if (_width > 0 && _height > 0 && (fbWidth != _width || fbHeight != _height)) {
+		                fbWidth = width;
+		                fbHeight = height;
+		            }
+		        }
+		    };
+	        glfwSetFramebufferSizeCallback(window, fbCallback);
 	    }
 	    
 	    public void close() {
 	    	wsCallback.free();
+	    	fbCallback.free();
 	    	input.close();
 	    	glfwDestroyWindow(window);
 	    }
 	    
-	    public void update(float dt) {
-	    	// TODO
-	    	//RenderEngine.instance.update(dt);
+	    public void updateInput(float dt) {
+	    	input.update(dt);
 	    }
 	    
 	    public boolean isWindowed() {
@@ -299,11 +309,11 @@ public class RenderEngine {
 	    	return height;
 	    }
 	    
-	    public long getWindow() throws AssertionError {
+	    public long getWindow() {
 	    	return window;
 	    }
 	    
-	    public long getMonitor() throws AssertionError {
+	    public long getMonitor() {
 	    	return monitor;
 	    }
 	}
@@ -358,8 +368,6 @@ public class RenderEngine {
     private FloatBuffer particleVertices = BufferUtils.createFloatBuffer(6 * 6 * maxParticles);
     private ByteBuffer charBuffer = BufferUtils.createByteBuffer(16 * 270);
     
-    GLFWFramebufferSizeCallback fbCallback;
-    
     public int getFBWidth() {
     	return fbWidth;
     }
@@ -413,36 +421,23 @@ public class RenderEngine {
 	    
         debugProc = GLUtil.setupDebugMessageCallback();
         
-        fbCallback = new GLFWFramebufferSizeCallback() {
-	        @Override
-			public void invoke(long window, int width, int height) {
-	            if (width > 0 && height > 0 && (fbWidth != width || fbHeight != height)) {
-	                fbWidth = width;
-	                fbHeight = height;
-	            }
-	        }
-	    };
-        glfwSetFramebufferSizeCallback(display.getWindow(), fbCallback);
-        
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        
         /* Create all needed GL resources */
         createCubemapTexture();
         createFullScreenQuad();
         createCubemapProgram();
         createParticleProgram();
         createSphere();
+        
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     }
     
     public void close() {
     	if(debugProc != null) {
     		debugProc.free();
     	}
-    	fbCallback.free();
-    	
     	display.close();
     }
     
@@ -474,15 +469,7 @@ public class RenderEngine {
         glUseProgram(particleProgram);
         glUniformMatrix4fv(particle_projUniform, false, matrixBuffer);
         updateParticles(dt);
-        display.input.update(dt);
-    }
-    
-    public Camera getCamera() {
-    	return camera;
-    }
-    
-    public void stabilizeCamera() {
-    	camera.linearAcc.zero();
+        display.updateInput(dt);
     }
     
     private void drawCubemap() {
@@ -530,38 +517,7 @@ public class RenderEngine {
             glDepthMask(true);
         }
     }
-
-    private boolean narrowphase(FloatBuffer data, double x, double y, double z, float scale, Vector3d pOld, Vector3d pNew, Vector3d intersectionPoint, Vector3f normal) {
-        tmp2.set(tmp.set(pOld).sub(x, y, z)).div(scale);
-        tmp3.set(tmp.set(pNew).sub(x, y, z)).div(scale);
-        data.clear();
-        boolean intersects = false;
-        while (data.hasRemaining() && !intersects) {
-            float v0X = data.get();
-            float v0Y = data.get();
-            float v0Z = data.get();
-            float v1X = data.get();
-            float v1Y = data.get();
-            float v1Z = data.get();
-            float v2X = data.get();
-            float v2Y = data.get();
-            float v2Z = data.get();
-            if (Intersectionf.intersectLineSegmentTriangle(tmp2.x, tmp2.y, tmp2.z, tmp3.x, tmp3.y, tmp3.z, v0X, v0Y, v0Z, v1X, v1Y, v1Z, v2X, v2Y, v2Z, 1E-6f, tmp2)) {
-                intersectionPoint.x = tmp2.x * scale + x;
-                intersectionPoint.y = tmp2.y * scale + y;
-                intersectionPoint.z = tmp2.z * scale + z;
-                GeometryUtils.normal(v0X, v0Y, v0Z, v1X, v1Y, v1Z, v2X, v2Y, v2Z, normal);
-                intersects = true;
-            }
-        }
-        data.clear();
-        return intersects;
-    }
-
-    private static boolean broadphase(double x, double y, double z, float boundingRadius, float scale, Vector3d pOld, Vector3d pNew) {
-        return Intersectiond.testLineSegmentSphere(pOld.x, pOld.y, pOld.z, pNew.x, pNew.y, pNew.z, x, y, z, boundingRadius * boundingRadius * scale * scale);
-    }
-
+    
     private void updateParticles(float dt) {
         for (int i = 0; i < particlePositions.length; i++) {
             Vector4d particleVelocity = particleVelocities[i];
