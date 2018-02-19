@@ -51,7 +51,7 @@ public class Game {
     	}
     }
 
-	private long lastTime = System.nanoTime();
+	
 
 	/* --------
 	 * Private Methods
@@ -63,24 +63,11 @@ public class Game {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
         
-        /* Create all needed GL resources */
-        createCubemapTexture();
-        createFullScreenQuad();
-        createCubemapProgram();
-        createParticleProgram();
-        createSphere();
     }
 
     private void update() {
-        long thisTime = System.nanoTime();
-        float dt = (thisTime - lastTime) / 1E9f;
-        lastTime = thisTime;
-        updateParticles(dt);
+        RenderEngine.instance.update();
         updateControls(dt);
-    }
-    
-    private void updateParticles(float dt) {
-    	RenderEngine.instance.updateParticles(dt);
     }
 
     private void updateControls(float dt) {

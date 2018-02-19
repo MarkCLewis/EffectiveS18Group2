@@ -11,6 +11,7 @@ import static org.lwjgl.stb.STBImage.stbi_failure_reason;
 import static org.lwjgl.stb.STBImage.stbi_image_free;
 import static org.lwjgl.stb.STBImage.stbi_info_from_memory;
 import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
+import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memAddress;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ import org.joml.GeometryUtils;
 import org.joml.Intersectiond;
 import org.joml.Intersectionf;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.joml.Vector4d;
@@ -36,13 +38,261 @@ import javafx.scene.shape.TriangleMesh;
 
 public class RenderEngine {
 	/* Controls frame buffers and rendering calculations for display */
-	public static final RenderEngine instance = new RenderEngine();
-	
-	private RenderEngine() {
-		this.init();
+	private static class RenderEngineLoader {
+		private static final RenderEngine INSTANCE = new RenderEngine();
 	}
 	
-	private Camera activeCam;
+	private RenderEngine() throws AssertionError, IllegalStateException {
+		if(RenderEngineLoader.INSTANCE != null) {
+			throw new IllegalStateException("Already instantiated");
+		}
+		else {
+			this.init();
+		}
+	}
+	
+	public static RenderEngine getInstance() {
+		return RenderEngineLoader.INSTANCE;
+	}
+	
+	private static class Camera {
+		private float maxLinearVel = 200.0f;
+		public Vector3f linearAcc = new Vector3f();
+	    public Vector3f linearVel = new Vector3f();
+	    public float linearDamping = 0.08f;
+	    /** ALWAYS rotation about the local XYZ axes of the camera! */
+	    public Vector3f angularAcc = new Vector3f();
+	    public Vector3f angularVel = new Vector3f();
+	    public float angularDamping = 0.5f;
+
+	    public Vector3d position = new Vector3d(0, 0, 10);
+	    public Quaternionf rotation = new Quaternionf();
+
+	    public Camera update(float dt) {
+	        // update linear velocity based on linear acceleration
+	        linearVel.fma(dt, linearAcc);
+	        // update angular velocity based on angular acceleration
+	        angularVel.fma(dt, angularAcc);
+	        // update the rotation based on the angular velocity
+	        rotation.integrate(dt, angularVel.x, angularVel.y, angularVel.z);
+	        angularVel.mul(1.0f - angularDamping * dt);
+	        // update position based on linear velocity
+	        position.fma(dt, linearVel);
+	        linearVel.mul(1.0f - linearDamping * dt);
+	        return this;
+	    }
+	    public Vector3f right(Vector3f dest) {
+	        return rotation.positiveX(dest);
+	    }
+	    public Vector3f up(Vector3f dest) {
+	        return rotation.positiveY(dest);
+	    }
+	    public Vector3f forward(Vector3f dest) {
+	        return rotation.positiveZ(dest).negate();
+	    }
+	    public float getMaxLinearVelocity() {
+	    	return maxLinearVel;
+	    }
+	}
+
+	private static class Display {
+		private static class Input {
+			private boolean[] keyDown = new boolean[GLFW.GLFW_KEY_LAST];
+		    private boolean leftMouseDown = false;
+		    private boolean rightMouseDown = false;
+		    private float mouseX = 0.0f;
+		    private float mouseY = 0.0f;
+		    
+		    private Display parentDisplay;
+			
+			private GLFWKeyCallback keyCallback;
+		    
+		    private GLFWCursorPosCallback cpCallback;
+		    
+		    private GLFWMouseButtonCallback mbCallback;
+		    
+		    public Input(Display d) {
+		    	parentDisplay = d;
+		    	init();
+		    }
+		    
+			private void init() {
+				System.out.println("Press W/S to move forward/backward");
+		        System.out.println("Press L.Ctrl/Spacebar to move down/up");
+		        System.out.println("Press A/D to strafe left/right");
+		        System.out.println("Press Q/E to roll left/right");
+		        System.out.println("Hold the left mouse button to shoot");
+		        System.out.println("Hold the right mouse button to rotate towards the mouse cursor");
+		        keyCallback = new GLFWKeyCallback() {
+		            public void invoke(long window, int key, int scancode, int action, int mods) {
+		                if (key == GLFW_KEY_UNKNOWN) 
+		                    return;
+		                if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+		                    glfwSetWindowShouldClose(window, true);
+		                }
+		                if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+		                    keyDown[key] = true;
+		                } else {
+		                    keyDown[key] = false;
+		                }
+		            }
+		        };
+		        cpCallback = new GLFWCursorPosCallback() {
+		            public void invoke(long window, double xpos, double ypos) {
+		                float normX = (float) ((xpos - parentDisplay.getWidth()/2.0) / parentDisplay.getWidth() * 2.0);
+		                float normY = (float) ((ypos - parentDisplay.getHeight()/2.0) / parentDisplay.getHeight() * 2.0);
+		                mouseX = Math.max(-parentDisplay.getWidth()/2.0f, Math.min(parentDisplay.getWidth()/2.0f, normX));
+		                mouseY = Math.max(-parentDisplay.getHeight()/2.0f, Math.min(parentDisplay.getHeight()/2.0f, normY));
+		            }
+		        };
+		        mbCallback = new GLFWMouseButtonCallback() {
+		            public void invoke(long window, int button, int action, int mods) {
+		                if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		                    if (action == GLFW_PRESS)
+		                        leftMouseDown = true;
+		                    else if (action == GLFW_RELEASE)
+		                        leftMouseDown = false;
+		                } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		                    if (action == GLFW_PRESS)
+		                        rightMouseDown = true;
+		                    else if (action == GLFW_RELEASE)
+		                        rightMouseDown = false;
+		                }
+		            }
+		        };
+		        glfwSetKeyCallback(parentDisplay.getWindow(), keyCallback);
+		        glfwSetCursorPosCallback(parentDisplay.getWindow(), cpCallback);
+		        glfwSetMouseButtonCallback(parentDisplay.getWindow(), mbCallback);
+			}
+			
+			private void close() {
+				keyCallback.free();
+				cpCallback.free();
+				mbCallback.free();
+			}
+			
+			public void update(float dt) {
+				RenderEngine.getInstance().stabilizeCamera();
+				Camera camRef = RenderEngine.getInstance().getCamera();
+				float rotZ = 0.0f;
+		        if (keyDown[GLFW_KEY_W]) {
+		            // TODO: move forward
+		        }
+		        if (keyDown[GLFW_KEY_S]) {
+		            // TODO: move backward
+		        }
+		        if (keyDown[GLFW_KEY_D]) {
+		        	// TODO: move right
+		            // example: cam.linearAcc.fma(straveThrusterAccFactor, cam.right(tmp2));
+		        }
+		        if (keyDown[GLFW_KEY_A]) {
+		        	// TODO: move left
+		            // example: cam.linearAcc.fma(-straveThrusterAccFactor, cam.right(tmp2));
+		        }
+		        if (keyDown[GLFW_KEY_Q]) {
+		            rotZ = -1.0f;
+		        }
+		        if (keyDown[GLFW_KEY_E]) {
+		            rotZ = +1.0f;
+		        }
+		        if (keyDown[GLFW_KEY_SPACE]) {
+		            // TODO: jump?
+		        }
+		        if (keyDown[GLFW_KEY_LEFT_CONTROL]) {
+		            // TODO
+		        }
+		        if (rightMouseDown) {
+		            camRef.angularAcc.set(2.0f*mouseY*mouseY*mouseY, 2.0f*mouseX*mouseX*mouseX, rotZ);
+		        }
+		        else if (!rightMouseDown) {
+		            camRef.angularAcc.set(0, 0, rotZ);
+		        }
+		        double linearVelAbs = camRef.linearVel.length();
+		        if (linearVelAbs > camRef.getMaxLinearVelocity()) {
+		            camRef.linearVel.normalize().mul(camRef.getMaxLinearVelocity());
+		        }
+			}
+		}
+		
+		private long window = NULL;
+		private long monitor = NULL;
+		private boolean windowed = true;
+	    private int width = 800;
+	    private int height = 600;
+	    
+	    private GLFWVidMode vidMode;
+	    
+	    private GLFWWindowSizeCallback wsCallback;
+	    
+	    private void init() throws AssertionError{
+	    	monitor = glfwGetPrimaryMonitor();
+	        vidMode = glfwGetVideoMode(monitor);
+	        if (!windowed) {
+	            width = vidMode.width();
+	            height = vidMode.height();
+	            RenderEngine.getInstance().setFBWidth(width);
+	            RenderEngine.getInstance().setFBHeight(height);
+	        }
+	    	window = glfwCreateWindow(width, height, Game.title, !windowed ? monitor : 0L, NULL);
+	        if (window == NULL) {
+	            throw new AssertionError("Failed to create the GLFW window");
+	        }
+	        glfwDefaultWindowHints();
+	        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+	        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	        glfwWindowHint(GLFW_SAMPLES, 4);
+	        
+	        wsCallback = new GLFWWindowSizeCallback() {
+	            public void invoke(long window, int _width, int _height) {
+	                if (_width > 0 && _height > 0 && (width != _width || height != _height)) {
+	                    width = _width;
+	                    height = _height;
+	                }
+	            }
+	        };
+	        
+	        glfwSetWindowSizeCallback(window, wsCallback);
+
+	        glfwMakeContextCurrent(window);
+	        glfwSwapInterval(0);
+	        glfwShowWindow(window);
+	    }
+	    
+	    public void close() {
+	    	wsCallback.free();
+	    	glfwDestroyWindow(window);
+	    }
+	    
+	    public void update(float dt) {
+	    	// TODO
+	    	//RenderEngine.instance.update(dt);
+	    }
+	    
+	    public boolean isWindowed() {
+	    	return windowed;
+	    }
+	    
+	    public int getWidth() {
+	    	return width;
+	    }
+	    
+	    public int getHeight() {
+	    	return height;
+	    }
+	    
+	    public long getWindow() throws AssertionError {
+	    	return window;
+	    }
+	    
+	    public long getMonitor() throws AssertionError {
+	    	return monitor;
+	    }
+	}
+	
+	private long lastTime = System.nanoTime();
+	
+	private Camera camera;
+	private Display display;
 	
 	private int fbWidth = 800;
     private int fbHeight = 600;
@@ -112,12 +362,11 @@ public class RenderEngine {
     }
     
     private void init() throws AssertionError {
-    	Display d = Display.instance;
-    	
-    	activeCam = new Camera();
+    	camera = new Camera();
+    	display = new Display();
     	
     	frameBufferSize = BufferUtils.createIntBuffer(2);
-        nglfwGetFramebufferSize(d.getWindow(), memAddress(frameBufferSize), memAddress(frameBufferSize) + 4);
+        nglfwGetFramebufferSize(display.getWindow(), memAddress(frameBufferSize), memAddress(frameBufferSize) + 4);
         fbWidth = frameBufferSize.get(0);
         fbHeight = frameBufferSize.get(1);
         
@@ -151,12 +400,19 @@ public class RenderEngine {
 	            }
 	        }
 	    };
-        glfwSetFramebufferSizeCallback(d.getWindow(), fbCallback);
+        glfwSetFramebufferSizeCallback(display.getWindow(), fbCallback);
         
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        
+        /* Create all needed GL resources */
+        createCubemapTexture();
+        createFullScreenQuad();
+        createCubemapProgram();
+        createParticleProgram();
+        createSphere();
     }
     
     public void close() {
@@ -166,27 +422,31 @@ public class RenderEngine {
     	fbCallback.free();
     }
     
-    public void update(float dt) {
-    	activeCam.update(dt);
-    	projMatrix.setPerspective((float) Math.toRadians(40.0f), (float) (Display.instance.getWidth() / Display.instance.getHeight()), 0.1f, 5000.0f);
-        (viewMatrix.set(activeCam.rotation)).invert(invViewMatrix);
+    public void update() {
+    	long thisTime = System.nanoTime();
+    	float dt = (thisTime - lastTime) / 1E9f;
+    	lastTime = thisTime;
+    	camera.update(dt);
+    	projMatrix.setPerspective((float) Math.toRadians(40.0f), (float) (display.getWidth() / display.getHeight()), 0.1f, 5000.0f);
+        (viewMatrix.set(camera.rotation)).invert(invViewMatrix);
         viewProjMatrix.set(projMatrix).mul(viewMatrix).invert(invViewProjMatrix);
         frustumIntersection.set(viewProjMatrix);
         /* Update the background shader */
-        glUseProgram(Game.instance.getCubemapProgram());
-        glUniformMatrix4fv(Game.instance.getCubemapInvViewProjUniform(), false, invViewProjMatrix.get(matrixBuffer));
+        glUseProgram(cubemapProgram);
+        glUniformMatrix4fv(cubemap_invViewProjUniform, false, invViewProjMatrix.get(matrixBuffer));
 
         /* Update the particle shader */
-        glUseProgram(Game.instance.getParticleProgram());
-        glUniformMatrix4fv(Game.instance.getParticleProjUniform(), false, matrixBuffer);
+        glUseProgram(particleProgram);
+        glUniformMatrix4fv(particle_projUniform, false, matrixBuffer);
+        updateParticles(dt);
     }
     
     public Camera getCamera() {
-    	return activeCam;
+    	return camera;
     }
     
     public void stabilizeCamera() {
-    	activeCam.linearAcc.zero();
+    	camera.linearAcc.zero();
     }
     
     private void drawCubemap() {
@@ -205,7 +465,7 @@ public class RenderEngine {
                 float x = (float) (particlePosition.x - RenderEngine.instance.getCamera().position.x);
                 float y = (float) (particlePosition.y - RenderEngine.instance.getCamera().position.y);
                 float z = (float) (particlePosition.z - RenderEngine.instance.getCamera().position.z);
-                if (RenderEngine.instance.getFrustumIntersection().testPoint(x, y, z)) {
+                if (frustumIntersection.testPoint(x, y, z)) {
                     float w = (float) particleVelocity.w;
                     viewMatrix.transformPosition(tmp2.set(x, y, z));
                     particleVertices.put(tmp2.x - particleSize).put(tmp2.y - particleSize).put(tmp2.z).put(w).put(-1).put(-1);
