@@ -36,73 +36,27 @@ public class Game {
 	 * This class is a singleton
 	 * No public constructors are provided
 	 * 
-	 * Access class members by referencing Game.instance
 	 */
 
 	public static final String title = "VirtualWorld";
 	/* Singleton instance is null initially */
-	public static final Game instance = new Game();
+	private static final Game INSTANCE = new Game();
+	
+	public static Game getInstance() {
+		return Game.INSTANCE;
+	}
 	
 	private Game() {
-		try {
-			this.init();
-    	} catch (IOException e) {
-    		System.out.println(e.toString());
-    	}
+		this.init();
     }
 
-	
-
-	/* --------
-	 * Private Methods
-	 * --------
-	 */
-
-    private void init() throws IOException, IllegalStateException {
-        if (!glfwInit()) {
-            throw new IllegalStateException("Unable to initialize GLFW");
-        }
-        
+    private void init() {
+    	/* Initialize the RenderEngine implicitly */
+        RenderEngine.getInstance();
     }
-
-    private void update() {
-        RenderEngine.instance.update();
-        updateControls(dt);
-    }
-
-    private void updateControls(float dt) {
-        Input.instance.update(dt);
-    }
-
-    private void loop() {
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-            glViewport(0, 0, fbWidth, fbHeight);
-            update();
-            render();
-            glfwSwapBuffers(window);
-        }
-    }
-
+    
     private void run() {
-        try {
-            init();
-            loop();
-
-            if (debugProc != null)
-                debugProc.free();
-
-            keyCallback.free();
-            cpCallback.free();
-            mbCallback.free();
-            fbCallback.free();
-            wsCallback.free();
-            glfwDestroyWindow(window);
-        } catch (Throwable t) {
-            t.printStackTrace();
-        } finally {
-            glfwTerminate();
-        }
+        RenderEngine.getInstance().run();
     }
 
 }

@@ -39,10 +39,18 @@ import javafx.scene.shape.TriangleMesh;
 public class RenderEngine {
 	/* Controls frame buffers and rendering calculations for display */
 	private static class RenderEngineLoader {
-		private static final RenderEngine INSTANCE = new RenderEngine();
+		/* Lazily instantiate the RenderEngine */
+		private static final RenderEngine INSTANCE;
+		static {
+			try {
+				INSTANCE = new RenderEngine();
+			} catch (Exception e) {
+				throw new ExceptionInInitializerError(e);
+			}
+		}
 	}
 	
-	private RenderEngine() throws AssertionError, IllegalStateException {
+	private RenderEngine() throws IOException, AssertionError, IllegalStateException {
 		if(RenderEngineLoader.INSTANCE != null) {
 			throw new IllegalStateException("Already instantiated");
 		}
@@ -52,6 +60,9 @@ public class RenderEngine {
 	}
 	
 	public static RenderEngine getInstance() {
+		/* the first time this is called, the RenderEngine will
+		 * be instantiated.
+		 * */
 		return RenderEngineLoader.INSTANCE;
 	}
 	
@@ -224,6 +235,13 @@ public class RenderEngine {
 	    
 	    private GLFWWindowSizeCallback wsCallback;
 	    
+	    private Input input;
+	    
+	    public Display() {
+	    	this.init();
+	    	input = new Input(this);
+	    }
+	    
 	    private void init() throws AssertionError{
 	    	monitor = glfwGetPrimaryMonitor();
 	        vidMode = glfwGetVideoMode(monitor);
@@ -260,6 +278,7 @@ public class RenderEngine {
 	    
 	    public void close() {
 	    	wsCallback.free();
+	    	input.close();
 	    	glfwDestroyWindow(window);
 	    }
 	    
@@ -361,7 +380,10 @@ public class RenderEngine {
     	return caps;
     }
     
-    private void init() throws AssertionError {
+    private void init() throws AssertionError, IOException, IllegalStateException {
+    	if (!glfwInit()) {
+            throw new IllegalStateException("Unable to initialize GLFW");
+        }
     	camera = new Camera();
     	display = new Display();
     	
@@ -420,6 +442,19 @@ public class RenderEngine {
     		debugProc.free();
     	}
     	fbCallback.free();
+    	
+    	display.close();
+    }
+    
+    public void run() {
+    	try {
+            init();
+            loop();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        } finally {
+            glfwTerminate();
+        }
     }
     
     public void update() {
@@ -439,6 +474,7 @@ public class RenderEngine {
         glUseProgram(particleProgram);
         glUniformMatrix4fv(particle_projUniform, false, matrixBuffer);
         updateParticles(dt);
+        display.input.update(dt);
     }
     
     public Camera getCamera() {
@@ -462,9 +498,9 @@ public class RenderEngine {
             Vector3d particlePosition = particlePositions[i];
             Vector4d particleVelocity = particleVelocities[i];
             if (particleVelocity.w > 0.0f) {
-                float x = (float) (particlePosition.x - RenderEngine.instance.getCamera().position.x);
-                float y = (float) (particlePosition.y - RenderEngine.instance.getCamera().position.y);
-                float z = (float) (particlePosition.z - RenderEngine.instance.getCamera().position.z);
+                float x = (float) (particlePosition.x - camera.position.x);
+                float y = (float) (particlePosition.y - camera.position.y);
+                float z = (float) (particlePosition.z - camera.position.z);
                 if (frustumIntersection.testPoint(x, y, z)) {
                     float w = (float) particleVelocity.w;
                     viewMatrix.transformPosition(tmp2.set(x, y, z));
@@ -542,6 +578,16 @@ public class RenderEngine {
         }
     }
     
+    public void loop() {
+    	while (!glfwWindowShouldClose(display.getWindow())) {
+            glfwPollEvents();
+            glViewport(0, 0, fbWidth, fbHeight);
+            update();
+            render();
+            glfwSwapBuffers(display.getWindow());
+        }
+    }
+    
     private void createFullScreenQuad() {
         quadVertices = BufferUtils.createByteBuffer(4 * 2 * 6);
         FloatBuffer fv = quadVertices.asFloatBuffer();
@@ -558,7 +604,7 @@ public class RenderEngine {
         // TODO: set up sphere mesh
     }
     
-    private static int createShader(String resource, int type) throws IOException {
+    private static int createShader(String resource, int type) throws AssertionError, IOException {
         int shader = glCreateShader(type);
         ByteBuffer source = Utils.ioResourceToByteBuffer(resource, 1024);
         PointerBuffer strings = BufferUtils.createPointerBuffer(1);
@@ -620,7 +666,7 @@ public class RenderEngine {
         int tex = glGenTextures();
         glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        ByteBuffer imageBuffer;
+        ByteBuffer pixelBuffer;
         IntBuffer w = BufferUtils.createIntBuffer(1);
         IntBuffer h = BufferUtils.createIntBuffer(1);
         IntBuffer comp = BufferUtils.createIntBuffer(1);
@@ -629,16 +675,19 @@ public class RenderEngine {
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_GENERATE_MIPMAP, GL_TRUE);
         for (int i = 0; i < 6; i++) {
-            imageBuffer = Utils.ioResourceToByteBuffer("org/lwjgl/demo/space_" + names[i] + (i + 1) + ".jpg", 8 * 1024);
-            if (!stbi_info_from_memory(imageBuffer, w, h, comp))
-                throw new IOException("Failed to read image information: " + stbi_failure_reason());
-            image = stbi_load_from_memory(imageBuffer, w, h, comp, 0);
-            if (image == null)
-                throw new IOException("Failed to load image: " + stbi_failure_reason());
+        	// TODO: take in some pixel data from other code for generating textures
+            pixelBuffer = ByteBuffer.allocate(8 * 1024);
+            if (!stbi_info_from_memory(pixelBuffer, w, h, comp)) {
+                throw new IOException("Failed to transfer pixel buffer into memory: " + stbi_failure_reason());
+            }
+            image = stbi_load_from_memory(pixelBuffer, w, h, comp, 0);
+            if (image == null) {
+                throw new IOException("Failed to load pixel buffer from memory: " + stbi_failure_reason());
+            }
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8, w.get(0), h.get(0), 0, GL_RGB, GL_UNSIGNED_BYTE, image);
             stbi_image_free(image);
         }
-        if (RenderEngine.instance.getCaps().OpenGL32 || RenderEngine.instance.getCaps().GL_ARB_seamless_cube_map) {
+        if (getCaps().OpenGL32 || getCaps().GL_ARB_seamless_cube_map) {
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         }
     }
