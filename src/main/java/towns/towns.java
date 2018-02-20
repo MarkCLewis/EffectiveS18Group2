@@ -17,7 +17,7 @@ public class Towns {
 	public static Town(Pair<Double, Double> cent, Double rad) {
 		radius= rad;
 		center= cent;
-		middle= GenerateCenters(center, radius); 
+		double [] middle= GenerateCenters(center, radius); 
 		Shopscenter= middle[0];
 		Housecenter= middle [1];
 		Parkcenter= middle [2];
