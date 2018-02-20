@@ -20,9 +20,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.joml.FrustumIntersection;
-import org.joml.GeometryUtils;
-import org.joml.Intersectiond;
-import org.joml.Intersectionf;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3d;
@@ -33,8 +30,6 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
-
-import javafx.scene.shape.TriangleMesh;
 
 public class RenderEngine {
 	/* Controls frame buffers and rendering calculations for display */
@@ -68,18 +63,18 @@ public class RenderEngine {
 	
 	private static class Camera {
 		private float maxLinearVel = 200.0f;
-		public Vector3f linearAcc = new Vector3f();
-	    public Vector3f linearVel = new Vector3f();
-	    public float linearDamping = 0.08f;
+		private Vector3f linearAcc = new Vector3f();
+	    private Vector3f linearVel = new Vector3f();
+	    private float linearDamping = 0.08f;
 	    /** ALWAYS rotation about the local XYZ axes of the camera! */
-	    public Vector3f angularAcc = new Vector3f();
-	    public Vector3f angularVel = new Vector3f();
-	    public float angularDamping = 0.5f;
+	    private Vector3f angularAcc = new Vector3f();
+	    private Vector3f angularVel = new Vector3f();
+	    private float angularDamping = 0.5f;
 
-	    public Vector3d position = new Vector3d(0, 0, 10);
-	    public Quaternionf rotation = new Quaternionf();
+	    private Vector3d position = new Vector3d(0, 0, 10);
+	    private Quaternionf rotation = new Quaternionf();
 
-	    public Camera update(float dt) {
+	    private Camera update(float dt) {
 	        // update linear velocity based on linear acceleration
 	        linearVel.fma(dt, linearAcc);
 	        // update angular velocity based on angular acceleration
@@ -171,9 +166,9 @@ public class RenderEngine {
 		                }
 		            }
 		        };
-		        glfwSetKeyCallback(getWindow(), keyCallback);
-		        glfwSetCursorPosCallback(getWindow(), cpCallback);
-		        glfwSetMouseButtonCallback(getWindow(), mbCallback);
+		        glfwSetKeyCallback(window, keyCallback);
+		        glfwSetCursorPosCallback(window, cpCallback);
+		        glfwSetMouseButtonCallback(window, mbCallback);
 			}
 			
 			private void close() {
@@ -293,7 +288,7 @@ public class RenderEngine {
 	    	glfwDestroyWindow(window);
 	    }
 	    
-	    public void updateInput(float dt) {
+	    private void updateInput(float dt) {
 	    	input.update(dt);
 	    }
 	    
@@ -307,14 +302,6 @@ public class RenderEngine {
 	    
 	    public int getHeight() {
 	    	return height;
-	    }
-	    
-	    public long getWindow() {
-	    	return window;
-	    }
-	    
-	    public long getMonitor() {
-	    	return monitor;
 	    }
 	}
 	
@@ -330,11 +317,8 @@ public class RenderEngine {
     private GLCapabilities caps;
     private Callback debugProc;
     
-    private Vector3d tmp;
     private Vector3d newPosition;
-    private Vector3f tmp2;
-    private Vector3f tmp3;
-    private Vector3f tmp4;
+    private Vector3f tmpVec;
     private Matrix4f projMatrix;
     private Matrix4f viewMatrix;
     private Matrix4f modelMatrix;
@@ -354,7 +338,6 @@ public class RenderEngine {
     private static float particleSize = 1.0f;
     private static final int maxParticles = 4096;
     private ByteBuffer quadVertices;
-    private TriangleMesh sphere;
     private Vector3d[] particlePositions = new Vector3d[maxParticles];
     private Vector4d[] particleVelocities = new Vector4d[maxParticles];
     {
@@ -366,7 +349,6 @@ public class RenderEngine {
         }
     }
     private FloatBuffer particleVertices = BufferUtils.createFloatBuffer(6 * 6 * maxParticles);
-    private ByteBuffer charBuffer = BufferUtils.createByteBuffer(16 * 270);
     
     public int getFBWidth() {
     	return fbWidth;
@@ -396,7 +378,7 @@ public class RenderEngine {
     	display = new Display();
     	
     	frameBufferSize = BufferUtils.createIntBuffer(2);
-        nglfwGetFramebufferSize(display.getWindow(), memAddress(frameBufferSize), memAddress(frameBufferSize) + 4);
+        nglfwGetFramebufferSize(display.window, memAddress(frameBufferSize), memAddress(frameBufferSize) + 4);
         fbWidth = frameBufferSize.get(0);
         fbHeight = frameBufferSize.get(1);
         
@@ -405,11 +387,8 @@ public class RenderEngine {
             throw new AssertionError("This demo requires OpenGL 2.0.");
         }
         
-        tmp = new Vector3d();
 	    newPosition = new Vector3d();
-	    tmp2 = new Vector3f();
-	    tmp3 = new Vector3f();
-	    tmp4 = new Vector3f();
+	    tmpVec = new Vector3f();
 	    projMatrix = new Matrix4f();
 	    viewMatrix = new Matrix4f();
 	    modelMatrix = new Matrix4f();
@@ -422,11 +401,10 @@ public class RenderEngine {
         debugProc = GLUtil.setupDebugMessageCallback();
         
         /* Create all needed GL resources */
-        createCubemapTexture();
+        //createCubemapTexture();
         createFullScreenQuad();
         createCubemapProgram();
         createParticleProgram();
-        createSphere();
         
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnable(GL_DEPTH_TEST);
@@ -490,13 +468,13 @@ public class RenderEngine {
                 float z = (float) (particlePosition.z - camera.position.z);
                 if (frustumIntersection.testPoint(x, y, z)) {
                     float w = (float) particleVelocity.w;
-                    viewMatrix.transformPosition(tmp2.set(x, y, z));
-                    particleVertices.put(tmp2.x - particleSize).put(tmp2.y - particleSize).put(tmp2.z).put(w).put(-1).put(-1);
-                    particleVertices.put(tmp2.x + particleSize).put(tmp2.y - particleSize).put(tmp2.z).put(w).put( 1).put(-1);
-                    particleVertices.put(tmp2.x + particleSize).put(tmp2.y + particleSize).put(tmp2.z).put(w).put( 1).put( 1);
-                    particleVertices.put(tmp2.x + particleSize).put(tmp2.y + particleSize).put(tmp2.z).put(w).put( 1).put( 1);
-                    particleVertices.put(tmp2.x - particleSize).put(tmp2.y + particleSize).put(tmp2.z).put(w).put(-1).put( 1);
-                    particleVertices.put(tmp2.x - particleSize).put(tmp2.y - particleSize).put(tmp2.z).put(w).put(-1).put(-1);
+                    viewMatrix.transformPosition(tmpVec.set(x, y, z));
+                    particleVertices.put(tmpVec.x - particleSize).put(tmpVec.y - particleSize).put(tmpVec.z).put(w).put(-1).put(-1);
+                    particleVertices.put(tmpVec.x + particleSize).put(tmpVec.y - particleSize).put(tmpVec.z).put(w).put( 1).put(-1);
+                    particleVertices.put(tmpVec.x + particleSize).put(tmpVec.y + particleSize).put(tmpVec.z).put(w).put( 1).put( 1);
+                    particleVertices.put(tmpVec.x + particleSize).put(tmpVec.y + particleSize).put(tmpVec.z).put(w).put( 1).put( 1);
+                    particleVertices.put(tmpVec.x - particleSize).put(tmpVec.y + particleSize).put(tmpVec.z).put(w).put(-1).put( 1);
+                    particleVertices.put(tmpVec.x - particleSize).put(tmpVec.y - particleSize).put(tmpVec.z).put(w).put(-1).put(-1);
                     num++;
                 }
             }
@@ -535,12 +513,12 @@ public class RenderEngine {
     }
     
     public void loop() {
-    	while (!glfwWindowShouldClose(display.getWindow())) {
+    	while (!glfwWindowShouldClose(display.window)) {
             glfwPollEvents();
             glViewport(0, 0, fbWidth, fbHeight);
             update();
             render();
-            glfwSwapBuffers(display.getWindow());
+            glfwSwapBuffers(display.window);
         }
     }
     
@@ -553,11 +531,6 @@ public class RenderEngine {
         fv.put( 1.0f).put( 1.0f);
         fv.put(-1.0f).put( 1.0f);
         fv.put(-1.0f).put(-1.0f);
-    }
-    
-    private void createSphere() throws IOException {
-        sphere = new TriangleMesh();
-        // TODO: set up sphere mesh
     }
     
     private static int createShader(String resource, int type) throws AssertionError, IOException {
@@ -597,8 +570,8 @@ public class RenderEngine {
     }
 
     private void createCubemapProgram() throws IOException {
-        int vshader = createShader("org/lwjgl/demo/game/cubemap.vs", GL_VERTEX_SHADER);
-        int fshader = createShader("org/lwjgl/demo/game/cubemap.fs", GL_FRAGMENT_SHADER);
+        int vshader = createShader("cubemap.vs", GL_VERTEX_SHADER);
+        int fshader = createShader("cubemap.fs", GL_FRAGMENT_SHADER);
         int program = createProgram(vshader, fshader);
         glUseProgram(program);
         int texLocation = glGetUniformLocation(program, "tex");
@@ -609,8 +582,8 @@ public class RenderEngine {
     }
 
     private void createParticleProgram() throws IOException {
-        int vshader = createShader("org/lwjgl/demo/game/particle.vs", GL_VERTEX_SHADER);
-        int fshader = createShader("org/lwjgl/demo/game/particle.fs", GL_FRAGMENT_SHADER);
+        int vshader = createShader("particle.vs", GL_VERTEX_SHADER);
+        int fshader = createShader("particle.fs", GL_FRAGMENT_SHADER);
         int program = createProgram(vshader, fshader);
         glUseProgram(program);
         particle_projUniform = glGetUniformLocation(program, "proj");
@@ -626,7 +599,6 @@ public class RenderEngine {
         IntBuffer w = BufferUtils.createIntBuffer(1);
         IntBuffer h = BufferUtils.createIntBuffer(1);
         IntBuffer comp = BufferUtils.createIntBuffer(1);
-        String[] names = { "right", "left", "top", "bottom", "front", "back" };
         ByteBuffer image;
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_GENERATE_MIPMAP, GL_TRUE);
