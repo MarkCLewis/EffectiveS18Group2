@@ -4,7 +4,8 @@
 
 Graphics: Kayla  
 Terrain: Ian  
-Water: Ben  
+Water: Ben
+WorldManager: Ben
 Trees: Caroline  
 Roads: Amira  
 Cities: Brian  
