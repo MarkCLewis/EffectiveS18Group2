@@ -6,5 +6,10 @@ public class Sheep {
 		// TODO Auto-generated method stub
 
 	}
+	public Sheep(int width, int length, int height) {
+		int w = width;
+		int l = length;
+		int h = height;
+	}
 
 }
