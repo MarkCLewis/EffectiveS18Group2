@@ -31,12 +31,29 @@ public class Node {
 		return terrain.getCenter();
 	}
 	
-	public Node findCamera() {
-		Node current = this;
-		while(current.parent != null) {
-			current = current.parent;
+	//find out what position of camera uses
+	public Node findCamera(Pair<Double,Double> target) {
+		Node currNode = this;
+		while(currNode.center() != target) {
+			Pair<Double,Double> currcenter = currNode.center();
+			if (currcenter.getRight() > target.getRight()) {
+				if (currcenter.getLeft() > target.getLeft()) {
+					currNode = children[0];
+				}
+				else if (currcenter.getLeft() < target.getLeft()) {
+					currNode = children[1];
+				}
+			}
+			else if (currcenter.getLeft() < target.getLeft()) {
+				if (currcenter.getLeft() > target.getLeft()) {
+					currNode = children[2];
+				}
+				else if (currcenter.getLeft() < target.getLeft()) {
+					currNode = children[3];
+				}
+			}
 		}
-		return current;
+		return currNode;
 	}
 	
 	// Function to split into sectors and save as children
