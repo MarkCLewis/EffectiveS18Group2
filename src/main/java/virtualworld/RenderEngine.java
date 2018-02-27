@@ -421,7 +421,6 @@ public class RenderEngine {
     
     public void run() {
     	try {
-            init();
             loop();
         } catch (Throwable t) {
             t.printStackTrace();
