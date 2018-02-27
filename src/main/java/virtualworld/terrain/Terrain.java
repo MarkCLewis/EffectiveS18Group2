@@ -10,8 +10,9 @@ public class Terrain {
 		
 		for (double[] a : render) {
 			for (double height : a) {
-				System.out.println(height);
+				System.out.print(height + " ");
 			}
+			System.out.print("\n");
 		}
 	    
 	}
@@ -72,17 +73,31 @@ public class Terrain {
     	
     	double[][] generatedY = new double[sides][sides];
     	
-    	generatedY[0][0] = 0.5;
+    	generatedY[0][0] = 0.25;
     	
     	//int j = 0;
     	//int k = 0;
     	
-    	double yOffset = (center.getLeft() - length/2) / 100;
+    	double yOffset = (center.getLeft() - length/2) / 10;
     	for (int r = 0; r < sides; r++) {
-    		double xOffset = (center.getRight() + length/2);
+    		double xOffset = (center.getRight() + length/2) / 10;
     		for (int c = 0; c < sides; c++) {
-    			generatedY[r][c] = perlNoise.noise2D(xOffset, yOffset) * 10;
-    			xOffset += 0.1;
+    			if (c == 0) {
+    				if (r != 0) {
+    					generatedY[r][c] = perlNoise.noise2D(xOffset, generatedY[r-1][c])  *10;
+    					xOffset += 0.1;
+    				}
+    			} else if (r == 0){
+    				if (c != 0) {
+    					generatedY[r][c] = perlNoise.noise2D(xOffset, generatedY[r][c-1])  *10;
+    					xOffset += 0.1;
+    				}
+    			}
+    			else if (c != 0 && r != 0) {
+    				generatedY[r][c] = ((perlNoise.noise2D(xOffset, generatedY[r][c-1]) + perlNoise.noise2D(xOffset, generatedY[r-1][c])) / 2) *10;
+    				xOffset += 0.1;
+    				System.out.println(generatedY[r][c]);
+    			}
     		}
     		yOffset += 0.1;
     	}
