@@ -21,6 +21,7 @@ public class Node {
 		parent = p;
 	}
 	
+	//may never be needed because of split function, but keeping for possible unforeseen use cases
 	public void updateChild(Node[] c) {
 		children = c;
 	}
@@ -38,9 +39,15 @@ public class Node {
 		return current;
 	}
 	
-	// Function to split. Recommended by Ian.
-	// Will talk later to see what the functionality for it he had in mind was as Terrain already has a similar function.
+	// Function to split into sectors and save as children
 	private void split() {
-		//TODO
+		Terrain[] terrs = terrain.split();
+		Node [] temp = new Node[terrs.length];
+		for (int i = 0; i < terrs.length; i++) {
+			Node newNode = new Node(terrs[i]);
+			newNode.updateParent(this);
+			temp[i] = newNode;
+		}
+		children = temp;
 	}
 }
