@@ -130,7 +130,8 @@ public class RenderEngine {
 		        System.out.println("Hold the left mouse button to shoot");
 		        System.out.println("Hold the right mouse button to rotate towards the mouse cursor");
 		        keyCallback = new GLFWKeyCallback() {
-		            public void invoke(long window, int key, int scancode, int action, int mods) {
+		            @Override
+					public void invoke(long window, int key, int scancode, int action, int mods) {
 		                if (key == GLFW_KEY_UNKNOWN) 
 		                    return;
 		                if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
@@ -144,7 +145,8 @@ public class RenderEngine {
 		            }
 		        };
 		        cpCallback = new GLFWCursorPosCallback() {
-		            public void invoke(long window, double xpos, double ypos) {
+		            @Override
+					public void invoke(long window, double xpos, double ypos) {
 		                float normX = (float) ((xpos - getWidth()/2.0) / getWidth() * 2.0);
 		                float normY = (float) ((ypos - getHeight()/2.0) / getHeight() * 2.0);
 		                mouseX = Math.max(-getWidth()/2.0f, Math.min(getWidth()/2.0f, normX));
@@ -152,7 +154,8 @@ public class RenderEngine {
 		            }
 		        };
 		        mbCallback = new GLFWMouseButtonCallback() {
-		            public void invoke(long window, int button, int action, int mods) {
+		            @Override
+					public void invoke(long window, int button, int action, int mods) {
 		                if (button == GLFW_MOUSE_BUTTON_LEFT) {
 		                    if (action == GLFW_PRESS)
 		                        leftMouseDown = true;
@@ -256,7 +259,8 @@ public class RenderEngine {
 	        glfwWindowHint(GLFW_SAMPLES, 4);
 	        
 	        wsCallback = new GLFWWindowSizeCallback() {
-	            public void invoke(long window, int _width, int _height) {
+	            @Override
+				public void invoke(long window, int _width, int _height) {
 	                if (_width > 0 && _height > 0 && (width != _width || height != _height)) {
 	                    width = _width;
 	                    height = _height;
@@ -434,7 +438,7 @@ public class RenderEngine {
     	float dt = (thisTime - lastTime) / 1E9f;
     	lastTime = thisTime;
     	camera.update(dt);
-    	projMatrix.setPerspective((float) Math.toRadians(40.0f), (float) (display.getWidth() / display.getHeight()), 0.1f, 5000.0f);
+    	projMatrix.setPerspective((float) Math.toRadians(40.0f), display.getWidth() / display.getHeight(), 0.1f, 5000.0f);
         (viewMatrix.set(camera.rotation)).invert(invViewMatrix);
         viewProjMatrix.set(projMatrix).mul(viewMatrix).invert(invViewProjMatrix);
         frustumIntersection.set(viewProjMatrix);
