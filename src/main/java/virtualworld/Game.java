@@ -39,7 +39,7 @@ public class Game {
     }
     
     public void run() {
-        RenderEngine.getInstance().run();
+        RenderEngine.getInstance().start();
     }
 
 }

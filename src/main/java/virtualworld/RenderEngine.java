@@ -1,16 +1,10 @@
 package virtualworld;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.ARBSeamlessCubeMap.GL_TEXTURE_CUBE_MAP_SEAMLESS;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X;
-import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
+import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.stb.STBImage.stbi_failure_reason;
-import static org.lwjgl.stb.STBImage.stbi_image_free;
-import static org.lwjgl.stb.STBImage.stbi_info_from_memory;
-import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
+import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memAddress;
 
@@ -18,20 +12,20 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.charset.Charset;
 
 import org.joml.FrustumIntersection;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
-import org.joml.Vector4d;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
+import org.lwjgl.system.MemoryUtil;
 
-public class RenderEngine {
+public class RenderEngine implements Runnable {
 	/* Controls frame buffers and rendering calculations for display */
 	private static class RenderEngineLoader {
 		/* Lazily instantiate the RenderEngine */
@@ -50,7 +44,7 @@ public class RenderEngine {
 			throw new IllegalStateException("Already instantiated");
 		}
 		else {
-			this.init();
+			gameLoopThread = new Thread(this, "GAME_LOOP_THREAD");
 		}
 	}
 	
@@ -102,6 +96,72 @@ public class RenderEngine {
 	    public void stabilize() {
 	    	linearAcc.zero();
 	    }
+	}
+	
+	private class ShaderProgram {
+		private final int programId;
+		private int vertexShaderId;
+		private int fragmentShaderId;
+		
+		public ShaderProgram() throws Exception {
+			programId = glCreateProgram();
+			if (programId == 0) {
+				throw new Exception("Could not create Shader");
+			}
+		}
+		
+		public void createVertexShader(String shaderCode) throws Exception {
+			vertexShaderId = createShader(shaderCode, GL_VERTEX_SHADER);
+		}
+		
+		public void createFragmentShader(String shaderCode) throws Exception {
+			fragmentShaderId = createShader(shaderCode, GL_FRAGMENT_SHADER);
+		}
+		
+		private int createShader(String shaderCode, int shaderType) throws Exception {
+			int shaderId = glCreateShader(shaderType);
+			if (shaderId == 0) {
+				throw new Exception("Error creating shader. Type: " + shaderType);
+			}
+			glShaderSource(shaderId, shaderCode);
+			glCompileShader(shaderId);
+			if (glGetShaderi(shaderId, GL_COMPILE_STATUS) == 0) {
+				throw new Exception("Error compiling Shader code: " + glGetShaderInfoLog(shaderId, 1024));
+			}
+			glAttachShader(programId, shaderId);
+			return shaderId;
+		}
+		
+		public void link() throws Exception {
+			glLinkProgram(programId);
+			if (glGetProgrami(programId, GL_LINK_STATUS) == 0) {
+				throw new Exception("Error linking Shader code: " + glGetProgramInfoLog(programId, 1024));
+			}
+			if (vertexShaderId != 0) {
+				glDetachShader(programId, vertexShaderId);
+			}
+			if (fragmentShaderId != 0) {
+				glDetachShader(programId, fragmentShaderId);
+			}
+			glValidateProgram(programId);
+			if (glGetProgrami(programId, GL_VALIDATE_STATUS) == 0) {
+				System.err.println("Warning validating Shader code: " + glGetProgramInfoLog(programId, 1024));
+			}
+		}
+		public void bind() {
+			glUseProgram(programId);
+		}
+			
+		public void unbind() {
+			glUseProgram(0);
+		}
+		
+		public void close() {
+			unbind();
+			if (programId != 0) {
+				glDeleteProgram(programId);
+			}
+		}
 	}
 
 	private class Display {
@@ -249,15 +309,18 @@ public class RenderEngine {
 	            fbWidth = width;
 	            fbHeight = height;
 	        }
+	        glfwDefaultWindowHints();
+	        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+	        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	        glfwWindowHint(GLFW_SAMPLES, 4);
 	    	window = glfwCreateWindow(width, height, Game.title, !windowed ? monitor : 0L, NULL);
 	        if (window == NULL) {
 	            throw new AssertionError("Failed to create the GLFW window");
 	        }
-	        glfwDefaultWindowHints();
-	        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-	        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-	        glfwWindowHint(GLFW_SAMPLES, 4);
-	        
 	        wsCallback = new GLFWWindowSizeCallback() {
 	            @Override
 				public void invoke(long window, int _width, int _height) {
@@ -309,6 +372,9 @@ public class RenderEngine {
 	    }
 	}
 	
+	private Thread gameLoopThread;
+	
+	private long nanoSecsPerFrame = 20000000; // 50 frames per second
 	private long lastTime = System.nanoTime();
 	
 	private Camera camera;
@@ -321,39 +387,21 @@ public class RenderEngine {
     private GLCapabilities caps;
     private Callback debugProc;
     
-    private Vector3d newPosition;
-    private Vector3f tmpVec;
     private Matrix4f projMatrix;
     private Matrix4f viewMatrix;
-    private Matrix4f modelMatrix;
     private Matrix4f viewProjMatrix;
     private Matrix4f invViewMatrix;
     private Matrix4f invViewProjMatrix;
-    private FloatBuffer matrixBuffer;
+    private FloatBuffer verticesBuffer;
     private FrustumIntersection frustumIntersection;
     
-    private int cubemapProgram;
-    private int cubemap_invViewProjUniform;
-
-    private int particleProgram;
-    private int particle_projUniform;
-
-    private static float maxParticleLifetime = 1.0f;
-    private static float particleSize = 1.0f;
-    private static final int maxParticles = 4096;
     private ByteBuffer quadVertices;
-    private Vector3d[] particlePositions = new Vector3d[maxParticles];
-    private Vector4d[] particleVelocities = new Vector4d[maxParticles];
-    {
-        for (int i = 0; i < particlePositions.length; i++) {
-            Vector3d particlePosition = new Vector3d();
-            particlePositions[i] = particlePosition;
-            Vector4d particleVelocity = new Vector4d();
-            particleVelocities[i] = particleVelocity;
-        }
-    }
-    private FloatBuffer particleVertices = BufferUtils.createFloatBuffer(6 * 6 * maxParticles);
     
+    private int vaoId;
+    private int vboId;
+    
+    private ShaderProgram shaderProgram;
+
     public int getFBWidth() {
     	return fbWidth;
     }
@@ -374,7 +422,7 @@ public class RenderEngine {
     	return caps;
     }
     
-    private void init() throws AssertionError, IOException, IllegalStateException {
+    private void init() throws AssertionError, IOException, IllegalStateException, Exception {
     	if (!glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
@@ -390,41 +438,61 @@ public class RenderEngine {
         if (!caps.OpenGL20) {
             throw new AssertionError("This demo requires OpenGL 2.0.");
         }
-        
-	    newPosition = new Vector3d();
-	    tmpVec = new Vector3f();
+
 	    projMatrix = new Matrix4f();
 	    viewMatrix = new Matrix4f();
-	    modelMatrix = new Matrix4f();
 	    viewProjMatrix = new Matrix4f();
 	    invViewMatrix = new Matrix4f();
 	    invViewProjMatrix = new Matrix4f();
-	    matrixBuffer = BufferUtils.createFloatBuffer(16);
 	    frustumIntersection = new FrustumIntersection();
 	    
         debugProc = GLUtil.setupDebugMessageCallback();
-        
-        /* Create all needed GL resources */
-        //createCubemapTexture();
-        createFullScreenQuad();
-        createCubemapProgram();
-        createParticleProgram();
         
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        
+        try {
+        	shaderProgram = new ShaderProgram();
+        	shaderProgram.createVertexShader(Utils.readFile("/vertex.vs", Charset.defaultCharset()));
+            shaderProgram.createFragmentShader(Utils.readFile("/fragment.fs", Charset.defaultCharset()));
+            shaderProgram.link();
+        } catch (Exception e) {
+        	System.out.println("Problem initializing the shader program");
+        	throw e;
+        }
+        
+        initTriangle();
     }
     
     public void close() {
     	if(debugProc != null) {
     		debugProc.free();
     	}
+    	if(shaderProgram != null) {
+    		shaderProgram.close();
+    	}
+    	// Cleanup GL resources
+    	glDisableVertexAttribArray(0);
+    	// Delete the VBO
+    	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    	glDeleteBuffers(vboId);
+    	// Delete the VAO
+    	glBindVertexArray(0);
+    	glDeleteVertexArrays(vaoId);
+    	
     	display.close();
     }
     
+    public void start() {
+    	gameLoopThread.start();
+    }
+    
+    @Override
     public void run() {
     	try {
+    		init();
             loop();
         } catch (Throwable t) {
             t.printStackTrace();
@@ -433,96 +501,39 @@ public class RenderEngine {
         }
     }
     
-    public void update() {
-    	long thisTime = System.nanoTime();
-    	float dt = (thisTime - lastTime) / 1E9f;
-    	lastTime = thisTime;
+    public void update(float dt) {
     	camera.update(dt);
     	projMatrix.setPerspective((float) Math.toRadians(40.0f), display.getWidth() / display.getHeight(), 0.1f, 5000.0f);
         (viewMatrix.set(camera.rotation)).invert(invViewMatrix);
         viewProjMatrix.set(projMatrix).mul(viewMatrix).invert(invViewProjMatrix);
         frustumIntersection.set(viewProjMatrix);
-        /* Update the background shader */
-        glUseProgram(cubemapProgram);
-        glUniformMatrix4fv(cubemap_invViewProjUniform, false, invViewProjMatrix.get(matrixBuffer));
-
-        /* Update the particle shader */
-        glUseProgram(particleProgram);
-        glUniformMatrix4fv(particle_projUniform, false, matrixBuffer);
-        updateParticles(dt);
         display.updateInput(dt);
-    }
-    
-    private void drawCubemap() {
-        glUseProgram(cubemapProgram);
-        glVertexPointer(2, GL_FLOAT, 0, quadVertices);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-    }
-
-    private void drawParticles() {
-        particleVertices.clear();
-        int num = 0;
-        for (int i = 0; i < particlePositions.length; i++) {
-            Vector3d particlePosition = particlePositions[i];
-            Vector4d particleVelocity = particleVelocities[i];
-            if (particleVelocity.w > 0.0f) {
-                float x = (float) (particlePosition.x - camera.position.x);
-                float y = (float) (particlePosition.y - camera.position.y);
-                float z = (float) (particlePosition.z - camera.position.z);
-                if (frustumIntersection.testPoint(x, y, z)) {
-                    float w = (float) particleVelocity.w;
-                    viewMatrix.transformPosition(tmpVec.set(x, y, z));
-                    particleVertices.put(tmpVec.x - particleSize).put(tmpVec.y - particleSize).put(tmpVec.z).put(w).put(-1).put(-1);
-                    particleVertices.put(tmpVec.x + particleSize).put(tmpVec.y - particleSize).put(tmpVec.z).put(w).put( 1).put(-1);
-                    particleVertices.put(tmpVec.x + particleSize).put(tmpVec.y + particleSize).put(tmpVec.z).put(w).put( 1).put( 1);
-                    particleVertices.put(tmpVec.x + particleSize).put(tmpVec.y + particleSize).put(tmpVec.z).put(w).put( 1).put( 1);
-                    particleVertices.put(tmpVec.x - particleSize).put(tmpVec.y + particleSize).put(tmpVec.z).put(w).put(-1).put( 1);
-                    particleVertices.put(tmpVec.x - particleSize).put(tmpVec.y - particleSize).put(tmpVec.z).put(w).put(-1).put(-1);
-                    num++;
-                }
-            }
-        }
-        particleVertices.flip();
-        if (num > 0) {
-            glUseProgram(particleProgram);
-            glDepthMask(false);
-            glEnable(GL_BLEND);
-            glVertexPointer(4, GL_FLOAT, 6*4, particleVertices);
-            particleVertices.position(4);
-            glTexCoordPointer(2, GL_FLOAT, 6*4, particleVertices);
-            particleVertices.position(0);
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glDrawArrays(GL_TRIANGLES, 0, num * 6);
-            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-            glDisable(GL_BLEND);
-            glDepthMask(true);
-        }
-    }
-    
-    private void updateParticles(float dt) {
-        for (int i = 0; i < particlePositions.length; i++) {
-            Vector4d particleVelocity = particleVelocities[i];
-            if (particleVelocity.w <= 0.0f)
-                continue;
-            particleVelocity.w += dt;
-            Vector3d particlePosition = particlePositions[i];
-            newPosition.set(particleVelocity.x, particleVelocity.y, particleVelocity.z).mul(dt).add(particlePosition);
-            if (particleVelocity.w > maxParticleLifetime) {
-                particleVelocity.w = 0.0f;
-                continue;
-            }
-            particlePosition.set(newPosition);
-        }
     }
     
     public void loop() {
     	while (!glfwWindowShouldClose(display.window)) {
+    		long thisTime = System.nanoTime();
+        	float dt = (thisTime - lastTime) / 1E9f;
+        	lastTime = thisTime;
             glfwPollEvents();
             glViewport(0, 0, fbWidth, fbHeight);
-            update();
+            update(dt);
             render();
             glfwSwapBuffers(display.window);
+            sync(thisTime);
         }
+    }
+    
+    private void sync(long loopStartTime) {
+    	long endTime = loopStartTime + nanoSecsPerFrame;
+    	while(System.nanoTime() < endTime) {
+    		try {
+    			Thread.sleep(1);
+    		} catch (InterruptedException e) {
+    			//TODO handle this
+    		}
+    	}
+    	
     }
     
     private void createFullScreenQuad() {
@@ -536,113 +547,46 @@ public class RenderEngine {
         fv.put(-1.0f).put(-1.0f);
     }
     
-    private static int createShader(String resource, int type) throws AssertionError, IOException {
-        int shader = glCreateShader(type);
-        ByteBuffer source = Utils.ioResourceToByteBuffer(resource, 1024);
-        PointerBuffer strings = BufferUtils.createPointerBuffer(1);
-        IntBuffer lengths = BufferUtils.createIntBuffer(1);
-        strings.put(0, source);
-        lengths.put(0, source.remaining());
-        glShaderSource(shader, strings, lengths);
-        glCompileShader(shader);
-        int compiled = glGetShaderi(shader, GL_COMPILE_STATUS);
-        String shaderLog = glGetShaderInfoLog(shader);
-        if (shaderLog != null && shaderLog.trim().length() > 0) {
-            System.err.println(shaderLog);
-        }
-        if (compiled == 0) {
-            throw new AssertionError("Could not compile shader");
-        }
-        return shader;
-    }
-
-    private static int createProgram(int vshader, int fshader) {
-        int program = glCreateProgram();
-        glAttachShader(program, vshader);
-        glAttachShader(program, fshader);
-        glLinkProgram(program);
-        int linked = glGetProgrami(program, GL_LINK_STATUS);
-        String programLog = glGetProgramInfoLog(program);
-        if (programLog != null && programLog.trim().length() > 0) {
-            System.err.println(programLog);
-        }
-        if (linked == 0) {
-            throw new AssertionError("Could not link program");
-        }
-        return program;
-    }
-
-    private void createCubemapProgram() throws IOException {
-        int vshader = createShader("cubemap.vs", GL_VERTEX_SHADER);
-        int fshader = createShader("cubemap.fs", GL_FRAGMENT_SHADER);
-        int program = createProgram(vshader, fshader);
-        glUseProgram(program);
-        int texLocation = glGetUniformLocation(program, "tex");
-        glUniform1i(texLocation, 0);
-        cubemap_invViewProjUniform = glGetUniformLocation(program, "invViewProj");
-        glUseProgram(0);
-        cubemapProgram = program;
-    }
-
-    private void createParticleProgram() throws IOException {
-        int vshader = createShader("particle.vs", GL_VERTEX_SHADER);
-        int fshader = createShader("particle.fs", GL_FRAGMENT_SHADER);
-        int program = createProgram(vshader, fshader);
-        glUseProgram(program);
-        particle_projUniform = glGetUniformLocation(program, "proj");
-        glUseProgram(0);
-        particleProgram = program;
-    }
-
-    private void createCubemapTexture() throws IOException {
-        int tex = glGenTextures();
-        glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        ByteBuffer pixelBuffer;
-        IntBuffer w = BufferUtils.createIntBuffer(1);
-        IntBuffer h = BufferUtils.createIntBuffer(1);
-        IntBuffer comp = BufferUtils.createIntBuffer(1);
-        ByteBuffer image;
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_GENERATE_MIPMAP, GL_TRUE);
-        for (int i = 0; i < 6; i++) {
-        	// TODO: take in some pixel data from other code for generating textures
-            pixelBuffer = ByteBuffer.allocate(8 * 1024);
-            if (!stbi_info_from_memory(pixelBuffer, w, h, comp)) {
-                throw new IOException("Failed to transfer pixel buffer into memory: " + stbi_failure_reason());
-            }
-            image = stbi_load_from_memory(pixelBuffer, w, h, comp, 0);
-            if (image == null) {
-                throw new IOException("Failed to load pixel buffer from memory: " + stbi_failure_reason());
-            }
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8, w.get(0), h.get(0), 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-            stbi_image_free(image);
-        }
-        if (getCaps().OpenGL32 || getCaps().GL_ARB_seamless_cube_map) {
-            glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-        }
+    private void initTriangle() {
+    	final float[] vertices = new float[]{
+    			0.0f, 0.5f, 0.0f,
+    			-0.5f, -0.5f, 0.0f,
+    			0.5f, -0.5f, 0.0f
+    		};
+    	verticesBuffer = MemoryUtil.memAllocFloat(vertices.length);
+    	verticesBuffer.put(vertices).flip();
+    	vaoId = glGenVertexArrays();
+    	glBindVertexArray(vaoId);
+    	vboId = glGenBuffers();
+    	glBindBuffer(GL_ARRAY_BUFFER, vboId);
+    	glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_STATIC_DRAW);
+    	MemoryUtil.memFree(verticesBuffer);
+    	glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+    	// Unbind the VBO
+    	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    	// Unbind the VAO
+    	glBindVertexArray(0);
+    	if (verticesBuffer != null) {
+    		MemoryUtil.memFree(verticesBuffer);
+    	}
     }
     
-    public int getCubemapProgram() {
-    	return cubemapProgram;
+    private void drawTriangle() {
+    	shaderProgram.bind();
+	    // Bind to the VAO
+	    glBindVertexArray(vaoId);
+	    glEnableVertexAttribArray(0);
+	    // Draw the vertices
+	    glDrawArrays(GL_TRIANGLES, 0, 3);
+	    // Restore state
+	    glDisableVertexAttribArray(0);
+	    glBindVertexArray(0);
+	    shaderProgram.unbind();
     }
     
-    public int getParticleProgram() {
-    	return particleProgram;
-    }
-    
-    public int getCubemapInvViewProjUniform() {
-    	return cubemap_invViewProjUniform;
-    }
-    
-    public int getParticleProjUniform() {
-    	return particle_projUniform;
-    }
-
     private void render() {
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        drawCubemap();
-        drawParticles();
+        drawTriangle();
     }
 	
 }
