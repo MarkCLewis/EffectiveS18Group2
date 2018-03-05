@@ -3,14 +3,15 @@ lazy val root = (project in file(".")).
     inThisBuild(List(
       organization := "edu.trinity",
 			scalaVersion := "2.12.4",
-      version      := "0.1.0-SNAPSHOT"
+      		version      := "0.1.0-SNAPSHOT"
     )),
     name := "EffectiveS18Group2",
-		crossPaths := false,
+	crossPaths := false,
+	javacOptions ++= Seq("-source", "1.9", "-target", "1.9"),
     libraryDependencies ++= Seq(
 			"org.apache.commons" % "commons-math3" % "3.1.1",
 			"com.novocode" % "junit-interface" % "0.11" % Test,
-      "org.lwjgl" % "lwjgl" % "3.1.6",
+      		"org.lwjgl" % "lwjgl" % "3.1.6",
 			"org.lwjgl" % "lwjgl-glfw" % "3.1.6",
 			"org.lwjgl" % "lwjgl-opengl" % "3.1.6",
 			"org.lwjgl" % "lwjgl-openal" % "3.1.6",
@@ -24,3 +25,6 @@ lazy val root = (project in file(".")).
 			"org.joml" % "joml-2d" % "1.6.0"
 		)
   )
+
+fork := true
+

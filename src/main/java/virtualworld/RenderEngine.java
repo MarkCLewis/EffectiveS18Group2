@@ -455,8 +455,8 @@ public class RenderEngine implements Runnable {
         
         try {
         	shaderProgram = new ShaderProgram();
-        	shaderProgram.createVertexShader(Utils.readFile("/vertex.vs", Charset.defaultCharset()));
-            shaderProgram.createFragmentShader(Utils.readFile("/fragment.fs", Charset.defaultCharset()));
+        	shaderProgram.createVertexShader(Utils.readFile("/home/kayla/EffectiveS18Group2/src/main/resources/vertex.vs", Charset.defaultCharset()));
+            shaderProgram.createFragmentShader(Utils.readFile("/home/kayla/EffectiveS18Group2/src/main/resources/fragment.fs", Charset.defaultCharset()));
             shaderProgram.link();
         } catch (Exception e) {
         	System.out.println("Problem initializing the shader program");
