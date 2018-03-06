@@ -18,6 +18,8 @@ public class Node {
 	//Nodes for traversal
 	Node parent = null;
 	Node[] children = null;
+	private double size;
+	
 	
 	//Constructor
 	public Node(Terrain t) {

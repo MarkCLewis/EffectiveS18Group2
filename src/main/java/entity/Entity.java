@@ -8,6 +8,6 @@ public interface Entity {
 	
 	public Pair<Double,Double> getCenter();
 	
-	public int getSize();
+	public double getSize();
 	
 }
