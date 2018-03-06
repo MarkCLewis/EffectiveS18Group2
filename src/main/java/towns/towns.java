@@ -23,10 +23,10 @@ public class Towns {
 		Parkcenter= middle [2];
 		Schoolcenter= middle [3];
 		
-		Shops=DrawRectangle(Shopscenter, r/6);
-		House=DrawRectangle(Shopscenter, r/6);
-		Park=DrawRectangle(Shopscenter, r/6);
-		School=DrawRectangle(Shopscenter, r/6);
+		Shops=DrawRectangle(Shopscenter, r/6);         
+		House=DrawRectangle(Housecenter, r/6);
+		Park=DrawRectangle(Parkcenter, r/4);
+		School=DrawRectangle(Schoolcenter, r/6);
 		
 		}
   
