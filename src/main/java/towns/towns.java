@@ -12,28 +12,34 @@ public class Towns {
 	private double [] middle;
 	private Pair Shopcenter, Schoolcenter, Housecenter, Parkcenter;
 
-
+//DrawRectangle takes a radius of rectangle and center
 	
-	public static Town(Pair<Double, Double> cent, Double rad) {
-		radius= rad;
+	public static Town(Pair<Double, Double> cent, Double townsize) {
+		radius= townsize;
 		center= cent;
 		double [] middle= GenerateCenters(center, radius); 
 		Shopscenter= middle[0];
 		Housecenter= middle [1];
 		Parkcenter= middle [2];
 		Schoolcenter= middle [3];
-	}
+		
+		Shops=DrawRectangle(Shopscenter, r/6);
+		House=DrawRectangle(Shopscenter, r/6);
+		Park=DrawRectangle(Shopscenter, r/6);
+		School=DrawRectangle(Shopscenter, r/6);
+		
+		}
   
-        public static double [] GenerateCenters (Pair<Double, Double> cent, Double rad){
-		Pair shop= {Pair(cent.left-sqrt(Math.pow(rad,2)/2), cent.right-sqrt(Math.pow(rad,2)/2))}; 
-		//shopCenter
-		Pair house= {Pair(cent.left+sqrt(Math.pow(rad,2)/2),cent.left+sqrt(rad^2)/2))};
-		//houseCenter
-		Pair park={Pair(cent.left-sqrt(Math.pow(rad,2)/2),cent.left+sqrt(rad^2)/2))};
-		//parkCenter
-		Pair school= {Pair(cent.left+sqrt(Math.pow(rad,2)/2),cent.left-sqrt(rad^2)/2))};
-		//schoolCenter
-		double[] passArray = new double[]{1,2,3,4,5,6,7,8,9,10}; 
+        public static {Pair [] GenerateCenters (Pair<Double, Double> cent, Double rad){
+		Pair shop= Pair(cent.left-sqrt(Math.pow(rad,2)/2), cent.right-sqrt(Math.pow(rad,2)/2)); 
+		//shopCenter SOUTHWEST
+		Pair house= Pair(cent.left+sqrt(Math.pow(rad,2)/2),cent.left+sqrt(rad^2)/2));
+		//houseCenter NORTHEAST
+		Pair park=Pair(cent.left-sqrt(Math.pow(rad,2)/2),cent.left+sqrt(rad^2)/2));
+		//parkCenter NORTHWEST
+		Pair school= Pair(cent.left+sqrt(Math.pow(rad,2)/2),cent.left-sqrt(rad^2)/2));
+		//schoolCenter SOUTHEAST
+		Pair [] pass = new Pair[]{shop,house,park,school}; 
 		return (pass);
 	}
 	//public createShops(cent, rad)
