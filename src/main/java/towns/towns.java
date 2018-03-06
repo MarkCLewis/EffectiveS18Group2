@@ -12,7 +12,7 @@ public class Towns {
 	private double [] middle;
 	private Pair Shopcenter, Schoolcenter, Housecenter, Parkcenter;
 
-//DrawRectangle takes a radius of rectangle and center of the rectangle Once implemented
+//DrawSqure takes a radius of Square and center of the rectangle Once implemented
 	
 	public static Town(Pair<Double, Double> cent, Double townsize) {
 		radius= townsize;
@@ -23,10 +23,10 @@ public class Towns {
 		Parkcenter= middle [2];
 		Schoolcenter= middle [3];
 		
-		//Shops=DrawRectangle(Shopscenter, r/6);         
-		//House=DrawRectangle(Housecenter, r/6);
-		//Park=DrawRectangle(Parkcenter, r/4);
-		//School=DrawRectangle(Schoolcenter, r/6);
+		//Shops=DrawSquare(Shopscenter, r/6);         
+		//House=DrawSquare(Housecenter, r/6);
+		//Park=DrawSquare(Parkcenter, r/4);
+		//School=DrawSquare(Schoolcenter, r/6);
 		
 		}
   
