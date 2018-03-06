@@ -4,12 +4,22 @@ import virtualworld.terrain.Pair;
 import virtualworld.terrain.Terrain;
 
 public class Node {
+	
+	//TODO
+	// Create entity interface for all classes that use WorldManager- terrain, Sheep, Trees, Towns, Roads, and clouds (Water too?)
+	// Make a list of entities that exist within specific node
+	// Also Node should hold center value outside of Terrain, and size
+	// items of a given size should be held in node that is big enough to hold object and the object's center exists within
+	// limit node depth / make minimum size of node
+	
 	//terrain
 	Terrain terrain;
 
 	//Nodes for traversal
 	Node parent = null;
 	Node[] children = null;
+	private double size;
+	
 	
 	//Constructor
 	public Node(Terrain t) {
