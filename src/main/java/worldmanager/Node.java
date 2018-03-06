@@ -1,5 +1,6 @@
 package worldmanager;
 
+import entity.Entity;
 import virtualworld.terrain.Pair;
 import virtualworld.terrain.Terrain;
 
@@ -19,11 +20,18 @@ public class Node {
 	Node parent = null;
 	Node[] children = null;
 	private double size;
+	private int depth;
+	Entity[] entities;
 	
 	
 	//Constructor
 	public Node(Terrain t) {
 		terrain = t;
+		if (parent != null) {
+			depth = parent.getDepth() + 1;
+		} else {
+			depth = 0;
+		}
 	}
 	
 	//updating when connecting to parent or child
@@ -39,6 +47,14 @@ public class Node {
 	//Functions to implement
 	private Pair<Double,Double> center() {
 		return terrain.getCenter();
+	}
+	
+	public double getSize() {
+		return size;
+	}
+	
+	public int getDepth() {
+		return depth;
 	}
 	
 	//find out what position of camera uses
