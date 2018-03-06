@@ -7,7 +7,7 @@ lazy val root = (project in file(".")).
     )),
     name := "EffectiveS18Group2",
 	crossPaths := false,
-	javacOptions ++= Seq("-source", "1.9", "-target", "1.9"),
+	javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     libraryDependencies ++= Seq(
 			"org.apache.commons" % "commons-math3" % "3.1.1",
 			"com.novocode" % "junit-interface" % "0.11" % Test,

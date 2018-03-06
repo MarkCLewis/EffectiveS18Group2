@@ -11,7 +11,10 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.lwjgl.BufferUtils;
@@ -73,7 +76,8 @@ public class Utils {
     }
     
     static String readFile(String path, Charset encoding) throws IOException {
-    	byte[] encoded = Files.readAllBytes(Paths.get(path));
+    	String root = System.getProperty("user.dir");
+    	byte[] encoded = Files.readAllBytes(Paths.get(root, path));
     	return new String(encoded, encoding);
     }
 }
