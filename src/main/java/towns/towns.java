@@ -30,7 +30,7 @@ public class Towns {
 		
 		}
   
-        public static {Pair [] GenerateCenters (Pair<Double, Double> cent, Double rad){
+        public static Pair [] GenerateCenters (Pair<Double, Double> cent, Double rad){
 		Pair shop= Pair(cent.left-sqrt(Math.pow(rad,2)/2), cent.right-sqrt(Math.pow(rad,2)/2)); 
 		//shopCenter SOUTHWEST
 		Pair house= Pair(cent.left+sqrt(Math.pow(rad,2)/2),cent.left+sqrt(rad^2)/2));
