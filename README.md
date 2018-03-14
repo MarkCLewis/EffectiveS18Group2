@@ -2,15 +2,23 @@
 
 ## Analysis/Requirements
 
-Graphics: Kayla  
-Terrain: Ian  
+Graphics: Kayla
+
+Terrain: Ian
+
 Water: Ben
+
 WorldManager: Ben
-Trees: Caroline  
-Roads: Amira  
-Cities: Brian  
-Sheep: Cristina  
-Clouds: Thoai  
+
+Trees: Caroline
+
+Roads: Amira
+
+Cities: Brian
+
+Sheep: Cristina
+
+Clouds: Thoai
 
 
 
