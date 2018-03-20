@@ -1,12 +1,12 @@
 package entity;
 
-import virtualworld.terrain.Pair;
+import virtualworld.terrain.Point;
 
 public interface Entity {
 	
 	//functions to implement
 	
-	public Pair<Double,Double> getCenter();
+	public Point getCenter();
 	
 	public double getSize();
 	
