@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entity.Entity;
-import virtualworld.terrain.Pair;
+import virtualworld.terrain.Point;
 import virtualworld.terrain.Perlin;
 public class Cloud implements Entity {
 	
@@ -15,7 +15,7 @@ public class Cloud implements Entity {
 		height = newHeight;
 		func = Perlin.getInstance();	
 		dimArr = new double[length][height];
-		center = new Pair<Double,Double> (x,y);
+		center = new Point(x,y);
 		makeCloudArray2d();
 		cloud = makeShape();
 	}
@@ -26,9 +26,10 @@ public class Cloud implements Entity {
 	private final int length;
 	private final int height;
 	private final double z;
-	private final Pair<Double,Double> center;
+	private final Point center;
 	Perlin func;
 	private double[][] dimArr; //actual representation of the cloud, might have to change later , for now, only 2d represenetation
+	private double[][][] cloudArr;
 	private List<Sphere> cloud;
 			
     public double OctavePerlin(double x, double y, int octaves, double persistence) {
@@ -86,8 +87,8 @@ public class Cloud implements Entity {
 		int midY = length/2;
 		int midZ = length/2;
 		
-		double originX = center.getLeft();
-		double originY = center.getRight();
+		double originX = center.getX();
+		double originY = center.getY();
 		
 		double posX = 0;
 		double posY = 0;
@@ -113,7 +114,7 @@ public class Cloud implements Entity {
 		return dimArr;
 	}
 	
-	public Pair<Double,Double> getCenter() 
+	public Point getCenter() 
 	{
 		return center;
 	}
