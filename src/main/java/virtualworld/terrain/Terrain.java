@@ -4,7 +4,7 @@ public class Terrain {
 	
 	public static void main(String[] args) {
 	    
-		Terrain t = new Terrain(new Pair<Double, Double>(0.0,0.0), 100, 10);
+		Terrain t = new Terrain(new Point(0.0,0.0), 100, 10);
 		
 		double[][] render = t.renderHeights();
 		
@@ -19,7 +19,7 @@ public class Terrain {
 	
     // (x, z) coordinate of the terrain center
 	//private final Pair<Double, Double> center;
-	private final Pair<Double, Double> center;
+	private final Point center;
 	private final Perlin perlNoise = Perlin.getInstance();
 
     // length and points per side of the area that the terrain covers.
@@ -27,14 +27,14 @@ public class Terrain {
     private final int sides;
     
 	
-	public Terrain(Pair<Double, Double> c, double len, int side) {
+	public Terrain(Point c, double len, int side) {
 		center = c;
         length = len;
         sides = side;
 	}
 
     //returns a pair that represents the center of the terrain object
-    public Pair<Double, Double> getCenter() {
+    public Point getCenter() {
         return center;
     }
 
@@ -42,27 +42,27 @@ public class Terrain {
     public Terrain[] split() {
         return new Terrain[] {
             new Terrain(
-                new Pair<Double, Double>(
-                		center.getLeft() - (length/4), 
-                		center.getRight() - (length/4)),
+                new Point(
+                		center.getX() - (length/4), 
+                		center.getY() - (length/4)),
                 length,
                 sides),
             new Terrain(
-                new Pair<Double, Double>(
-                		center.getLeft() + (length/4), 
-                		center.getRight() - (length/4)),
+                new Point(
+                		center.getX() + (length/4), 
+                		center.getY() - (length/4)),
                 length,
                 sides),
             new Terrain(
-                new Pair<Double, Double>(
-                		center.getLeft() - (length/4), 
-                		center.getRight() + (length/4)),
+                new Point(
+                		center.getX() - (length/4), 
+                		center.getY() + (length/4)),
                 length,
                 sides),
             new Terrain(
-                new Pair<Double, Double>(
-                		center.getLeft() + (length/4), 
-                		center.getRight() + (length/4)),
+                new Point(
+                		center.getX() + (length/4), 
+                		center.getY() + (length/4)),
                 length,
                 sides)
         };   
@@ -78,9 +78,9 @@ public class Terrain {
     	//int j = 0;
     	//int k = 0;
     	
-    	double yOffset = (center.getLeft() - length/2) / 10;
+    	double yOffset = (center.getX() - length/2) / 10;
     	for (int r = 0; r < sides; r++) {
-    		double xOffset = (center.getRight() + length/2) / 10;
+    		double xOffset = (center.getY() + length/2) / 10;
     		for (int c = 0; c < sides; c++) {
     			if (c == 0) {
     				if (r != 0) {
