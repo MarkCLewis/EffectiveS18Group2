@@ -5,12 +5,12 @@ package towns;
 
 import java.util.ArrayList;
 
-import virtualworld.terrain.Pair;
+//import virtualworld.terrain.Pair;
 
-
+//OLD, WILL PUSH NEW TONIGHT
 
 public class Towns {
-    private double radius;
+ /*   private double radius;
 	private ArrayList<Pair<Double,Double>> middle;
 	private Pair<Double,Double> Shopcenter, Schoolcenter, Housecenter, Parkcenter, center;
 
@@ -55,5 +55,5 @@ public class Towns {
 	//public School(cent,rad)
 	 
 
-
+*/
 }
