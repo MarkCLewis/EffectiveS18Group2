@@ -23,24 +23,25 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
+import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryUtil;
 
-public class RenderEngine implements Runnable {
+public class GameEngine implements Runnable {
 	/* Controls frame buffers and rendering calculations for display */
-	private static class RenderEngineLoader {
+	private static class GameEngineLoader {
 		/* Lazily instantiate the RenderEngine */
-		private static final RenderEngine INSTANCE;
+		private static final GameEngine INSTANCE;
 		static {
 			try {
-				INSTANCE = new RenderEngine();
+				INSTANCE = new GameEngine();
 			} catch (Exception e) {
 				throw new ExceptionInInitializerError(e);
 			}
 		}
 	}
 	
-	private RenderEngine() throws IOException, AssertionError, IllegalStateException {
-		if(RenderEngineLoader.INSTANCE != null) {
+	private GameEngine() throws IOException, AssertionError, IllegalStateException {
+		if(GameEngineLoader.INSTANCE != null) {
 			throw new IllegalStateException("Already instantiated");
 		}
 		else {
@@ -48,11 +49,11 @@ public class RenderEngine implements Runnable {
 		}
 	}
 	
-	public static RenderEngine getInstance() {
+	public static GameEngine getInstance() {
 		/* the first time this is called, the RenderEngine will
 		 * be instantiated.
 		 * */
-		return RenderEngineLoader.INSTANCE;
+		return GameEngineLoader.INSTANCE;
 	}
 	
 	private static class Camera {
@@ -98,73 +99,214 @@ public class RenderEngine implements Runnable {
 	    }
 	}
 	
-	private class ShaderProgram {
-		private final int programId;
-		private int vertexShaderId;
-		private int fragmentShaderId;
-		
-		public ShaderProgram() throws Exception {
-			programId = glCreateProgram();
-			if (programId == 0) {
-				throw new Exception("Could not create Shader");
-			}
-		}
-		
-		public void createVertexShader(String shaderCode) throws Exception {
-			vertexShaderId = createShader(shaderCode, GL_VERTEX_SHADER);
-		}
-		
-		public void createFragmentShader(String shaderCode) throws Exception {
-			fragmentShaderId = createShader(shaderCode, GL_FRAGMENT_SHADER);
-		}
-		
-		private int createShader(String shaderCode, int shaderType) throws Exception {
-			int shaderId = glCreateShader(shaderType);
-			if (shaderId == 0) {
-				throw new Exception("Error creating shader. Type: " + shaderType);
-			}
-			glShaderSource(shaderId, shaderCode);
-			glCompileShader(shaderId);
-			if (glGetShaderi(shaderId, GL_COMPILE_STATUS) == 0) {
-				throw new Exception("Error compiling Shader code: " + glGetShaderInfoLog(shaderId, 1024));
-			}
-			glAttachShader(programId, shaderId);
-			return shaderId;
-		}
-		
-		public void link() throws Exception {
-			glLinkProgram(programId);
-			if (glGetProgrami(programId, GL_LINK_STATUS) == 0) {
-				throw new Exception("Error linking Shader code: " + glGetProgramInfoLog(programId, 1024));
-			}
-			if (vertexShaderId != 0) {
-				glDetachShader(programId, vertexShaderId);
-			}
-			if (fragmentShaderId != 0) {
-				glDetachShader(programId, fragmentShaderId);
-			}
-			glValidateProgram(programId);
-			if (glGetProgrami(programId, GL_VALIDATE_STATUS) == 0) {
-				System.err.println("Warning validating Shader code: " + glGetProgramInfoLog(programId, 1024));
-			}
-		}
-		public void bind() {
-			glUseProgram(programId);
-		}
+	private class Renderer {
+		private class ShaderProgram {
+			private final int programId;
+			private int vertexShaderId;
+			private int fragmentShaderId;
 			
-		public void unbind() {
-			glUseProgram(0);
-		}
-		
-		public void close() {
-			unbind();
-			if (programId != 0) {
-				glDeleteProgram(programId);
+			public ShaderProgram() throws Exception {
+				programId = glCreateProgram();
+				if (programId == 0) {
+					throw new Exception("Could not create Shader");
+				}
+			}
+			
+			public void createVertexShader(String shaderCode) throws Exception {
+				vertexShaderId = createShader(shaderCode, GL_VERTEX_SHADER);
+			}
+			
+			public void createFragmentShader(String shaderCode) throws Exception {
+				fragmentShaderId = createShader(shaderCode, GL_FRAGMENT_SHADER);
+			}
+			
+			private int createShader(String shaderCode, int shaderType) throws Exception {
+				int shaderId = glCreateShader(shaderType);
+				if (shaderId == 0) {
+					throw new Exception("Error creating shader. Type: " + shaderType);
+				}
+				glShaderSource(shaderId, shaderCode);
+				glCompileShader(shaderId);
+				if (glGetShaderi(shaderId, GL_COMPILE_STATUS) == 0) {
+					throw new Exception("Error compiling Shader code: " + glGetShaderInfoLog(shaderId, 1024));
+				}
+				glAttachShader(programId, shaderId);
+				return shaderId;
+			}
+			
+			public void link() throws Exception {
+				glLinkProgram(programId);
+				if (glGetProgrami(programId, GL_LINK_STATUS) == 0) {
+					throw new Exception("Error linking Shader code: " + glGetProgramInfoLog(programId, 1024));
+				}
+				if (vertexShaderId != 0) {
+					glDetachShader(programId, vertexShaderId);
+				}
+				if (fragmentShaderId != 0) {
+					glDetachShader(programId, fragmentShaderId);
+				}
+				glValidateProgram(programId);
+				if (glGetProgrami(programId, GL_VALIDATE_STATUS) == 0) {
+					System.err.println("Warning validating Shader code: " + glGetProgramInfoLog(programId, 1024));
+				}
+			}
+			public void bind() {
+				glUseProgram(programId);
+			}
+				
+			public void unbind() {
+				glUseProgram(0);
+			}
+			
+			public void close() {
+				unbind();
+				if (programId != 0) {
+					glDeleteProgram(programId);
+				}
 			}
 		}
+		
+	    private IntBuffer frameBufferSize;
+	    private GLCapabilities caps;
+	    private Callback debugProc;
+	    
+	    private Matrix4f projMatrix;
+	    private Matrix4f viewMatrix;
+	    private Matrix4f viewProjMatrix;
+	    private Matrix4f invViewMatrix;
+	    private Matrix4f invViewProjMatrix;
+	    private FloatBuffer verticesBuffer;
+	    private FrustumIntersection frustumIntersection;
+	    
+	    private ByteBuffer quadVertices;
+	    
+	    private int vaoId;
+	    private int vboId;
+	    
+	    private ShaderProgram shaderProgram;
+	    
+	    public Renderer() throws Exception {
+	    	this.init();
+	    }
+	    
+	    public GLCapabilities getCaps() {
+	    	return caps;
+	    }
+	    
+	    private void init() throws Exception {
+	    	frameBufferSize = BufferUtils.createIntBuffer(2);
+	    	fbWidth = frameBufferSize.get(0);
+	        fbHeight = frameBufferSize.get(1);
+	        caps = GL.createCapabilities();
+	        if (!caps.OpenGL20) {
+	            throw new AssertionError("This demo requires OpenGL 2.0.");
+	        }
+
+		    projMatrix = new Matrix4f();
+		    viewMatrix = new Matrix4f();
+		    viewProjMatrix = new Matrix4f();
+		    invViewMatrix = new Matrix4f();
+		    invViewProjMatrix = new Matrix4f();
+		    frustumIntersection = new FrustumIntersection();
+		    
+	        debugProc = GLUtil.setupDebugMessageCallback();
+	        
+	        try {
+	        	shaderProgram = new ShaderProgram();
+	        	shaderProgram.createVertexShader(Utils.readFile("src/main/resources/vertex.vs", Charset.defaultCharset()));
+	            shaderProgram.createFragmentShader(Utils.readFile("src/main/resources/fragment.fs", Charset.defaultCharset()));
+	            shaderProgram.link();
+	        } catch (Exception e) {
+	        	System.out.println("Problem initializing the shader program");
+	        	throw e;
+	        }
+	        
+	        initTriangle();
+	    }
+	    
+	    public void update(float dt) {
+	    	glViewport(0, 0, fbWidth, fbHeight);
+	    	projMatrix.setPerspective((float) Math.toRadians(40.0f), display.getWidth() / display.getHeight(), 0.1f, 5000.0f);
+	        (viewMatrix.set(camera.rotation)).invert(invViewMatrix);
+	        viewProjMatrix.set(projMatrix).mul(viewMatrix).invert(invViewProjMatrix);
+	        frustumIntersection.set(viewProjMatrix);
+	    }
+	    
+	    private void createFullScreenQuad() {
+	        quadVertices = BufferUtils.createByteBuffer(4 * 2 * 6);
+	        FloatBuffer fv = quadVertices.asFloatBuffer();
+	        fv.put(-1.0f).put(-1.0f);
+	        fv.put( 1.0f).put(-1.0f);
+	        fv.put( 1.0f).put( 1.0f);
+	        fv.put( 1.0f).put( 1.0f);
+	        fv.put(-1.0f).put( 1.0f);
+	        fv.put(-1.0f).put(-1.0f);
+	    }
+	    
+	    private void initTriangle() {
+	    	final float[] vertices = new float[]{
+	    			0.0f, 0.5f, 0.0f,
+	    			-0.5f, -0.5f, 0.0f,
+	    			0.5f, -0.5f, 0.0f
+	    		};
+	    	verticesBuffer = MemoryUtil.memAllocFloat(vertices.length);
+	    	verticesBuffer.put(vertices).flip();
+	    	vaoId = glGenVertexArrays();
+	    	glBindVertexArray(vaoId);
+	    	vboId = glGenBuffers();
+	    	glBindBuffer(GL_ARRAY_BUFFER, vboId);
+	    	glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_STATIC_DRAW);
+	    	MemoryUtil.memFree(verticesBuffer);
+	    	glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+	    	// Unbind the VBO
+	    	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	    	// Unbind the VAO
+	    	glBindVertexArray(0);
+	    	if (verticesBuffer != null) {
+	    		MemoryUtil.memFree(verticesBuffer);
+	    	}
+	    }
+	    
+	    private void drawTriangle() {
+	    	shaderProgram.bind();
+		    // Bind to the VAO
+		    glBindVertexArray(vaoId);
+		    glEnableClientState(GL_VERTEX_ARRAY);
+		    glEnableVertexAttribArray(0);
+		    // Draw the vertices
+		    glDrawArrays(GL_TRIANGLES, 0, 3);
+		    // Restore state
+		    glDisableVertexAttribArray(0);
+		    glBindVertexArray(0);
+		    shaderProgram.unbind();
+		    glDisableClientState(GL_VERTEX_ARRAY);
+	    }
+	    
+	    public void render() {
+	        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	        drawTriangle();
+	    }
+	    
+	    public void close() {
+	    	if(debugProc != null) {
+	    		debugProc.free();
+	    	}
+	    	if(shaderProgram != null) {
+	    		shaderProgram.close();
+	    	}
+	    	// Cleanup GL resources
+	    	glDisableVertexAttribArray(0);
+	    	// Delete the VBO
+	    	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	    	glDeleteBuffers(vboId);
+	    	// Delete the VAO
+	    	glBindVertexArray(0);
+	    	glDeleteVertexArrays(vaoId);
+	    }
+	    
 	}
 
-	private class Display {
+	private class Display {		
 		private class Input {
 			private boolean[] keyDown = new boolean[GLFW.GLFW_KEY_LAST];
 		    private boolean leftMouseDown = false;
@@ -300,7 +442,10 @@ public class RenderEngine implements Runnable {
 	    	input = new Input();
 	    }
 	    
-	    private void init() throws AssertionError{
+	    private void init() throws AssertionError, IllegalStateException {
+	    	if (!glfwInit()) {
+	            throw new IllegalStateException("Unable to initialize GLFW");
+	        }
 	    	monitor = glfwGetPrimaryMonitor();
 	        vidMode = glfwGetVideoMode(monitor);
 	        if (!windowed) {
@@ -379,109 +524,23 @@ public class RenderEngine implements Runnable {
 	
 	private Camera camera;
 	private Display display;
-	
+	private Renderer render;
+
 	private int fbWidth = 800;
     private int fbHeight = 600;
     
-    private IntBuffer frameBufferSize;
-    private GLCapabilities caps;
-    private Callback debugProc;
-    
-    private Matrix4f projMatrix;
-    private Matrix4f viewMatrix;
-    private Matrix4f viewProjMatrix;
-    private Matrix4f invViewMatrix;
-    private Matrix4f invViewProjMatrix;
-    private FloatBuffer verticesBuffer;
-    private FrustumIntersection frustumIntersection;
-    
-    private ByteBuffer quadVertices;
-    
-    private int vaoId;
-    private int vboId;
-    
-    private ShaderProgram shaderProgram;
-
-    public int getFBWidth() {
-    	return fbWidth;
-    }
-    
-    public void setFBWidth(int _fbWidth) {
-    	fbWidth = _fbWidth;
-    }
-    
-    public int getFBHeight() {
-    	return fbHeight;
-    }
-    
-    public void setFBHeight(int _fbHeight) {
-    	fbHeight = _fbHeight;
-    }
-    
-    public GLCapabilities getCaps() {
-    	return caps;
-    }
-    
     private void init() throws AssertionError, IOException, IllegalStateException, Exception {
-    	if (!glfwInit()) {
-            throw new IllegalStateException("Unable to initialize GLFW");
-        }
+    	Configuration.DEBUG.set(true);
+    	
     	camera = new Camera();
     	display = new Display();
-    	
-    	frameBufferSize = BufferUtils.createIntBuffer(2);
-        nglfwGetFramebufferSize(display.window, memAddress(frameBufferSize), memAddress(frameBufferSize) + 4);
-        fbWidth = frameBufferSize.get(0);
-        fbHeight = frameBufferSize.get(1);
-        
-        caps = GL.createCapabilities();
-        if (!caps.OpenGL20) {
-            throw new AssertionError("This demo requires OpenGL 2.0.");
-        }
-
-	    projMatrix = new Matrix4f();
-	    viewMatrix = new Matrix4f();
-	    viewProjMatrix = new Matrix4f();
-	    invViewMatrix = new Matrix4f();
-	    invViewProjMatrix = new Matrix4f();
-	    frustumIntersection = new FrustumIntersection();
-	    
-        debugProc = GLUtil.setupDebugMessageCallback();
-        
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        
-        try {
-        	shaderProgram = new ShaderProgram();
-        	shaderProgram.createVertexShader(Utils.readFile("src/main/resources/vertex.vs", Charset.defaultCharset()));
-            shaderProgram.createFragmentShader(Utils.readFile("src/main/resources/fragment.fs", Charset.defaultCharset()));
-            shaderProgram.link();
-        } catch (Exception e) {
-        	System.out.println("Problem initializing the shader program");
-        	throw e;
-        }
-        
-        initTriangle();
+    	render = new Renderer();
+    	// TODO: should I move the following glfw call to Display???
+        nglfwGetFramebufferSize(display.window, memAddress(render.frameBufferSize), memAddress(render.frameBufferSize) + 4);
     }
     
     public void close() {
-    	if(debugProc != null) {
-    		debugProc.free();
-    	}
-    	if(shaderProgram != null) {
-    		shaderProgram.close();
-    	}
-    	// Cleanup GL resources
-    	glDisableVertexAttribArray(0);
-    	// Delete the VBO
-    	glBindBuffer(GL_ARRAY_BUFFER, 0);
-    	glDeleteBuffers(vboId);
-    	// Delete the VAO
-    	glBindVertexArray(0);
-    	glDeleteVertexArrays(vaoId);
-    	
+    	render.close();
     	display.close();
     }
     
@@ -503,10 +562,7 @@ public class RenderEngine implements Runnable {
     
     public void update(float dt) {
     	camera.update(dt);
-    	projMatrix.setPerspective((float) Math.toRadians(40.0f), display.getWidth() / display.getHeight(), 0.1f, 5000.0f);
-        (viewMatrix.set(camera.rotation)).invert(invViewMatrix);
-        viewProjMatrix.set(projMatrix).mul(viewMatrix).invert(invViewProjMatrix);
-        frustumIntersection.set(viewProjMatrix);
+    	render.update(dt);
         display.updateInput(dt);
     }
     
@@ -516,9 +572,10 @@ public class RenderEngine implements Runnable {
         	float dt = (thisTime - lastTime) / 1E9f;
         	lastTime = thisTime;
             glfwPollEvents();
-            glViewport(0, 0, fbWidth, fbHeight);
             update(dt);
-            render();
+            //TODO: signal render thread to start rendering
+            render.render();
+            //TODO: wait for render to finish before swapping buffers
             glfwSwapBuffers(display.window);
             sync(thisTime);
         }
@@ -533,60 +590,8 @@ public class RenderEngine implements Runnable {
     			//TODO handle this
     		}
     	}
-    	
     }
     
-    private void createFullScreenQuad() {
-        quadVertices = BufferUtils.createByteBuffer(4 * 2 * 6);
-        FloatBuffer fv = quadVertices.asFloatBuffer();
-        fv.put(-1.0f).put(-1.0f);
-        fv.put( 1.0f).put(-1.0f);
-        fv.put( 1.0f).put( 1.0f);
-        fv.put( 1.0f).put( 1.0f);
-        fv.put(-1.0f).put( 1.0f);
-        fv.put(-1.0f).put(-1.0f);
-    }
     
-    private void initTriangle() {
-    	final float[] vertices = new float[]{
-    			0.0f, 0.5f, 0.0f,
-    			-0.5f, -0.5f, 0.0f,
-    			0.5f, -0.5f, 0.0f
-    		};
-    	verticesBuffer = MemoryUtil.memAllocFloat(vertices.length);
-    	verticesBuffer.put(vertices).flip();
-    	vaoId = glGenVertexArrays();
-    	glBindVertexArray(vaoId);
-    	vboId = glGenBuffers();
-    	glBindBuffer(GL_ARRAY_BUFFER, vboId);
-    	glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_STATIC_DRAW);
-    	MemoryUtil.memFree(verticesBuffer);
-    	glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-    	// Unbind the VBO
-    	glBindBuffer(GL_ARRAY_BUFFER, 0);
-    	// Unbind the VAO
-    	glBindVertexArray(0);
-    	if (verticesBuffer != null) {
-    		MemoryUtil.memFree(verticesBuffer);
-    	}
-    }
-    
-    private void drawTriangle() {
-    	shaderProgram.bind();
-	    // Bind to the VAO
-	    glBindVertexArray(vaoId);
-	    glEnableVertexAttribArray(0);
-	    // Draw the vertices
-	    glDrawArrays(GL_TRIANGLES, 0, 3);
-	    // Restore state
-	    glDisableVertexAttribArray(0);
-	    glBindVertexArray(0);
-	    shaderProgram.unbind();
-    }
-    
-    private void render() {
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        drawTriangle();
-    }
 	
 }

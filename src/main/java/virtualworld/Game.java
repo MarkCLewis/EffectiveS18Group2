@@ -35,11 +35,11 @@ public class Game {
 
     private void init() {
     	/* Initialize the RenderEngine implicitly */
-        RenderEngine.getInstance();
+        GameEngine.getInstance();
     }
     
     public void run() {
-        RenderEngine.getInstance().start();
+        GameEngine.getInstance().start();
     }
 
 }
