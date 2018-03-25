@@ -11,6 +11,7 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.debug.DebugTools;
 import com.jme3.font.BitmapText;
@@ -53,6 +54,7 @@ public class Engine extends SimpleApplication implements AnalogListener {
 			throw new IllegalStateException("Already instantiated");
 		}
 		else {
+			super.getStateManager().attach(new DefaultState(null, Vector3d.ZERO));
 			currentLevel = super.getStateManager().getState(DefaultState.class);
 	        currentLevel.takeOverParent();
 	        currentLevel.getRootNode().setLocalScale(Vector3f.UNIT_XYZ);
@@ -91,12 +93,12 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	 * meshes (boxes, spheres, etc.) that
 	 * are to be rendered in the NEXT frame
 	 */
-	private static ArrayList<Mesh> meshBuffer;
+	private static ArrayList<Mesh> meshBuffer = new ArrayList<Mesh>();
 	/**
 	 * This buffer holds the positions of the above meshes
 	 * in world coordinates
 	 */
-	private static ArrayList<Vector3d> meshPositions;
+	private static ArrayList<Vector3d> meshPositions = new ArrayList<Vector3d>();
 	private static final Logger logger = Logger.getLogger(Engine.class.getName());
 	private static Vector3d worldPosition = new Vector3d();
 	private static final float scaleDist = 10;
@@ -119,6 +121,9 @@ public class Engine extends SimpleApplication implements AnalogListener {
     	rootNode.attachChild(debugTools.debugNode);
     	defaultMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         defaultMaterial.setColor("Color", ColorRGBA.Blue);   // set color of material to blue
+        defaultMesh = new Sphere(10,10,10);
+        defaultCollisionShape = new SphereCollisionShape(10f);
+        Utils.fillBuffersWithRandomShapes(10);
         setupKeys();
         setupDisplay();
         setupFog();
