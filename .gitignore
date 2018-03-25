@@ -78,6 +78,7 @@ local.properties
 
 # Package Files #
 *.jar
+!lib/*.jar
 *.war
 *.ear
 *.zip
@@ -102,6 +103,10 @@ project/plugins/project/
 .lib/
 
 ### Scala ###
+
+### jMonkeyEngine ###
+jMonkeyEngine3_2/*
+
 
 
 # End of https://www.gitignore.io/api/sbt,java,scala,eclipse
