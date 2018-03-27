@@ -100,6 +100,7 @@ project/plugins/project/
 .history
 .cache
 .lib/
+*.so
 
 ### Scala ###
 
