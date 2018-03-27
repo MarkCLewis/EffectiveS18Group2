@@ -54,10 +54,7 @@ public class Engine extends SimpleApplication implements AnalogListener {
 			throw new IllegalStateException("Already instantiated");
 		}
 		else {
-			super.getStateManager().attach(new DefaultState());
-			currentLevel = super.getStateManager().getState(DefaultState.class);
-	        currentLevel.getRootNode().setLocalScale(Vector3f.UNIT_XYZ);
-	        currentLevel.getRootNode().setLocalTranslation(Vector3f.ZERO);
+			// do nothing here for now
 		}
 	}
 	
@@ -81,8 +78,8 @@ public class Engine extends SimpleApplication implements AnalogListener {
 		 */
 		private static void fillBuffersWithRandomShapes(int count) {
 			for(int i = 0; i < count; i++) {
-				meshBuffer.add(new Sphere(10,10,10));
-				meshPositions.add(new Vector3d(random.nextDouble()*100, random.nextDouble()*100, random.nextDouble()*100));
+				meshBuffer.add(new Sphere(10,10,1));
+				meshPositions.add(new Vector3d(random.nextDouble()*20, random.nextDouble()*20, 0));
 			}
 		}
 	}
@@ -100,17 +97,12 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	private static ArrayList<Vector3d> meshPositions = new ArrayList<Vector3d>();
 	private static final Logger logger = Logger.getLogger(Engine.class.getName());
 	private static Vector3d worldPosition = new Vector3d();
-	private static final float scaleDist = 10;
 	private static final float fogDistance = 100;
 	private static final Random random = new Random(System.currentTimeMillis());
-    private static CollisionShape defaultCollisionShape;
-    private static Material defaultMaterial;
-    private static Mesh defaultMesh;
 	private final Vector3f walkDirection = new Vector3f();
 	private static DebugTools debugTools;
-	
-    private DefaultState currentLevel;
-    
+	private static BulletAppState physicsState;
+	private static Node playerNode;
 	
     @Override
     public void simpleInitApp() {
@@ -118,14 +110,35 @@ public class Engine extends SimpleApplication implements AnalogListener {
     	cam.setLocation(Vector3f.ZERO);
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
-    	defaultMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        defaultMaterial.setColor("Color", ColorRGBA.Blue);   // set color of material to blue
-        defaultMesh = new Sphere(10,10,10);
-        defaultCollisionShape = new SphereCollisionShape(10f);
-        Utils.fillBuffersWithRandomShapes(10);
+    	
+        Utils.fillBuffersWithRandomShapes(5);
+        
+        playerNode = new Node("player");
+        rootNode.attachChild(playerNode);
         setupKeys();
         setupDisplay();
         setupFog();
+        
+        physicsState = new BulletAppState();
+        physicsState.startPhysics();
+        physicsState.getPhysicsSpace().setGravity(Vector3f.ZERO);
+        // int hashCode = worldPosition.hashCode(); // Use this later for randomization
+        for (int i = 0; i < meshPositions.size(); i++) {
+            Vector3f vector3f = Utils.worldToLocalCoords(meshPositions.get(i));
+            Material defaultMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            defaultMaterial.setColor("Color", ColorRGBA.Blue);   // set color of material to blue
+            CollisionShape defaultCollisionShape = new SphereCollisionShape(1f);
+            Geometry defGeom = new Geometry("def", meshBuffer.get(i));
+            defGeom.setLocalTranslation(vector3f);
+            defGeom.setMaterial(defaultMaterial);
+            RigidBodyControl control = new RigidBodyControl(defaultCollisionShape, 0);
+            //!!! Important
+            control.setApplyPhysicsLocal(true);
+            defGeom.addControl(control);
+            physicsState.getPhysicsSpace().add(defGeom);
+            playerNode.attachChild(defGeom);
+
+        }
     }
     
     private void setupKeys() {
@@ -171,9 +184,20 @@ public class Engine extends SimpleApplication implements AnalogListener {
     
     @Override
     public void simpleUpdate(float tpf) {
-        currentLevel.move(walkDirection);
-        fpsText.setText("Location: " + currentLevel.getCoordinates());
+        move(walkDirection);
+        fpsText.setText("Location: " + getCoordinates());
         walkDirection.set(Vector3f.ZERO);
+    }
+    
+    public void move(Vector3f dir) {
+        if (worldPosition == null) {
+            worldPosition = new Vector3d();
+        }
+        worldPosition.addLocal(dir.x,dir.y,dir.z);
+    }
+    
+    public String getCoordinates() {
+        return worldPosition.toString();
     }
     
     public void onAnalog(String name, float value, float tpf) {
@@ -203,9 +227,7 @@ public class Engine extends SimpleApplication implements AnalogListener {
             stop();
         }
     }
-
     
-
     /**
      * Maps a value from 0-1 to a range from min to max.
      *
