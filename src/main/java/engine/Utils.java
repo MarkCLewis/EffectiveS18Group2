@@ -1,4 +1,4 @@
-package virtualworld;
+package engine;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,7 +72,7 @@ public class Utils {
         return buffer;
     }
     
-    static String readFile(String path, Charset encoding) throws IOException {
+    public static String readFile(String path, Charset encoding) throws IOException {
     	String root = System.getProperty("user.dir");
     	byte[] encoded = Files.readAllBytes(Paths.get(root, path));
     	return new String(encoded, encoding);

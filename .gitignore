@@ -2,7 +2,8 @@
 # Created by https://www.gitignore.io/api/sbt,java,scala,eclipse
 
 ### Eclipse ###
-
+*.log
+*.mdmp
 .metadata
 bin/
 tmp/
@@ -101,6 +102,10 @@ project/plugins/project/
 .lib/
 
 ### Scala ###
+
+### jMonkeyEngine ###
+jMonkeyEngine3_2/*
+
 
 
 # End of https://www.gitignore.io/api/sbt,java,scala,eclipse

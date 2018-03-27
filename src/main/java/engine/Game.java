@@ -1,4 +1,4 @@
-package virtualworld;
+package engine;
 
 public class Game {
 	/* 
@@ -32,14 +32,13 @@ public class Game {
 	public static Game getInstance() {
 		return GameLoader.INSTANCE;
 	}
-
+	
     private void init() {
-    	/* Initialize the RenderEngine implicitly */
-        RenderEngine.getInstance();
+    	// TODO
     }
     
     public void run() {
-        RenderEngine.getInstance().start();
+        Engine.getInstance().start();
     }
 
 }

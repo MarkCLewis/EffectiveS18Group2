@@ -1,17 +1,17 @@
 package water;
 
-import virtualworld.terrain.Pair;
+import virtualworld.terrain.Point;
 
 public class Ocean {
 
-	public Ocean(Pair<Double, Double> cen, double leng) {
+	public Ocean(Point cen, double leng) {
 		center = cen;
 		length = leng;
 	}
 	
 	// coordinate for center of Ocean segment. Utilizing Ian's terrain pair.
 	//TODO: figure out if ocean needs it's own unique pair
-	private final Pair<Double, Double> center;
+	private final Point center;
 	
 	//length the ocean extends
 	private final Double length;

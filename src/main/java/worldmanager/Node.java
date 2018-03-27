@@ -3,7 +3,7 @@ package worldmanager;
 import java.util.List;
 
 import entity.Entity;
-import virtualworld.terrain.Pair;
+import virtualworld.terrain.Point;
 import virtualworld.terrain.Terrain;
 
 public class Node {
@@ -37,23 +37,23 @@ public class Node {
 	}
 	
 	public void updateEntites(Entity ent) {
-		Pair<Double,Double> cent = ent.getCenter();
-		Pair<Double,Double> currcenter = this.center();
+		Point cent = ent.getCenter();
+		Point currcenter = this.center();
 		double sz = ent.getSize();
 		if (sz > size && children != null) {
-			if (currcenter.getRight() > cent.getRight()) {
-				if (currcenter.getLeft() > cent.getLeft()) {
+			if (currcenter.getY() > cent.getY()) {
+				if (currcenter.getX() > cent.getX()) {
 					children[0].updateEntites(ent);
 				}
-				else if (currcenter.getLeft() < cent.getLeft()) {
+				else if (currcenter.getX() < cent.getX()) {
 					children[1].updateEntites(ent);
 				}
 			}
-			else if (currcenter.getLeft() < cent.getLeft()) {
-				if (currcenter.getLeft() > cent.getLeft()) {
+			else if (currcenter.getY() < cent.getY()) {
+				if (currcenter.getX() > cent.getX()) {
 					children[2].updateEntites(ent);
 				}
-				else if (currcenter.getLeft() < cent.getLeft()) {
+				else if (currcenter.getX() < cent.getX()) {
 					children[3].updateEntites(ent);
 				}
 			}
@@ -73,7 +73,7 @@ public class Node {
 	}
 	
 	//Functions to implement
-	private Pair<Double,Double> center() {
+	private Point center() {
 		return terrain.getCenter();
 	}
 	
@@ -86,23 +86,23 @@ public class Node {
 	}
 	
 	//find out what position of camera uses
-	public Node findCamera(Pair<Double,Double> target) {
+	public Node findCamera(Point target) {
 		Node currNode = this;
 		while(currNode.center() != target) {
-			Pair<Double,Double> currcenter = currNode.center();
-			if (currcenter.getRight() > target.getRight()) {
-				if (currcenter.getLeft() > target.getLeft()) {
+			Point currcenter = currNode.center();
+			if (currcenter.getY() > target.getY()) {
+				if (currcenter.getX() > target.getX()) {
 					currNode = children[0];
 				}
-				else if (currcenter.getLeft() < target.getLeft()) {
+				else if (currcenter.getX() < target.getX()) {
 					currNode = children[1];
 				}
 			}
-			else if (currcenter.getLeft() < target.getLeft()) {
-				if (currcenter.getLeft() > target.getLeft()) {
+			else if (currcenter.getY() < target.getY()) {
+				if (currcenter.getX() > target.getX()) {
 					currNode = children[2];
 				}
-				else if (currcenter.getLeft() < target.getLeft()) {
+				else if (currcenter.getX() < target.getX()) {
 					currNode = children[3];
 				}
 			}

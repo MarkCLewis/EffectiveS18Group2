@@ -1,14 +1,15 @@
 package cloud;
-
-import virtualworld.terrain.Perlin;
-import java.math.*;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.TimeUnit;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import virtualworld.terrain.Perlin;
 
 public class DirectDrawDemo extends JPanel {
 
@@ -30,6 +31,7 @@ public class DirectDrawDemo extends JPanel {
         //fillCanvas(Color.BLUE);
         this.cloud = cloud;
         drawCloud();
+        //drawCloud3d();
         //printCloudArray();
         //drawRect(a, 0, 0, width/2, height/2);
         
@@ -75,7 +77,7 @@ public class DirectDrawDemo extends JPanel {
         	float g = 1;
         	double xOff = 0;
             for (int x = 0; x < canvas.getWidth(); x++) {
-            	b = (((float)(OctavePerlin(xOff,yOff, 2, 1) % 1.0)));
+            	b = (((float)(OctavePerlin(xOff,yOff, 1, 4) % 1.0)));
             	//b = (float)func.noise2D(xOff, yOff);
             	//
             	b = (b+1) /2f;
@@ -113,6 +115,21 @@ public class DirectDrawDemo extends JPanel {
     	}
     	repaint();	
     }
+    
+    public void drawCloud3d() {
+    	double [][][] cloudarr = cloud.getCloudArray3d();
+    	for (int z =0; z < cloudarr[0][0].length; z++) {
+	    	for (int x = 0; x < cloudarr.length; x++) {
+	    		for (int y = 0; y < cloudarr[x].length; y++)
+	    		{
+	    			Color nColor = new Color(0, 191,255, (int)( (cloudarr[x][y][3]) * 255));
+	    			canvas.setRGB(x, y, nColor.getRGB());
+	    		}
+	    	}
+	    	repaint();	
+    	}	
+    }
+
 
 
 
@@ -131,7 +148,7 @@ public class DirectDrawDemo extends JPanel {
         int width = 1000;
         int height = 1000;
         JFrame frame = new JFrame("Direct draw demo");
-        Cloud temp = new Cloud(0,0,0,1000,1000,1000);
+        Cloud temp = new Cloud(0,0,0,1000,1000,10);
         DirectDrawDemo panel = new DirectDrawDemo(1000, 1000, temp);
         frame.add(panel);
         frame.pack();
