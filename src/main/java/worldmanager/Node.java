@@ -20,17 +20,21 @@ public class Node {
 
 	//Nodes for traversal
 	Node parent = null;
-	Node[] children = null;
+	Node[] children = new Node[0];
+	
+	//data for node
+	Point center;
 	private double size;
 	private int depth;
+	private int maxDepth = 9;
 	List<Entity> entities;
 	
 	
 	//Constructor
-	public Node(Terrain t) {
-		terrain = t;
+	public Node() {
 		if (parent != null) {
 			depth = parent.getDepth() + 1;
+			size = parent.getSize() / 2;
 		} else {
 			depth = 0;
 		}
@@ -40,7 +44,10 @@ public class Node {
 		Point cent = ent.getCenter();
 		Point currcenter = this.center();
 		double sz = ent.getSize();
-		if (sz > size && children != null) {
+		if (sz < size && this.getDepth() != maxDepth) {
+			if (children.length == 0) {
+				this.createChildren();
+			}
 			if (currcenter.getY() > cent.getY()) {
 				if (currcenter.getX() > cent.getX()) {
 					children[0].updateEntites(ent);
@@ -72,6 +79,44 @@ public class Node {
 		children = c;
 	}
 	
+	public void updateSize(double sz) {
+		size = sz;
+	}
+	
+	public void updateCenter(Point cent) {
+		center = cent;
+	}
+	
+	public void updateDepth(int dep) {
+		depth = dep;
+	}
+	
+	public void createChildren() {
+		double offset = size/4;
+		children = new Node[4];
+		for (int i = 0; i < 4; i++) {
+			Node newchild = new Node();
+			Point newcent;
+			if (i == 0) {
+				newcent = new Point(this.center.getX()-offset, this.center.getY()+offset);
+			}
+			else if (i == 1) {
+				newcent = new Point(this.center.getX()+offset, this.center.getY()+offset);
+			}
+			else if (i == 2) {
+				newcent = new Point(this.center.getX()-offset, this.center.getY()-offset);
+			}
+			else {
+				newcent = new Point(this.center.getX()+offset, this.center.getY()-offset);
+			}
+			newchild.updateSize(size/2);
+			newchild.updateParent(this);
+			newchild.updateDepth(this.depth+1);
+			newchild.updateCenter(newcent);
+			children[i] = newchild;
+		}
+	}
+	
 	//Functions to implement
 	private Point center() {
 		return terrain.getCenter();
@@ -88,7 +133,7 @@ public class Node {
 	//find out what position of camera uses
 	public Node findCamera(Point target) {
 		Node currNode = this;
-		while(currNode.center() != target) {
+		while(currNode.center() != target && currNode.getDepth() != maxDepth) {
 			Point currcenter = currNode.center();
 			if (currcenter.getY() > target.getY()) {
 				if (currcenter.getX() > target.getX()) {
@@ -111,14 +156,16 @@ public class Node {
 	}
 	
 	// Function to split into sectors and save as children
+	/*
 	private void split() {
 		Terrain[] terrs = terrain.split();
 		Node [] temp = new Node[terrs.length];
 		for (int i = 0; i < terrs.length; i++) {
-			Node newNode = new Node(terrs[i]);
+			Node newNode = new Node();
 			newNode.updateParent(this);
 			temp[i] = newNode;
 		}
 		children = temp;
 	}
+	*/
 }
