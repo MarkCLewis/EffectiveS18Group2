@@ -31,19 +31,23 @@ public class Node {
 	
 	
 	//Constructor
-	public Node() {
-		if (parent != null) {
-			depth = parent.getDepth() + 1;
-			size = parent.getSize() / 2;
-		} else {
-			depth = 0;
-		}
-	}
+	public Node() {}
 	
+	//takes Entity as an argument and puts it into the smallest node that can still completely hold the Entity
 	public void updateEntites(Entity ent) {
 		Point cent = ent.getCenter();
 		Point currcenter = this.center();
 		double sz = ent.getSize();
+		double leftent = cent.getX() - sz/2;
+		double rightent = cent.getX() + sz/2;
+		double upent = cent.getY() - sz/2;
+		double downent = cent.getY() + sz/2;
+		double leftnode = center.getX() - size/2;
+		double rightnode = center.getX() + size/2;
+		double upnode = center.getY() - size/2;
+		double downnode = center.getY() + size/2;
+		boolean test = (leftent < leftnode) && (rightent > rightnode);
+		
 		if (sz < size && this.getDepth() != maxDepth) {
 			if (children.length == 0) {
 				this.createChildren();
@@ -130,7 +134,24 @@ public class Node {
 		return depth;
 	}
 	
+	//Gives all entities distance from camera
+	public void cameraDist(Point target) {
+		while(children.length > 0) {
+			for(Entity e: entities) {
+				Point start = e.getCenter();
+				double numer = start.getY()-target.getY();
+				double denom = start.getX()-target.getX();
+				double dist = numer/denom;
+				e.distFromCamera(dist);
+			}
+			for(Node newnode: children) {
+				newnode.cameraDist(target);
+			}
+		}
+	}
+	
 	//find out what position of camera uses
+	//probably won't need, as cameraDist covers pretty much all cases surrounding camera needs
 	public Node findCamera(Point target) {
 		Node currNode = this;
 		while(currNode.center() != target && currNode.getDepth() != maxDepth) {
@@ -154,18 +175,4 @@ public class Node {
 		}
 		return currNode;
 	}
-	
-	// Function to split into sectors and save as children
-	/*
-	private void split() {
-		Terrain[] terrs = terrain.split();
-		Node [] temp = new Node[terrs.length];
-		for (int i = 0; i < terrs.length; i++) {
-			Node newNode = new Node();
-			newNode.updateParent(this);
-			temp[i] = newNode;
-		}
-		children = temp;
-	}
-	*/
 }
