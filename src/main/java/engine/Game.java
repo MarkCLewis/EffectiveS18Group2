@@ -1,44 +1,32 @@
 package engine;
 
 public class Game {
-	/* 
-	 * This class is a singleton
-	 * No public constructors are provided
-	 * 
-	 */
-
-	public static final String title = "VirtualWorld";
+  
+	private Engine e;
 	
-	private static class GameLoader {
-		private static final Game INSTANCE;
-		static {
-			try {
-				INSTANCE = new Game();
-			} catch (Exception e) {
-				throw new ExceptionInInitializerError(e);
-			}
-		}
+	public Game() {
+		e = Engine.getInstance();
+	}
+  
+	public void addShape(shapes.Shape shape) {
+		e.addShape(shape);
 	}
 	
-	private Game() {
-		if(GameLoader.INSTANCE != null) {
-			throw new IllegalStateException("Already instantiated");
-		}
-		else {
-			this.init();
-		}
+	public void start() {
+		e.start();
 	}
-	
-	public static Game getInstance() {
-		return GameLoader.INSTANCE;
+  
+	/**
+	 * Example application
+	 * First you need a Game instance and then
+     * you can add your shapes
+     * @param args
+     */
+	public static void main(String[] args) {
+		Game g = new Game();
+		shapes.RectangularPrism rP = new shapes.RectangularPrism(1, 1, 1, 5, 5, 0);
+		g.addShape(rP);
+		g.start();
 	}
-	
-    private void init() {
-    	// TODO
-    }
-    
-    public void run() {
-        Engine.getInstance().start();
-    }
-
+  
 }
