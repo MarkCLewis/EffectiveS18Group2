@@ -10,4 +10,7 @@ public interface Entity {
 	
 	public double getSize();
 	
+	//gives you value for distance from camera
+	public void distFromCamera(double size);
+	
 }
