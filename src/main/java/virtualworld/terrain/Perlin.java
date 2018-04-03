@@ -118,4 +118,37 @@ public class Perlin { //singleton class for noise function
         return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);
     }
 
+    public double OctavePerlin(double x, double y, int octaves, double persistence) {
+        double total = 0;
+        double frequency = 1;
+        double amplitude = 1;
+        double maxValue = 0;  // Used for normalizing result to 0.0 - 1.0
+        for(int i=0;i<octaves;i++) {
+            total += noise2D(x * frequency, y * frequency) * amplitude;
+            
+            maxValue += amplitude;
+            
+            amplitude *= persistence;
+            frequency *= 2;
+        }
+        
+        return total/maxValue;
+    }
+    
+    public double OctavePerlin3d(double x, double y, double z, int octaves, double persistence) {
+        double total = 0;
+        double frequency = 1;
+        double amplitude = 1;
+        double maxValue = 0;  // Used for normalizing result to 0.0 - 1.0
+        for(int i=0;i<octaves;i++) {
+            total += noise3D(x * frequency, y * frequency, z *frequency) * amplitude;
+            
+            maxValue += amplitude;
+            
+            amplitude *= persistence;
+            frequency *= 2;
+        }
+        
+        return total/maxValue;
+    }
 }
