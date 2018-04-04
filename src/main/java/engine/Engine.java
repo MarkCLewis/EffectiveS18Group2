@@ -27,6 +27,7 @@ import com.jme3.scene.plugins.blender.math.Vector3d;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Dome;
+import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Torus;
@@ -36,6 +37,7 @@ import shapes.Shape;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FogFilter;
@@ -137,7 +139,6 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	private static Vector3d worldPosition = new Vector3d();
 	
 	private static DirectionalLight sun;
-	private static Mesh skyMesh;
 	private static Node playerNode;
 	private static DebugTools debugTools;
 	
@@ -184,10 +185,25 @@ public class Engine extends SimpleApplication implements AnalogListener {
 
         Material skyMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         skyMaterial.setColor("Color", ColorRGBA.Blue);
-        skyMesh = new Dome(50,50,fogDistance/5);
+        Mesh skyMesh = new Dome(50,50,fogDistance/6);
         Geometry skyGeom = new Geometry("sky", skyMesh);
         skyGeom.setMaterial(skyMaterial);
+        Vector3f skyPos = new Vector3f();
+        skyGeom.worldToLocal(new Vector3f(0,-1,0), skyPos);
+        skyGeom.setLocalTranslation(skyPos);
         playerNode.attachChild(skyGeom);
+        
+        Material groundMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        groundMaterial.setColor("Color", ColorRGBA.Brown);
+        Mesh groundMesh = new Quad(fogDistance/3,fogDistance/3);
+        Geometry groundGeom = new Geometry("ground", groundMesh);
+        groundGeom.setMaterial(groundMaterial);
+        groundGeom.rotateUpTo(new Vector3f(0,0,-1));
+        Vector3f groundPos = new Vector3f();
+        groundGeom.worldToLocal(new Vector3f(-(fogDistance/6),(fogDistance/6),1), groundPos);
+        groundGeom.setLocalTranslation(groundPos);
+        playerNode.attachChild(groundGeom);
+        
         // int hashCode = worldPosition.hashCode(); // Use this later for randomization
         for (int i = 0; i < meshPositions.size(); i++) {
         	logger.info("adding mesh from index " + i + " in meshBuffer");
