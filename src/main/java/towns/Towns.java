@@ -25,10 +25,10 @@ public class Towns extends Entity {
 		Parkcenter= middle.get(2);
 		Schoolcenter= middle.get(3);
 		
-		//Shops=DrawSquare(Shopscenter, r/6);         
-		//House=DrawSquare(Housecenter, r/6);
-		//Park=DrawSquare(Parkcenter, r/4);
-		//School=DrawSquare(Schoolcenter, r/6);
+		Shops=DrawSquare(Shopscenter, r/6);         
+		House=DrawSquare(Housecenter, r/6);
+		Park=DrawSquare(Parkcenter, r/4);
+		School=DrawSquare(Schoolcenter, r/6);
 		
 	}
   
@@ -57,7 +57,10 @@ public class Towns extends Entity {
 			return (x/y);
 		}
     }
-    public getCenter 
+    public Point getCenter (Towns p){ 
+    		return middle;
+    }
+    private int town ratios
 	//public createShops(cent, rad)
 	//public House(cent,rad)
 	//public Park(cent,rad)
