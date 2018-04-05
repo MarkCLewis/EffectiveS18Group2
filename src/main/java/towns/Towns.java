@@ -6,18 +6,18 @@ package towns;
 import java.util.ArrayList;
 
 //import virtualworld.terrain.Pair;
-
+import virtualworld.terrain.Point;
 //OLD, WILL PUSH NEW TONIGHT
 
-public class Towns {
- /*   private double radius;
-	private ArrayList<Pair<Double,Double>> middle;
-	private Pair<Double,Double> Shopcenter, Schoolcenter, Housecenter, Parkcenter, center;
+public class Towns extends Entity {
+       private double radius;
+	private ArrayList<Point> middle;
+	private Point Shopcenter, Schoolcenter, Housecenter, Parkcenter, center;
 
 //DrawSqure takes a radius of Square and center of the rectangle Once implemented
 	
-	public Towns(Pair<Double,Double> cent, Double townsize) {
-		radius= townsize;
+	public Towns(Point cent) {
+		radius= 50* mthpnt (cent);
 		center= cent;
 		middle= GenerateCenters(center, radius); 
 		Shopcenter= middle.get(0);
@@ -32,23 +32,32 @@ public class Towns {
 		
 	}
   
-    public static ArrayList<Pair<Double,Double>> GenerateCenters (Pair<Double,Double> cent, Double rad){
-		Pair<Double,Double> shop = new Pair<Double,Double>(cent.getLeft() - Math.sqrt(Math.pow(rad,2)/2), cent.getRight() - Math.sqrt(Math.pow(rad,2)/2)); 
+    public static ArrayList<Point> GenerateCenters (Point cent, Double rad){
+		Point shop = new Point(cent.getLeft() - Math.sqrt(Math.pow(rad,2)/2), cent.getRight() - Math.sqrt(Math.pow(rad,2)/2)); 
 		//shopCenter SOUTHWEST
-		Pair<Double,Double> house = new Pair<Double,Double>(cent.getLeft() + Math.sqrt(Math.pow(rad,2)/2),cent.getLeft() + Math.sqrt(Math.pow(rad,2))/2);
+		Point house = new Point(cent.getLeft() + Math.sqrt(Math.pow(rad,2)/2),cent.getLeft() + Math.sqrt(Math.pow(rad,2))/2);
 		//houseCenter NORTHEAST
-		Pair<Double,Double> park = new Pair<Double,Double>(cent.getLeft() - Math.sqrt(Math.pow(rad,2)/2),cent.getLeft() + Math.sqrt(Math.pow(rad,2))/2);
+		Point park = new Point (cent.getLeft() - Math.sqrt(Math.pow(rad,2)/2),cent.getLeft() + Math.sqrt(Math.pow(rad,2))/2);
 		//parkCenter NORTHWEST
-		Pair<Double,Double> school = new Pair<Double,Double>(cent.getLeft() + Math.sqrt(Math.pow(rad,2)/2),cent.getLeft() - Math.sqrt(Math.pow(rad,2))/2);
+		Point school = new Point (cent.getLeft() + Math.sqrt(Math.pow(rad,2)/2),cent.getLeft() - Math.sqrt(Math.pow(rad,2))/2);
 		//schoolCenter SOUTHEAST
-		ArrayList<Pair<Double,Double>> pass = new ArrayList<Pair<Double,Double>>();
+		ArrayList<Point> pass = new ArrayList<Point>();
 		pass.add(shop);
 		pass.add(house);
 		pass.add(park);
 		pass.add(school);
 		return (pass);
 	}
-    
+    private int mthpnt (Point k){
+    	 	int x= k.getX;
+		int y= k.getY;
+		if ((x/y)<1.0){
+			return (4+(x/y));
+		}else{
+			return (x/y);
+		}
+    }
+    public getCenter 
 	//public createShops(cent, rad)
 	//public House(cent,rad)
 	//public Park(cent,rad)
