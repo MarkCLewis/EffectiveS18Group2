@@ -119,8 +119,7 @@ public class Terrain implements Entity {
     	
     	for (double[] row: ans)
     	    Arrays.fill(row, -1.0);
-    	System.out.println("init.length " + init.length);
-    	System.out.println("init.length " + init[0].length);
+    	
     	for (int r = 0; r < init.length; r++) {
 			for (int c = 0; c < init.length; c++) {
 				ans[r*2][c*2] = init[r][c];
@@ -136,7 +135,6 @@ public class Terrain implements Entity {
     	if(!mapIsSet) renderHeights();
     	//Integer division so will always round down
     	int splitSize = (pointsPerSide + 1)/2;
-    	System.out.println("Split Size: " + splitSize);
     	
     	double[][][] split = new double[4][splitSize][splitSize];
     	
@@ -162,22 +160,28 @@ public class Terrain implements Entity {
     public double[][] renderHeights() {
     	Point topLeft = new Point(center.getX() - (length / 2), center.getY() + (length / 2));
     	double increment = length / pointsPerSide;
-    	System.out.println("points per side " + pointsPerSide);
     	
     	for (int r = 0; r < pointsPerSide; r++) {
     		double nr = (topLeft.getY() + (increment * r))/length - 0.5;
-    		System.out.println("nR: " + nr);
 			for (int c = 0; c < pointsPerSide; c++) {
 				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
-				System.out.println("nc: " + nc);
 				if (heightMap[r][c] == -1.0) {
-					heightMap[r][c] = perlNoise.noise2D(nr, nc);
+					heightMap[r][c] = perlNoise.noise2D(nc, nr) * heightSeed;
 				}
 				
 			}
     	}
     	
     	return heightMap;
+    }
+    
+    public double getHeightAt(Point spot) {
+    	
+    	double worldY = spot.getY()/length - 0.5;
+		double worldX = spot.getX()/length - 0.5;
+		
+		return perlNoise.noise2D(worldX, worldY) * heightSeed;
+		
     }
      
      
