@@ -17,6 +17,11 @@ import java.nio.file.Paths;
 
 import org.lwjgl.BufferUtils;
 
+import com.jme3.scene.Mesh;
+import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Cylinder;
+import com.jme3.scene.shape.Sphere;
+
 public class Utils {
 	
 	private static ByteBuffer resizeBuffer(ByteBuffer buffer, int newCapacity) {
@@ -77,5 +82,54 @@ public class Utils {
     	String root = System.getProperty("user.dir");
     	byte[] encoded = Files.readAllBytes(Paths.get(root, path));
     	return new String(encoded, encoding);
+    }
+    
+    public static Mesh getMeshFromShape(shapes.Shape shape) {
+    	if(shape instanceof shapes.Cylinder) {
+    		return getMeshFromCylinder((shapes.Cylinder)shape);
+    	} else if(shape instanceof shapes.Sphere) {
+    		return getMeshFromSphere((shapes.Sphere)shape);
+    	} else if(shape instanceof shapes.RectangularPrism) {
+    		return getMeshFromRectPrism((shapes.RectangularPrism)shape);
+    	} else throw new IllegalArgumentException();
+    }
+    
+    public static Mesh getMeshFromSphere(shapes.Sphere shape) {
+    	return new Sphere(10,10,shape.getRadius());
+    }
+    
+    public static Mesh getMeshFromCylinder(shapes.Cylinder shape) {
+    	return new Cylinder(10,10,shape.getRadius(),shape.getHeight());
+    }
+    
+    public static Mesh getMeshFromRectPrism(shapes.RectangularPrism shape) {
+    	float[] dim = shape.getDimensions();
+    	return new Box(dim[0],dim[1],dim[2]);
+    }
+    
+    /**
+     * Maps a value from 0-1 to a range from min to max.
+     *
+     * @param x
+     * @param min
+     * @param max
+     * @return
+     */
+    public static float mapValue(float x, float min, float max) {
+        return mapValue(x, 0, 1, min, max);
+    }
+
+    /**
+     * Maps a value from inputMin to inputMax to a range from min to max.
+     *
+     * @param x
+     * @param inputMin
+     * @param inputMax
+     * @param min
+     * @param max
+     * @return
+     */
+    public static float mapValue(float x, float inputMin, float inputMax, float min, float max) {
+        return (x - inputMin) * (max - min) / (inputMax - inputMin) + min;
     }
 }

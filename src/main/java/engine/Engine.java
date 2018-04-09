@@ -31,9 +31,14 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Torus;
+import com.jme3.terrain.geomipmap.TerrainLodControl;
+import com.jme3.terrain.geomipmap.TerrainQuad;
+import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
 import com.sun.javafx.geom.Vec3f;
 
 import shapes.Shape;
+import virtualworld.terrain.Point;
+import virtualworld.terrain.Terrain;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -61,7 +66,6 @@ public class Engine extends SimpleApplication implements AnalogListener {
 		static {
 			try {
 				INSTANCE = new Engine();
-				INSTANCE.setupApp();
 			} catch (Exception e) {
 				throw new ExceptionInInitializerError(e);
 			}
@@ -89,35 +93,6 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	}
 	
 	/**
-	 * Provides utility functions that help the engine
-	 * process data for rendering
-	 * @author Kayla Hood
-	 *
-	 */
-	private static class Utils {
-		private static float[] worldToLocalCoords(double[] worldCoords) {
-			return new float[] {(float) (worldCoords[0]-worldPosition.x),
-			                    (float) (worldCoords[1]-worldPosition.y),
-			                    (float) (worldCoords[2]-worldPosition.z)};
-		}
-		
-		private static Vector3f worldToLocalCoords(Vector3d worldCoords) {
-			return new Vector3f(worldCoords.subtract(worldPosition).toVector3f());
-		}
-		
-		/**
-		 * fills the meshBuffer and meshPositions lists with random spheres and positions
-		 * Development function only
-		 */
-		private static void fillBuffersWithRandomShapes(int count) {
-			for(int i = 0; i < count; i++) {
-				meshBuffer.add(new Sphere(10,10,1));
-				meshPositions.add(new Vector3d(random.nextDouble()*20, random.nextDouble()*20, 0));
-			}
-		}
-	}
-	
-	/**
 	 * This buffer holds a collection of meshes (boxes, spheres, etc.) that
 	 * are to be rendered in the NEXT frame.
 	 * The positions of these meshes in the world are provided by the 
@@ -138,28 +113,28 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	 */
 	private static Vector3d worldPosition = new Vector3d();
 	
-	private static DirectionalLight sun;
-	private static Node playerNode;
-	private static DebugTools debugTools;
+	private DirectionalLight sun;
+	private Node skyNode;
+	private Node terrainNode;
+	private Node objectNode;
+	private DebugTools debugTools;
 	
+	private TerrainQuad terrainQuad;
+	
+	private boolean shouldUpdateShapes = false;
+	
+	//private static final Terrain terrain = new Terrain(new Point(0.0,0.0), 100, 10, ))
 	private static final Logger logger = Logger.getLogger(Engine.class.getName());
 	private static final Random random = new Random(System.currentTimeMillis());
 	
-	private static final float fogDistance = 100;
+	public static final float fogDistance = 100;
 	
 	private final Vector3f walkDirection = new Vector3f();
     
-	/**
-	 * Starts the game using the rendering logic defined in this class (Engine)
-	 * @param args
-	 * The command line arguments given to the application
-	 */
-    public static void main(String[] args) {
-		Engine.getInstance().start();
-	}
-    
-    public void setupApp() {
+	@Override
+    public void initialize() {
     	this.setShowSettings(false);
+    	super.initialize();
     }
     
     /**
@@ -170,62 +145,83 @@ public class Engine extends SimpleApplication implements AnalogListener {
      */
     @Override
     public void simpleInitApp() {
-    	viewPort.setBackgroundColor(ColorRGBA.Blue);
-    	
     	logger.info("simpleInitApp");
     	cam.setFrustumFar(10000);
     	cam.setLocation(Vector3f.ZERO);
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
-
-        playerNode = new Node("player");
         setupKeys();
         setupDisplay();
         setupFog();
 
+        skyNode = new Node("Sky");
         Material skyMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         skyMaterial.setColor("Color", ColorRGBA.Blue);
-        Mesh skyMesh = new Dome(50,50,fogDistance/6);
-        Geometry skyGeom = new Geometry("sky", skyMesh);
+        Mesh skyMesh = new Dome(50,50,fogDistance);
+        Geometry skyGeom = new Geometry("Sky", skyMesh);
         skyGeom.setMaterial(skyMaterial);
         Vector3f skyPos = new Vector3f();
         skyGeom.worldToLocal(new Vector3f(0,-1,0), skyPos);
         skyGeom.setLocalTranslation(skyPos);
-        playerNode.attachChild(skyGeom);
-        
-        Material groundMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        groundMaterial.setColor("Color", ColorRGBA.Brown);
-        Mesh groundMesh = new Quad(fogDistance/3,fogDistance/3);
-        Geometry groundGeom = new Geometry("ground", groundMesh);
-        groundGeom.setMaterial(groundMaterial);
-        groundGeom.rotateUpTo(new Vector3f(0,0,-1));
-        Vector3f groundPos = new Vector3f();
-        groundGeom.worldToLocal(new Vector3f(-(fogDistance/6),(fogDistance/6),1), groundPos);
-        groundGeom.setLocalTranslation(groundPos);
-        playerNode.attachChild(groundGeom);
-        
-        // int hashCode = worldPosition.hashCode(); // Use this later for randomization
-        for (int i = 0; i < meshPositions.size(); i++) {
-        	logger.info("adding mesh from index " + i + " in meshBuffer");
-            Vector3f vector3f = Utils.worldToLocalCoords(meshPositions.get(i));
-            logger.info("mesh origin is " + vector3f.toString());
-            Geometry defGeom = new Geometry("def", meshBuffer.get(i));
-            Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-            mat.setColor("Diffuse", ColorRGBA.White);
-            mat.setColor("Specular", ColorRGBA.White);
-            mat.setFloat("Shininess", 64);
-            defGeom.setLocalTranslation(vector3f);
-            defGeom.setMaterial(mat);
-            playerNode.attachChild(defGeom);
-        }
+        skyNode.attachChild(skyGeom);
         
         sun = new DirectionalLight();
         sun.setDirection(new Vector3f(1,0,-2).normalizeLocal());
         sun.setColor(ColorRGBA.White);
+        skyNode.addLight(sun);
         
-        playerNode.addLight(sun);
-        playerNode.updateGeometricState();
-        rootNode.attachChild(playerNode);
+        skyNode.updateGeometricState();
+        rootNode.attachChild(skyNode);
+        
+        meshBuffer = new ArrayList<Mesh>();
+		meshPositions = new ArrayList<Vector3d>();
+		
+		objectNode = new Node("ObjectNode");
+		terrainNode = new Node("TerrainNode");
+		
+		double length = 100;
+		int seed = 10;
+	    int points = 9;
+		double[][] heightMap = {{0.25, 0.0 , 1.0, 0.0, 0.35},
+								{0.0, 0.0 , 0.0, 0.0, 0.0},
+								{0.0, 0.0 , 1.0, 0.0, 0.0},
+								{0.0, 0.0 , 0.0, 0.0, 0.0},
+								{0.5, 0.0 , 1.0, 0.0, 0.25}};
+		Terrain terrain = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap);
+		double[][] render = terrain.renderHeights();
+		float[] flatRender = new float[render.length * render[0].length];
+		for (int i = 0; i < render.length; i++) {
+			for (int j = 0; j < render[0].length; j++) {
+				flatRender[(i * render[0].length) + j] = (float) render[i][j];
+			}
+		}
+		Material terrainMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        terrainMaterial.setColor("Color", ColorRGBA.Brown);
+		terrainQuad = new TerrainQuad("Terrain",points,(int)length,flatRender);
+		TerrainLodControl control = new TerrainLodControl(terrainQuad, getCamera());
+		control.setLodCalculator( new DistanceLodCalculator(points, 2.7f) ); // patch size, and a multiplier
+		terrainQuad.addControl(control);
+        terrainQuad.setMaterial(terrainMaterial);
+        terrainQuad.setLocalTranslation(0, -100, 0);
+        terrainQuad.setLocalScale(2f, 0.5f, 2f);
+        terrainNode.attachChild(terrainQuad);
+        
+		for (int i = 0; i < meshPositions.size(); i++) {
+        	Engine.logInfo("adding mesh from index " + i + " in meshBuffer");
+            Vector3f localPos = (meshPositions.get(i).subtract(Engine.getWorldPosition())).toVector3f();
+            Engine.logInfo("mesh origin is " + localPos.toString());
+            Geometry geom = new Geometry("Object" + i, meshBuffer.get(i));
+            Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+            mat.setColor("Diffuse", ColorRGBA.White);
+            mat.setColor("Specular", ColorRGBA.White);
+            mat.setFloat("Shininess", 64);
+            geom.setLocalTranslation(localPos);
+            geom.setMaterial(mat);
+            objectNode.attachChild(geom);
+        }
+		
+		rootNode.attachChild(objectNode);
+		rootNode.attachChild(terrainNode);
     }
     
     /**
@@ -288,6 +284,23 @@ public class Engine extends SimpleApplication implements AnalogListener {
      */
     @Override
     public void simpleUpdate(float tpf) {
+    	if(shouldUpdateShapes) {
+    		objectNode.detachAllChildren();
+        	for (int i = 0; i < meshPositions.size(); i++) {
+            	Engine.logInfo("adding mesh from index " + i + " in meshBuffer");
+                Vector3f localPos = (meshPositions.get(i).subtract(Engine.getWorldPosition())).toVector3f();
+                Engine.logInfo("mesh origin is " + localPos.toString());
+                Geometry geom = new Geometry("Object" + i, meshBuffer.get(i));
+                Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+                mat.setColor("Diffuse", ColorRGBA.White);
+                mat.setColor("Specular", ColorRGBA.White);
+                mat.setFloat("Shininess", 64);
+                geom.setLocalTranslation(localPos);
+                geom.setMaterial(mat);
+                objectNode.attachChild(geom);
+            }
+        	shouldUpdateShapes = false;
+    	}
         move(walkDirection);
         fpsText.setText("Location: " + getCoordinates());
         walkDirection.set(Vector3f.ZERO);
@@ -298,66 +311,65 @@ public class Engine extends SimpleApplication implements AnalogListener {
      * "worldPosition" vector. Note: this just sets the "worldPosition"
      * vector, the actual effect of "moving" is produced by the renderer
      * when it takes into account the value of "worldPosition"
-     * @param dir
-     * Direction of player/camera movement (should be a normalized vector)
+     * @param dir Direction of player/camera movement (should be a normalized vector)
      */
     public void move(Vector3f dir) {
-        if (worldPosition == null) {
-            worldPosition = new Vector3d();
-        }
-        worldPosition.addLocal(dir.x,dir.y,dir.z);
+    	Vector3f loc = (rootNode.localToWorld(dir, null));
+        Engine.worldPosition.addLocal(loc.x,loc.y,loc.z);
+        terrainNode.setLocalTranslation(terrainNode.worldToLocal(worldPosition.toVector3f(),null));
+        skyNode.setLocalTranslation(terrainNode.worldToLocal(worldPosition.toVector3f(),null));
     }
     
-    public String getCoordinates() {
-        return worldPosition.toString();
+    public static String getCoordinates() {
+        return Engine.worldPosition.toString();
     }
     
-    private Mesh getMeshFromShape(shapes.Shape shape) {
-    	if(shape instanceof shapes.Cylinder) {
-    		logger.info("Adding Cylinder");
-    		return getMeshFromCylinder((shapes.Cylinder)shape);
-    	} else if(shape instanceof shapes.Sphere) {
-    		logger.info("Adding Sphere");
-    		return getMeshFromSphere((shapes.Sphere)shape);
-    	} else if(shape instanceof shapes.RectangularPrism) {
-    		logger.info("Adding RectangularPrism");
-    		return getMeshFromRectPrism((shapes.RectangularPrism)shape);
-    	} else throw new IllegalArgumentException();
-    }
-    
-    private Mesh getMeshFromSphere(shapes.Sphere shape) {
-    	return new Sphere(10,10,shape.getRadius());
-    }
-    
-    private Mesh getMeshFromCylinder(shapes.Cylinder shape) {
-    	return new Cylinder(10,10,shape.getRadius(),shape.getHeight());
-    }
-    
-    private Mesh getMeshFromRectPrism(shapes.RectangularPrism shape) {
-    	float[] dim = shape.getDimensions();
-    	return new Box(dim[0],dim[1],dim[2]);
-    }
-    
-    private Geometry getGeometryFromShape(shapes.Shape shape) {
-    	if(shape instanceof shapes.Cylinder) {
-    		logger.info("Adding Cylinder");
-    		return new Geometry("cylinder",getMeshFromCylinder((shapes.Cylinder)shape));
-    	} else if(shape instanceof shapes.Sphere) {
-    		logger.info("Adding Sphere");
-    		return new Geometry("sphere",getMeshFromSphere((shapes.Sphere)shape));
-    	} else if(shape instanceof shapes.RectangularPrism) {
-    		logger.info("Adding RectangularPrism");
-    		return new Geometry("rectprism",getMeshFromRectPrism((shapes.RectangularPrism)shape));
-    	} else throw new IllegalArgumentException();
+    public static Vector3d getWorldPosition() {
+    	return Engine.worldPosition.clone();
     }
 
-    public void addShape(shapes.Shape shape) {
-    	logger.info("addShape");
-    	double[] pos = shape.getCenter();
-    	Vector3d vector3d = new Vector3d(pos[0],pos[1],pos[2]);
-        Mesh m = getMeshFromShape(shape);
-        meshBuffer.add(m);
-        meshPositions.add(vector3d);
+    public void changeShapes(ArrayList<shapes.Shape> shapes) {
+    	meshBuffer.clear();
+    	meshPositions.clear();
+    	for (shapes.Shape shape : shapes) {
+    		Engine.logInfo("addShape");
+        	double[] pos = shape.getCenter();
+        	Vector3d vector3d = new Vector3d(pos[0],pos[1],pos[2]);
+            Mesh m = Utils.getMeshFromShape(shape);
+            meshBuffer.add(m);
+            meshPositions.add(vector3d);
+    	}
+    	shouldUpdateShapes = true;
+    }
+    
+    /**
+     * Returns a random double between min (inclusive) and max (exclusive)
+     * @param min lower bound (inclusive)
+     * @param max upper bound (exclusive)
+     * @return a random double in the range [min,max)
+     */
+    public static double getRandomDouble(double min, double max) {
+    	return (random.nextDouble() * (max-min) + min);
+    }
+    
+    /**
+     * Returns a random float between min (inclusive) and max (exclusive)
+     * @param min lower bound (inclusive)
+     * @param max upper bound (exclusive)
+     * @return a random float in the range [min,max)
+     */
+    public static float getRandomFloat(float min, float max) {
+    	return (random.nextFloat() * (max-min) + min);
+    }
+    
+    /**
+     * Returns a random int between min (inclusive) and max (exclusive).
+     * @param min lower bound (inclusive)
+     * @param max upper bound (exclusive)
+     * @return a random int in the range [min,max)
+     */
+    public static int getRandomInt(int min, int max) {
+    	return (random.nextInt((max-min)));
     }
     
     /**
@@ -367,8 +379,6 @@ public class Engine extends SimpleApplication implements AnalogListener {
         Vector3f left = rootNode.getLocalRotation().mult(Vector3f.UNIT_X.negate());
         Vector3f forward = rootNode.getLocalRotation().mult(Vector3f.UNIT_Z.negate());
         Vector3f up = rootNode.getLocalRotation().mult(Vector3f.UNIT_Y);
-        //TODO: properly scale input based on current scaling level
-        tpf = tpf * 10; // TODO: remove magic number
         if (name.equals("StrafeLeft") && value > 0) {
             walkDirection.addLocal(left.mult(tpf));
         } else if (name.equals("StrafeRight") && value > 0) {
@@ -382,38 +392,25 @@ public class Engine extends SimpleApplication implements AnalogListener {
         } else if (name.equals("StrafeDown") && value > 0) {
             walkDirection.addLocal(up.negate().multLocal(tpf));
         } else if (name.equals("Up") && value > 0) {
-            //TODO: rotate rootNode, needs to be global
+            // TODO : rotate rootNode
         } else if (name.equals("Down") && value > 0) {
+        	// TODO : rotate rootNode
         } else if (name.equals("Left") && value > 0) {
+        	// TODO : rotate rootNode
         } else if (name.equals("Right") && value > 0) {
+        	// TODO : rotate rootNode
         } else if (name.equals("Esc")) {
             stop();
         }
     }
     
-    /**
-     * Maps a value from 0-1 to a range from min to max.
-     *
-     * @param x
-     * @param min
-     * @param max
-     * @return
-     */
-    public static float mapValue(float x, float min, float max) {
-        return mapValue(x, 0, 1, min, max);
+    public static void logInfo(String msg) {
+    	logger.info(msg);
     }
-
-    /**
-     * Maps a value from inputMin to inputMax to a range from min to max.
-     *
-     * @param x
-     * @param inputMin
-     * @param inputMax
-     * @param min
-     * @param max
-     * @return
-     */
-    public static float mapValue(float x, float inputMin, float inputMax, float min, float max) {
-        return (x - inputMin) * (max - min) / (inputMax - inputMin) + min;
+    
+    public static void log(Level level, String msg) {
+    	logger.log(level, msg);
     }
+    
+    
 }
