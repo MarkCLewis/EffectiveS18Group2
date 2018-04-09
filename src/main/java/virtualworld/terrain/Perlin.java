@@ -49,11 +49,11 @@ public class Perlin { //singleton class for noise function
 		double u = fade(x);
 		double v = fade(y);
 		
-		int A = (permutation[X] + Y) & 255;
-		int B = (permutation[X+1] + Y) & 255;
+		int A = (p[X] + Y) & 255;
+		int B = (p[X+1] + Y) & 255;
 		
-		return lerp(v, lerp(u, grad(permutation[A  ], x, y), grad(permutation[B  ], x-1, y  )),
-                	   lerp(u, grad(permutation[A+1], x, y-1), grad(permutation[B+1], x-1, y-1)));
+		return lerp(v, lerp(u, grad(p[A  ], x, y), grad(p[B  ], x-1, y  )),
+                	   lerp(u, grad(p[A+1], x, y-1), grad(p[B+1], x-1, y-1)));
 		
 	}
 	
