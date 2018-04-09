@@ -4,48 +4,35 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
-import com.jme3.app.state.AbstractAppState;
-import com.jme3.app.state.AppStateManager;
-import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.shapes.CollisionShape;
-import com.jme3.bullet.collision.shapes.SphereCollisionShape;
-import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.debug.DebugTools;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.plugins.blender.math.Vector3d;
-import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Dome;
-import com.jme3.scene.shape.Quad;
-import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.shape.Torus;
+import com.jme3.scene.debug.Arrow;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
-import com.sun.javafx.geom.Vec3f;
 
 import shapes.Shape;
 import virtualworld.terrain.Point;
 import virtualworld.terrain.Terrain;
 
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.FastMath;
-import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FogFilter;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 
 /**
  * The game's main engine logic
@@ -66,6 +53,7 @@ public class Engine extends SimpleApplication implements AnalogListener {
 		static {
 			try {
 				INSTANCE = new Engine();
+				INSTANCE.setShowSettings(false);
 			} catch (Exception e) {
 				throw new ExceptionInInitializerError(e);
 			}
@@ -120,7 +108,14 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	private DebugTools debugTools;
 	
 	private TerrainQuad terrainQuad;
-	
+    Material matTerrain;
+    Material matWire;
+    boolean wireframe = false;
+    boolean triPlanar = false;
+    protected BitmapText hintText;
+    PointLight pl;
+    Geometry lightMdl;
+
 	private boolean shouldUpdateShapes = false;
 	
 	//private static final Terrain terrain = new Terrain(new Point(0.0,0.0), 100, 10, ))
@@ -130,10 +125,9 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	public static final float fogDistance = 100;
 	
 	private final Vector3f walkDirection = new Vector3f();
-    
+	
 	@Override
     public void initialize() {
-    	this.setShowSettings(false);
     	super.initialize();
     }
     
@@ -151,9 +145,13 @@ public class Engine extends SimpleApplication implements AnalogListener {
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
         setupKeys();
-        setupDisplay();
         setupFog();
 
+        /**
+         * initialize the sky node.
+         * Our sky is a half sphere with the faces pointed inwards,
+         * and its color is flat blue (for now)
+         */
         skyNode = new Node("Sky");
         Material skyMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         skyMaterial.setColor("Color", ColorRGBA.Blue);
@@ -164,29 +162,26 @@ public class Engine extends SimpleApplication implements AnalogListener {
         skyGeom.worldToLocal(new Vector3f(0,-1,0), skyPos);
         skyGeom.setLocalTranslation(skyPos);
         skyNode.attachChild(skyGeom);
-        
-        sun = new DirectionalLight();
-        sun.setDirection(new Vector3f(1,0,-2).normalizeLocal());
-        sun.setColor(ColorRGBA.White);
-        skyNode.addLight(sun);
-        
-        skyNode.updateGeometricState();
+        skyNode.setQueueBucket(Bucket.Sky);
+        skyNode.setCullHint(Spatial.CullHint.Never);
         rootNode.attachChild(skyNode);
-        
-        meshBuffer = new ArrayList<Mesh>();
-		meshPositions = new ArrayList<Vector3d>();
-		
+
 		objectNode = new Node("ObjectNode");
 		terrainNode = new Node("TerrainNode");
 		
-		double length = 100;
+		// WIREFRAME material
+        matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matWire.getAdditionalRenderState().setWireframe(true);
+        matWire.setColor("Color", ColorRGBA.Green);
+		
+		double length = 513;
 		int seed = 10;
-	    int points = 9;
-		double[][] heightMap = {{0.25, 0.0 , 1.0, 0.0, 0.35},
-								{0.0, 0.0 , 0.0, 0.0, 0.0},
-								{0.0, 0.0 , 1.0, 0.0, 0.0},
-								{0.0, 0.0 , 0.0, 0.0, 0.0},
-								{0.5, 0.0 , 1.0, 0.0, 0.25}};
+	    int points = 65;
+		double[][] heightMap = {{0.25, 0.0 , 1.0, 0.0, 0.35, 0.0},
+								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0},
+								{0.0, 0.0 , 1.0, 0.0, 0.0, 0.0},
+								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0},
+								{0.5, 0.0 , 1.0, 0.0, 0.25, 0.0}};
 		Terrain terrain = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap);
 		double[][] render = terrain.renderHeights();
 		float[] flatRender = new float[render.length * render[0].length];
@@ -195,8 +190,8 @@ public class Engine extends SimpleApplication implements AnalogListener {
 				flatRender[(i * render[0].length) + j] = (float) render[i][j];
 			}
 		}
-		Material terrainMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        terrainMaterial.setColor("Color", ColorRGBA.Brown);
+		Material terrainMaterial = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
+        terrainMaterial.setBoolean("useTriPlanarMapping", false);
 		terrainQuad = new TerrainQuad("Terrain",points,(int)length,flatRender);
 		TerrainLodControl control = new TerrainLodControl(terrainQuad, getCamera());
 		control.setLodCalculator( new DistanceLodCalculator(points, 2.7f) ); // patch size, and a multiplier
@@ -205,6 +200,14 @@ public class Engine extends SimpleApplication implements AnalogListener {
         terrainQuad.setLocalTranslation(0, -100, 0);
         terrainQuad.setLocalScale(2f, 0.5f, 2f);
         terrainNode.attachChild(terrainQuad);
+        
+        /**
+         * add the sun (white directional light) to the root node
+         */
+        sun = new DirectionalLight();
+        sun.setDirection((new Vector3f(-0.5f, -1f, -0.5f)).normalize());
+        sun.setColor(ColorRGBA.White);
+        rootNode.addLight(sun);
         
 		for (int i = 0; i < meshPositions.size(); i++) {
         	Engine.logInfo("adding mesh from index " + i + " in meshBuffer");
@@ -222,6 +225,43 @@ public class Engine extends SimpleApplication implements AnalogListener {
 		
 		rootNode.attachChild(objectNode);
 		rootNode.attachChild(terrainNode);
+		
+		rootNode.attachChild(createAxisMarker(20));
+		
+		cam.setLocation(new Vector3f(0, 10, -10));
+        cam.lookAtDirection(new Vector3f(0, -1.5f, -1).normalizeLocal(), Vector3f.UNIT_Y);
+        this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
+    }
+    
+    protected Node createAxisMarker(float arrowSize) {
+
+        Material redMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        redMat.getAdditionalRenderState().setWireframe(true);
+        redMat.setColor("Color", ColorRGBA.Red);
+        
+        Material greenMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        greenMat.getAdditionalRenderState().setWireframe(true);
+        greenMat.setColor("Color", ColorRGBA.Green);
+        
+        Material blueMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        blueMat.getAdditionalRenderState().setWireframe(true);
+        blueMat.setColor("Color", ColorRGBA.Blue);
+
+        Node axis = new Node();
+
+        // create arrows
+        Geometry arrowX = new Geometry("arrowX", new Arrow(new Vector3f(arrowSize, 0, 0)));
+        arrowX.setMaterial(redMat);
+        Geometry arrowY = new Geometry("arrowY", new Arrow(new Vector3f(0, arrowSize, 0)));
+        arrowY.setMaterial(greenMat);
+        Geometry arrowZ = new Geometry("arrowZ", new Arrow(new Vector3f(0, 0, arrowSize)));
+        arrowZ.setMaterial(blueMat);
+        axis.attachChild(arrowX);
+        axis.attachChild(arrowY);
+        axis.attachChild(arrowZ);
+
+        //axis.setModelBound(new BoundingBox());
+        return axis;
     }
     
     /**
@@ -229,6 +269,7 @@ public class Engine extends SimpleApplication implements AnalogListener {
      * TODO: Controller support?
      */
     private void setupKeys() {
+    	flyCam.setMoveSpeed(50);
         inputManager.addMapping("StrafeLeft", new KeyTrigger(KeyInput.KEY_A));
         inputManager.addMapping("StrafeRight", new KeyTrigger(KeyInput.KEY_D));
         inputManager.addMapping("Forward", new KeyTrigger(KeyInput.KEY_W));
@@ -243,21 +284,6 @@ public class Engine extends SimpleApplication implements AnalogListener {
         inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_LEFT));
         inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_RIGHT));
         inputManager.addListener(this, "StrafeLeft", "StrafeRight", "Forward", "Back", "StrafeUp", "StrafeDown", "Space", "Reset", "Esc", "Up", "Down", "Left", "Right");
-    }
-
-    /**
-     * Sets up the window (also called display) that will have 
-     * the game rendered into it
-     */
-    private void setupDisplay() {
-        if (fpsText == null) {
-            fpsText = new BitmapText(guiFont, false);
-        }
-        fpsText.setLocalScale(0.7f, 0.7f, 0.7f);
-        fpsText.setLocalTranslation(0, fpsText.getLineHeight(), 0);
-        fpsText.setText("");
-        fpsText.setCullHint(Spatial.CullHint.Never);
-        guiNode.attachChild(fpsText);
     }
     
     /**
@@ -314,7 +340,7 @@ public class Engine extends SimpleApplication implements AnalogListener {
      * @param dir Direction of player/camera movement (should be a normalized vector)
      */
     public void move(Vector3f dir) {
-    	Vector3f loc = (rootNode.localToWorld(dir, null));
+    	Vector3f loc = (rootNode.worldToLocal(dir, null));
         Engine.worldPosition.addLocal(loc.x,loc.y,loc.z);
         terrainNode.setLocalTranslation(terrainNode.worldToLocal(worldPosition.toVector3f(),null));
         skyNode.setLocalTranslation(terrainNode.worldToLocal(worldPosition.toVector3f(),null));

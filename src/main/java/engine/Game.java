@@ -28,7 +28,7 @@ public class Game {
 		Game g = new Game();
 		ArrayList<shapes.Shape> rPs = new ArrayList<shapes.Shape>();
 		for (int i = 0; i < 10; i++) {
-			rPs.add(new shapes.RectangularPrism(1, 1, 1, Engine.getRandomDouble(0, 10), Engine.getRandomDouble(0, 10), Engine.getRandomDouble(0, 10)));
+			rPs.add(new shapes.RectangularPrism(0.2f, 0.2f, 0.2f, Engine.getRandomDouble(0, 10), Engine.getRandomDouble(0, 10), Engine.getRandomDouble(0, 10)));
 		}
 		g.start();
 		g.addShapes(rPs);
