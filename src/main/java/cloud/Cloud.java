@@ -67,9 +67,9 @@ public class Cloud implements Entity {
 	private void makeCloudArray3d() 
 	{
 		//semi working ish
-		double xInc = 3.0/length;
+		double xInc = 1.0/length;
 		double yInc = 2.0/height;
-		double zInc = 5.3/width; // have to change later
+		double zInc = 1.0/width; // have to change later
 		//System.out.println(xInc +" " + yInc +"\n\n");
 		double yOff = 0;
 		

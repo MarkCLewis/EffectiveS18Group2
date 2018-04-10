@@ -15,8 +15,15 @@ public class test {
 		Cloud t = new Cloud (5,10,0,20,3,10);
 		List<Sphere> spheres = t.makeShape3d();
 		
+		Cloud z = new Cloud(3,10, -10, 20,3,10);
+		List<Sphere> s2 = z.makeShape3d();
 		
 		for (Sphere sp : spheres)
+		{
+			g.addShape(sp);
+		}
+		
+		for (Sphere sp : s2)
 		{
 			g.addShape(sp);
 		}
