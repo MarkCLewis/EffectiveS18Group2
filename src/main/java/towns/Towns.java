@@ -10,7 +10,7 @@ import virtualworld.terrain.Point;
 //OLD, WILL PUSH NEW TONIGHT
 
 public class Towns extends Entity {
-        private double radius;
+        private double radius, seed;
 	private ArrayList<Point> middle;
 	private Point Shopcenter, Schoolcenter, Housecenter, Parkcenter, center;
 	private RectangularPrism Shops, House, Park, School;
@@ -19,8 +19,8 @@ public class Towns extends Entity {
 //DrawSqure takes a radius of Square and center of the rectangle Once implemented
 	
 	public Towns(Point cent) {
-		seed= math.random() *
-		radius= 50* mthpnt (cent);
+		seed= math.random()*50;
+		radius= seed* mthpnt (cent);
 		center= cent;
 		middle= GenerateCenters(center, radius); 
 		Shopcenter= middle.get(0);
@@ -28,11 +28,28 @@ public class Towns extends Entity {
 		Parkcenter= middle.get(2);
 		Schoolcenter= middle.get(3);
 		
-		Shops=DrawSquare((2*radius/6), 0.3, (2*radius/6), Shopscenter.getX(), getHeightAt(center), ShopCenter.getY());         
+		Shops=DrawSquare((2*radius/6), 0.5, (2*radius/6), Shopscenter.getX(), getHeightAt(center), ShopCenter.getY());         
 		House=DrawSquare((2*radius/6), 0.5, (2*radius/6), Housecenter.getX(), getHeightAt(center), HouseCenter.getY());
-		Park=DrawSquare((2*radius/4), 0.7, (2*radius/4), Parkcenter.getX(), getHeightAt(center), Parkcenter.getY());
-		School=DrawSquare((2*radius/6), 0.8, (2*radius/6), Parkcenter.getX(), getHeightAt(center), Schoolcenter.getY());
+		Park=DrawSquare((2*radius/4), 0.5, (2*radius/4), Parkcenter.getX(), getHeightAt(center), Parkcenter.getY());
+		School=DrawSquare((2*radius/6), 0.5, (2*radius/6), Parkcenter.getX(), getHeightAt(center), Schoolcenter.getY());
+		// lays out a base for each quadrant on at 0.5 thick block
+		// some sections occupy a different amount of their respective quadrant, for example,
+		// the park occupies from edge to edge the size of its quadrant
+	}
+	public existing Town (Point cent, double entryseed){
+	        seed=entryseed;
+		radius= seed* mthpnt (cent);
+		center= cent;
+		middle= GenerateCenters(center, radius); 
+		Shopcenter= middle.get(0);
+		Housecenter= middle.get(1);
+		Parkcenter= middle.get(2);
+		Schoolcenter= middle.get(3);
 		
+		Shops=DrawSquare((2*radius/6), 0.5, (2*radius/6), Shopscenter.getX(), getHeightAt(center), ShopCenter.getY());         
+		House=DrawSquare((2*radius/6), 0.5, (2*radius/6), Housecenter.getX(), getHeightAt(center), HouseCenter.getY());
+		Park=DrawSquare((2*radius/4), 0.5, (2*radius/4), Parkcenter.getX(), getHeightAt(center), Parkcenter.getY());
+		School=DrawSquare((2*radius/6), 0.5, (2*radius/6), Parkcenter.getX(), getHeightAt(center), Schoolcenter.getY());
 	}
   
     public static ArrayList<Point> GenerateCenters (Point cent, Double rad){
@@ -63,7 +80,10 @@ public class Towns extends Entity {
     public Point getCenter (Towns p){ 
     		return middle;
     }
-    private int town ratios
+    public Point getCenter (Towns p){ 
+    		return 
+    }
+    //private int town ratios
 	//public createShops(cent, rad)
 	//public House(cent,rad)
 	//public Park(cent,rad)
