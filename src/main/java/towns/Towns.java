@@ -10,13 +10,16 @@ import virtualworld.terrain.Point;
 //OLD, WILL PUSH NEW TONIGHT
 
 public class Towns extends Entity {
-       private double radius;
+        private double radius;
 	private ArrayList<Point> middle;
 	private Point Shopcenter, Schoolcenter, Housecenter, Parkcenter, center;
+	private RectangularPrism Shops, House, Park, School;
+	
 
 //DrawSqure takes a radius of Square and center of the rectangle Once implemented
 	
 	public Towns(Point cent) {
+		seed= math.random() *
 		radius= 50* mthpnt (cent);
 		center= cent;
 		middle= GenerateCenters(center, radius); 
@@ -25,10 +28,10 @@ public class Towns extends Entity {
 		Parkcenter= middle.get(2);
 		Schoolcenter= middle.get(3);
 		
-		Shops=DrawSquare(Shopscenter, r/6);         
-		House=DrawSquare(Housecenter, r/6);
-		Park=DrawSquare(Parkcenter, r/4);
-		School=DrawSquare(Schoolcenter, r/6);
+		Shops=DrawSquare((2*radius/6), 0.3, (2*radius/6), Shopscenter.getX(), getHeightAt(center), ShopCenter.getY());         
+		House=DrawSquare((2*radius/6), 0.5, (2*radius/6), Shopscenter.getX(), getHeightAt(center), ShopCenter.getY());
+		Park=DrawSquare(Parkcenter, 0.7, radius/4);
+		School=DrawSquare(Schoolcenter, 0.9, radius/6);
 		
 	}
   
