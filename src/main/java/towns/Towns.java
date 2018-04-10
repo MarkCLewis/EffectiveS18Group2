@@ -23,8 +23,6 @@ public class Towns extends Entity {
 		for (int i: a){
 		    i=seed;
 		}
-                System.out.print(i + " ");
-                System.out.println();
 		seed= math.random()*50;
 		radius= seed* mthpnt (cent);
 		center= cent;
