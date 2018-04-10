@@ -29,9 +29,9 @@ public class Towns extends Entity {
 		Schoolcenter= middle.get(3);
 		
 		Shops=DrawSquare((2*radius/6), 0.3, (2*radius/6), Shopscenter.getX(), getHeightAt(center), ShopCenter.getY());         
-		House=DrawSquare((2*radius/6), 0.5, (2*radius/6), Shopscenter.getX(), getHeightAt(center), ShopCenter.getY());
-		Park=DrawSquare(Parkcenter, 0.7, radius/4);
-		School=DrawSquare(Schoolcenter, 0.9, radius/6);
+		House=DrawSquare((2*radius/6), 0.5, (2*radius/6), Housecenter.getX(), getHeightAt(center), HouseCenter.getY());
+		Park=DrawSquare((2*radius/4), 0.7, (2*radius/4), Parkcenter.getX(), getHeightAt(center), Parkcenter.getY());
+		School=DrawSquare((2*radius/6), 0.8, (2*radius/6), Parkcenter.getX(), getHeightAt(center), Schoolcenter.getY());
 		
 	}
   
