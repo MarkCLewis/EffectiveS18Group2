@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 //import virtualworld.terrain.Pair;
 import virtualworld.terrain.Point;
-//OLD, WILL PUSH NEW TONIGHT
+
 
 public class Towns extends Entity {
         private double radius, seed;
@@ -18,7 +18,7 @@ public class Towns extends Entity {
 
 //DrawSqure takes a radius of Square and center of the rectangle Once implemented
 	
-	public Towns(Point cent) {
+	public Towns (Point cent) {
 		seed= math.random()*50;
 		radius= seed* mthpnt (cent);
 		center= cent;
@@ -36,7 +36,7 @@ public class Towns extends Entity {
 		// some sections occupy a different amount of their respective quadrant, for example,
 		// the park occupies from edge to edge the size of its quadrant
 	}
-	public existing Town (Point cent, double entryseed){
+	public existingTown (Point cent, double entryseed){
 	        seed=entryseed;
 		radius= seed* mthpnt (cent);
 		center= cent;
@@ -80,8 +80,8 @@ public class Towns extends Entity {
     public Point getCenter (Towns p){ 
     		return middle;
     }
-    public Point getCenter (Towns p){ 
-    		return 
+    public double getSeed (Towns p){ 
+    		return seed; 
     }
     //private int town ratios
 	//public createShops(cent, rad)
