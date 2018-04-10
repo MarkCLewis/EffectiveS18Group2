@@ -132,4 +132,34 @@ public class Utils {
     public static float mapValue(float x, float inputMin, float inputMax, float min, float max) {
         return (x - inputMin) * (max - min) / (inputMax - inputMin) + min;
     }
+    
+    public static float[] flattenArray(float[][] tdArr) {
+		float[] ret = new float[tdArr.length * tdArr[0].length];
+		for(int i = 0; i < tdArr.length; i++) {
+			for(int j = 0; j < tdArr[0].length; j++) {
+				ret[(i*tdArr[0].length) + j] = tdArr[i][j];
+			}
+		}
+		return ret;
+	}
+	
+	public static double[] flattenArray(double[][] tdArr) {
+		double[] ret = new double[tdArr.length * tdArr[0].length];
+		for(int i = 0; i < tdArr.length; i++) {
+			for(int j = 0; j < tdArr[0].length; j++) {
+				ret[(i*tdArr[0].length) + j] = tdArr[i][j];
+			}
+		}
+		return ret;
+	}
+	
+	public static float[] flattenArrayToFloat(double[][] tdArr) {
+		float[] ret = new float[tdArr.length * tdArr[0].length];
+		for(int i = 0; i < tdArr.length; i++) {
+			for(int j = 0; j < tdArr[0].length; j++) {
+				ret[(i*tdArr[0].length) + j] = (float)(tdArr[i][j]);
+			}
+		}
+		return ret;
+	}
 }

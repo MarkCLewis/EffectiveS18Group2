@@ -23,6 +23,10 @@ import com.jme3.scene.debug.Arrow;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
+import com.jme3.texture.Texture2D;
+import com.jme3.texture.Image;
+import com.jme3.texture.Texture;
+import com.jme3.texture.Texture.WrapMode;
 
 import shapes.Shape;
 import virtualworld.terrain.Point;
@@ -30,6 +34,7 @@ import virtualworld.terrain.Terrain;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.opencl.Image.ImageFormat;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
@@ -108,13 +113,6 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	private DebugTools debugTools;
 	
 	private TerrainQuad terrainQuad;
-    Material matTerrain;
-    Material matWire;
-    boolean wireframe = false;
-    boolean triPlanar = false;
-    protected BitmapText hintText;
-    PointLight pl;
-    Geometry lightMdl;
 
 	private boolean shouldUpdateShapes = false;
 	
@@ -169,14 +167,9 @@ public class Engine extends SimpleApplication implements AnalogListener {
 		objectNode = new Node("ObjectNode");
 		terrainNode = new Node("TerrainNode");
 		
-		// WIREFRAME material
-        matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        matWire.getAdditionalRenderState().setWireframe(true);
-        matWire.setColor("Color", ColorRGBA.Green);
-		
-		double length = 513;
-		int seed = 10;
-	    int points = 65;
+		double length = 33;
+		int seed = 9;
+	    int points = 9;
 		double[][] heightMap = {{0.25, 0.0 , 1.0, 0.0, 0.35, 0.0},
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0},
 								{0.0, 0.0 , 1.0, 0.0, 0.0, 0.0},
@@ -190,16 +183,24 @@ public class Engine extends SimpleApplication implements AnalogListener {
 				flatRender[(i * render[0].length) + j] = (float) render[i][j];
 			}
 		}
-		Material terrainMaterial = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
-        terrainMaterial.setBoolean("useTriPlanarMapping", false);
+		Material terrainMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+		Texture terrainTexture = new Texture2D((int)Math.round(length), (int)Math.round(length), Image.Format.RGBA8 );
+		terrainTexture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+	    terrainTexture.setMagFilter(Texture.MagFilter.Nearest);
+		terrainTexture.setWrap(WrapMode.Repeat);
+		terrainMaterial.setColor("Color", ColorRGBA.Green);
+		terrainMaterial.setTexture("ColorMap", terrainTexture);
+		
 		terrainQuad = new TerrainQuad("Terrain",points,(int)length,flatRender);
 		TerrainLodControl control = new TerrainLodControl(terrainQuad, getCamera());
 		control.setLodCalculator( new DistanceLodCalculator(points, 2.7f) ); // patch size, and a multiplier
 		terrainQuad.addControl(control);
         terrainQuad.setMaterial(terrainMaterial);
-        terrainQuad.setLocalTranslation(0, -100, 0);
-        terrainQuad.setLocalScale(2f, 0.5f, 2f);
+        terrainQuad.setLocalTranslation(0, 0, 0);
+        terrainQuad.setLocalScale(1f,1f,1f);
         terrainNode.attachChild(terrainQuad);
+        
+        logger.info("TerrainQuad: " + String.valueOf(terrainQuad.getHeightMap().length));
         
         /**
          * add the sun (white directional light) to the root node
