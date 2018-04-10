@@ -12,8 +12,9 @@ import virtualworld.terrain.Point;
 public class Towns extends Entity {
         private float radius, seed;
 	private ArrayList<Point> middle;
+	private ArrayList<RectangularPrism> shopStalls
 	private Point Shopcenter, Schoolcenter, Housecenter, Parkcenter, center;
-	private RectangularPrism Shops, House, Park, School;
+	private RectangularPrism Shops, House, Park, School, ;
 	
 
 //DrawSqure takes a radius of Square and center of the rectangle Once implemented
@@ -39,16 +40,16 @@ public class Towns extends Entity {
 		// some sections occupy a different amount of their respective quadrant, for example,
 		// the park occupies from edge to edge the size of its quadrant
 		
-		shpwall=seed/5;
-		sth= wall
-		StallGenerator=RectangularPrism((2*radius/6), 0.5, (2*radius/6), Shopscenter.getX(), getHeightAt(center), ShopCenter.getY());
+		StallGenerator(Shopscenter.getX()+radius/6, geth)
+		
+		
 		
 	}
 
-    public static StallGenerator(Point a, float base, float dist, float stallsize){
+    public static RectangularPrism StallGenerator(Point a, float base, float dist, float stallsize, float sed){
             int z=dist;
 	    while(z<dist){
-	    	
+	    	RectangularPrism(sed/6, sed/12, 1, a.getX(), base, z+a.getY());
 		z=z+stallsize;
 	    } 
     }
