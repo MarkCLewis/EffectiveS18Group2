@@ -19,9 +19,8 @@ public class Towns extends Entity {
 //DrawSqure takes a radius of Square and center of the rectangle Once implemented
 	
 	public Towns (Point cent, double ... a) {
-		double seed;
 		for (int i: a){
-		    i=seed;
+		    seed=i;
 		}
 		seed= math.random()*50;
 		radius= seed* mthpnt (cent);
@@ -58,6 +57,7 @@ public class Towns extends Entity {
 		pass.add(school);
 		return (pass);
 	}
+	
     private int mthpnt (Point k){
     	 	int x= k.getX;
 		int y= k.getY;
