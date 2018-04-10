@@ -18,7 +18,13 @@ public class Towns extends Entity {
 
 //DrawSqure takes a radius of Square and center of the rectangle Once implemented
 	
-	public Towns (Point cent) {
+	public Towns (Point cent, double ... a) {
+		double seed;
+		for (int i: a){
+		    i=seed;
+		}
+                System.out.print(i + " ");
+                System.out.println();
 		seed= math.random()*50;
 		radius= seed* mthpnt (cent);
 		center= cent;
@@ -36,21 +42,7 @@ public class Towns extends Entity {
 		// some sections occupy a different amount of their respective quadrant, for example,
 		// the park occupies from edge to edge the size of its quadrant
 	}
-	public existingTown (Point cent, double entryseed){
-	        seed=entryseed;
-		radius= seed* mthpnt (cent);
-		center= cent;
-		middle= GenerateCenters(center, radius); 
-		Shopcenter= middle.get(0);
-		Housecenter= middle.get(1);
-		Parkcenter= middle.get(2);
-		Schoolcenter= middle.get(3);
-		
-		Shops=DrawSquare((2*radius/6), 0.5, (2*radius/6), Shopscenter.getX(), getHeightAt(center), ShopCenter.getY());         
-		House=DrawSquare((2*radius/6), 0.5, (2*radius/6), Housecenter.getX(), getHeightAt(center), HouseCenter.getY());
-		Park=DrawSquare((2*radius/4), 0.5, (2*radius/4), Parkcenter.getX(), getHeightAt(center), Parkcenter.getY());
-		School=DrawSquare((2*radius/6), 0.5, (2*radius/6), Parkcenter.getX(), getHeightAt(center), Schoolcenter.getY());
-	}
+	
   
     public static ArrayList<Point> GenerateCenters (Point cent, Double rad){
 		Point shop = new Point(cent.getLeft() - Math.sqrt(Math.pow(rad,2)/2), cent.getRight() - Math.sqrt(Math.pow(rad,2)/2)); 
@@ -80,7 +72,7 @@ public class Towns extends Entity {
     public Point getCenter (Towns p){ 
     		return middle;
     }
-    public double getSeed (Towns p){ 
+    public double getSize (Towns p){ 
     		return seed; 
     }
     //private int town ratios
