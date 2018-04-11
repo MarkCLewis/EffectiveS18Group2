@@ -140,6 +140,10 @@ public class Node {
 		return depth;
 	}
 	
+	public List<Entity> getEntities() {
+		return entities;
+	}
+	
 	//Gives all entities distance from camera
 	public void cameraDist(Point target) {
 		while(children.length > 0) {
