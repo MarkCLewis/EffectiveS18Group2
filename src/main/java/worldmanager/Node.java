@@ -149,15 +149,19 @@ public class Node {
 		while(children.length > 0) {
 			for(Entity e: entities) {
 				Point start = e.getCenter();
-				double numer = start.getY()-target.getY();
-				double denom = start.getX()-target.getX();
-				double dist = numer/denom;
+				double dist = findDist(target,start);
 				e.distFromCamera(dist);
 			}
 			for(Node newnode: children) {
 				newnode.cameraDist(target);
 			}
 		}
+	}
+	
+	public double findDist(Point target, Point start) {
+		double numer = start.getY()-target.getY();
+		double denom = start.getX()-target.getX();
+		return Math.abs(numer/denom);
 	}
 	
 	//find out what position of camera uses

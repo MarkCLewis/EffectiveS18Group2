@@ -9,8 +9,11 @@ import virtualworld.terrain.Point;
 
 public class WorldManager {
 	
-	//Starting Node
+	//data
 	Node rootNode;
+	Point cameraLoc;
+	double cameraStep = 10;
+	double maxView = 100;
 	
 	public WorldManager() {}
 	
@@ -25,20 +28,43 @@ public class WorldManager {
 	
 	//update camera location
 	public void updateCamera(Point point) {
-		rootNode.cameraDist(point);
+		if (rootNode.findDist(point, cameraLoc) > cameraStep) {
+			rootNode.cameraDist(point);
+			cameraLoc = point;
+		}
 	}
 	
-	//tree traversal for geometry
+	//tree traversal to get geometry that is within the max specified distance
 	public List<Shape> getGeometry() {
-		List<Entity> ents = rootNode.getEntities();
-		List<Shape> shapes = new ArrayList<>();
-		for(Entity e: ents) {
-			if (shapes == null || shapes.isEmpty()) {
-				shapes = e.getShapes();
-			}
-			shapes.addAll(e.getShapes());
+		return traverseGeometry(rootNode, maxView);
+	}
+	
+	//traverses through node tree to collect shapes given back by nodeGeometry()
+	private List<Shape> traverseGeometry(Node node, double max) {
+		List<Shape> travShapes = nodeGeometry(node, max);
+		Node[] travChildren = node.children;
+		for(Node n: travChildren) {
+			travShapes.addAll(traverseGeometry(n, max));
 		}
-		return shapes;
+		return travShapes;
+	}
+		
+	//returns all entities within a node as long as the node in question's center is close enough to the camera
+	//returns an empty list if the node is too far away
+	private List<Shape> nodeGeometry(Node node, double max) {
+		List<Entity> ents = node.getEntities();
+		List<Shape> nodeShapes = new ArrayList<>();
+		if (node.findDist(node.center, cameraLoc) < max) {
+			for(Entity e: ents) {
+				if (nodeShapes == null || nodeShapes.isEmpty()) {
+					nodeShapes = e.getShapes();
+				}
+				else {
+					nodeShapes.addAll(e.getShapes());
+				}
+			}
+		}
+		return nodeShapes;
 	}
 	
 	//	TODO
