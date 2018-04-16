@@ -1,6 +1,11 @@
 package virtualworld.terrain;
+import java.util.ArrayList;
 import java.util.Arrays;
-import entity.Entity;;
+import java.util.List;
+
+import entity.Entity;
+import shapes.Shape;
+import shapes.Quad;
 
 //Use Static Factories to set up the different types of terrain and create Root Terrain with it	
 
@@ -28,7 +33,7 @@ public class Terrain implements Entity {
 			}
 			System.out.print("\n");
 		}
-		
+	/*	
 		Terrain[] split = t.split();
 		
 		Terrain topLeft = split[0];
@@ -41,7 +46,9 @@ public class Terrain implements Entity {
 				System.out.print(height + " ");
 			}
 			System.out.print("\n");
-		}
+		}*/
+		List<Shape> quads = t.getShapes();
+		System.out.println(quads.size());
 	}
 	
     // (x, z) coordinate of the terrain center
@@ -122,7 +129,8 @@ public class Terrain implements Entity {
     	
     	for (int r = 0; r < init.length; r++) {
 			for (int c = 0; c < init.length; c++) {
-				ans[r*2][c*2] = init[r][c];
+				ans[r*2][c*2] = 0;
+				init[r][c] = 0;
 			}
     	}
     	
@@ -185,8 +193,6 @@ public class Terrain implements Entity {
     }
      
      
-    //generates a height map for terrain square
-
 	@Override
 	public double getSize() {
 		return length;
@@ -198,4 +204,32 @@ public class Terrain implements Entity {
 		
 	}
 
+	@Override
+	public List<Shape> getShapes() {
+		Point topLeft = new Point(center.getX() - (length / 2), center.getY() + (length / 2));
+    	double increment = length / pointsPerSide;
+    	List<Shape> quads = new ArrayList<Shape>();
+    	
+    	for (int r = 0; r < heightMap.length -1; r++) {
+    		double quadXCoordinate = (topLeft.getY() + (increment * r) + (increment/2));
+			for (int c = 0; c < heightMap.length -1; c++) {
+				double quadYCoordinate = (topLeft.getY() + (increment * c) + (increment/2));
+				float[] corners = {(float)heightMap[r][c], (float)heightMap[r+1][c], (float)heightMap[r][c+1], (float)heightMap[r+1][c+1]};
+				double quadHeight = averageHeights(corners);
+				 quads.add(new Quad((float)increment, corners, quadXCoordinate, quadYCoordinate, quadHeight));
+				}
+				
+			}
+    	
+		return quads; 
+	}
+
+	private double averageHeights(float[] corners) {
+		float sum = 0;
+		for(float x : corners) {
+			sum += x;
+		}
+		return (double) (sum/corners.length);
+	}
 }
+
