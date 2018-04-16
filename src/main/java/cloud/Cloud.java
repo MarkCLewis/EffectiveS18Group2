@@ -3,21 +3,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entity.Entity;
-import shapes.Sphere;
+import shapes.*;
 import virtualworld.terrain.Pair;
 import virtualworld.terrain.Perlin;
 import virtualworld.terrain.Point;
 public class Cloud implements Entity {
 	
+//width might be an optional to create different kind of cloud	
+
 	public Cloud (double x, double y, double z, int newLength, int newHeight, int newWidth)
 	{
-		this.z = z;
+		this.y = y;
 		width = newWidth;
 		length = newLength;
 		height = newHeight;
 		func = Perlin.getInstance();	
 		dimArr = new double[length][width];
-		center = new Point(x,y);
+		center = new Point(x,z);
 		makeCloudArray2d();
 		cloudArr = new double[length][width][height];
 		makeCloudArray3d();
@@ -29,12 +31,12 @@ public class Cloud implements Entity {
 	private final int width;
 	private final int length;
 	private final int height;
-	private final double z;
+	private final double y;
 	private final Point center;
 	Perlin func;
 	private double[][] dimArr; //actual representation of the cloud, might have to change later , for now, only 2d represenetation
 	private double[][][] cloudArr;
-	private List<Sphere> cloud;
+	private ArrayList<Shape> cloud;
 	private int neighborCount = 0;		
 
     
@@ -67,20 +69,21 @@ public class Cloud implements Entity {
 	private void makeCloudArray3d() 
 	{
 		//semi working ish
-		double xInc = 1.0/length;
-		double yInc = 2.0/height;
-		double zInc = 1.0/width; // have to change later
+		double xInc = 2.0/length;
+		double yInc = 4.0/height;
+		double zInc = 5.0/width; // have to change later
 		//System.out.println(xInc +" " + yInc +"\n\n");
 		double yOff = 0;
 		
 		for (int y = 0; y < height; y++) {
 			double zOff = 0;
 			for (int z = 0; z < width; z++){				
-				double xOff = 0;
+				//double xOff = func.noise2D(height - y, width - z);
+				//double xOff = 0;
+				double xOff = func.noise2D(y,z);
 				for (int x = 0; x < length; x++){
 					//get value from perlin noise function
-					//double value = (((float)(OctavePerlin(xOff,yOff, 2, 4))));
-					double value = (func.OctavePerlin3d(xOff,zOff, yOff,2, 4));
+					double value = (func.OctavePerlin3d(xOff,zOff, yOff, 1, 4));
 					//offset so it is between 0 and 1
 					double check = (value + 1) /2;
 					if (check > 0.45)
@@ -103,8 +106,8 @@ public class Cloud implements Entity {
 		int midZ = length/2;
 		
 		double originX = center.getX();
-		double originY = center.getY();
-		double originZ = z;
+		double originZ = center.getY();
+		double originY = y;
 		
 		double posX = 0;
 		double posY = height;
@@ -129,18 +132,20 @@ public class Cloud implements Entity {
 	//Given a particular array, create a sphere for each location where cloudArr[x][z][y] is non - zero
 	//The radius of the sphere is dependent on the value hold by cloudArr[x][z][y]
 	
-	public List<Sphere> makeShape3d()
+	public ArrayList<Shape> makeShape3d()
 	{
 		//reduceCluster();
-		List<Sphere> cSphere = new ArrayList<Sphere>();
+		ArrayList<Shape> cSphere = new ArrayList<Shape>();
 		//calculate midpoint to get the right center
 		int midX = length/2;
 		int midY = height/2;
 		int midZ = width/2;
 		
+		double sF = 1;
+		
 		double originX = center.getX();
-		double originY = center.getY();
-		double originZ = z;
+		double originZ = center.getY();
+		double originY = y;
 		
 		double posX = 0;
 		double posY = 0;
@@ -153,10 +158,11 @@ public class Cloud implements Entity {
 				{
 					if (cloudArr[x][z][y] > 0)
 					{
-						posX = originX - midX/2.5 + x/2.5; //xcoord
-						posY = originY + midY/2.5 - y/2.5; //yCoord
-						posZ = originZ - midZ/2.5 + z/2.5;
-						cSphere.add(new Sphere((float) (cloudArr[x][z][y] - 0.5)  * (float)3,posX, posY, posZ));
+						posX = originX - midX/sF + x/sF; //xcoord
+						posY = originY + midY/sF - y/sF; //yCoord
+						posZ = originZ - midZ/sF + z/sF;
+						cSphere.add(new Sphere((float) (cloudArr[x][z][y]) * 3 ,posX, posY, posZ));
+						//cSphere.add(new Sphere((float) (0.35),posX, posY, posZ));
 						//radius 2 is arbitrary for testing purposes
 					}
 				}
@@ -191,7 +197,12 @@ public class Cloud implements Entity {
 		
 	}
 	
-	public List<Sphere> getCloud()
+	@Override public List<Shape> getShapes()
+	{
+		return cloud;
+	}
+	
+	public List<Shape> getCloud()
 	{
 		return cloud;
 	}
