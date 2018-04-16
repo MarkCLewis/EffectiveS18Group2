@@ -1,15 +1,29 @@
 package engine;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.jme3.app.SimpleApplication;
+import com.jme3.app.state.ScreenshotAppState;
+import com.jme3.bounding.BoundingBox;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
+import com.jme3.bullet.collision.shapes.SphereCollisionShape;
+import com.jme3.bullet.control.CharacterControl;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.debug.DebugTools;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
+import com.jme3.input.MouseInput;
+import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
@@ -17,12 +31,26 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.plugins.blender.math.Vector3d;
+import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Dome;
+import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Arrow;
+import com.jme3.terrain.geomipmap.TerrainGrid;
+import com.jme3.terrain.geomipmap.TerrainGridListener;
+import com.jme3.terrain.geomipmap.TerrainGridLodControl;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
+import com.jme3.terrain.geomipmap.grid.FractalTileLoader;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
+import com.jme3.terrain.noise.ShaderUtils;
+import com.jme3.terrain.noise.basis.FilteredBasis;
+import com.jme3.terrain.noise.filter.IterativeFilter;
+import com.jme3.terrain.noise.filter.OptimizedErode;
+import com.jme3.terrain.noise.filter.PerturbFilter;
+import com.jme3.terrain.noise.filter.SmoothFilter;
+import com.jme3.terrain.noise.fractal.FractalSum;
+import com.jme3.terrain.noise.modulator.NoiseModulator;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
@@ -33,6 +61,8 @@ import virtualworld.terrain.Point;
 import virtualworld.terrain.Terrain;
 
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.opencl.Image.ImageFormat;
 import com.jme3.post.FilterPostProcessor;
@@ -46,7 +76,7 @@ import com.jme3.renderer.queue.RenderQueue.Bucket;
  * @author Kayla Hood
  *
  */
-public class Engine extends SimpleApplication implements AnalogListener {
+public class Engine extends SimpleApplication {
 	/**
 	 * EngineLoader guarantees that the
 	 * Engine is only instantiated once
@@ -92,27 +122,23 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	 * "meshPositions" collection; a mesh at index i will have its
 	 * position data at index i inside of "meshPositions"
 	 */
-	private static ArrayList<Mesh> meshBuffer = new ArrayList<Mesh>();
+	private final static ArrayList<Mesh> meshBuffer = new ArrayList<Mesh>();
 	/**
 	 * This buffer holds the positions of meshes in world coordinates that 
 	 * are to be rendered in the NEXT frame.
 	 * Elements in this collection correspond to the elements in "meshBuffer"
 	 * with the same index.
 	 */
-	private static ArrayList<Vector3d> meshPositions = new ArrayList<Vector3d>();
+	private final static ArrayList<Vector3d> meshPositions = new ArrayList<Vector3d>();
 	
 	/**
 	 * The position of the camera/player in world coordinates
 	 */
-	private static Vector3d worldPosition = new Vector3d();
+	private final static Vector3d worldPosition = new Vector3d();
 	
 	private DirectionalLight sun;
-	private Node skyNode;
-	private Node terrainNode;
 	private Node objectNode;
 	private DebugTools debugTools;
-	
-	private TerrainQuad terrainQuad;
 
 	private boolean shouldUpdateShapes = false;
 	
@@ -120,13 +146,36 @@ public class Engine extends SimpleApplication implements AnalogListener {
 	private static final Logger logger = Logger.getLogger(Engine.class.getName());
 	private static final Random random = new Random(System.currentTimeMillis());
 	
-	public static final float fogDistance = 100;
+	public static final float fogDistance = 400;
 	
-	private final Vector3f walkDirection = new Vector3f();
+	private TerrainGrid terrainGrid;
+    private Material mat_terrain;
+    private float grassScale = 64;
+    private float dirtScale = 16;
+    private float rockScale = 128;
+    private Material matWire;
+    private boolean wireframe = false;
+    protected BitmapText hintText;
+    private Geometry collisionMarker;
+    private BulletAppState bulletAppState;
+
+    private boolean usePhysics = true;
+    
+    private CharacterControl player;
+    private FractalSum base;
+    private PerturbFilter perturb;
+    private OptimizedErode therm;
+    private SmoothFilter smooth;
+    private IterativeFilter iterate;
+    
+    private final Vector3f walkDirection = new Vector3f();
+
 	
 	@Override
     public void initialize() {
     	super.initialize();
+    	loadHintText();
+        initCrossHairs();
     }
     
     /**
@@ -137,79 +186,155 @@ public class Engine extends SimpleApplication implements AnalogListener {
      */
     @Override
     public void simpleInitApp() {
+    	// old stuff
     	logger.info("simpleInitApp");
     	cam.setFrustumFar(10000);
-    	cam.setLocation(Vector3f.ZERO);
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
-        setupKeys();
-        setupFog();
+
+		this.flyCam.setMoveSpeed(100f);
+    	ScreenshotAppState state = new ScreenshotAppState();
+    	this.stateManager.attach(state);
+
+        bulletAppState = new BulletAppState();
+        bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
+        stateManager.attach(bulletAppState);
+        matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matWire.getAdditionalRenderState().setWireframe(true);
+        matWire.setColor("Color", ColorRGBA.Green);
+    	
+    	this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
+    	
+    	// Parameters to material:
+        // regionXColorMap: X = 1..4 the texture that should be appliad to state X
+        // regionX: a Vector3f containing the following information:
+        //      regionX.x: the start height of the region
+        //      regionX.y: the end height of the region
+        //      regionX.z: the texture scale for the region
+        //  it might not be the most elegant way for storing these 3 values, but it packs the data nicely :)
+        // slopeColorMap: the texture to be used for cliffs, and steep mountain sites
+        // slopeTileFactor: the texture scale for slopes
+        // terrainSize: the total size of the terrain (used for scaling the texture)
+        // GRASS texture
+        Texture grass = this.assetManager.loadTexture("Textures/Terrain/splat/grass.jpg");
+        grass.setWrap(WrapMode.Repeat);
+        this.mat_terrain.setTexture("region1ColorMap", grass);
+        this.mat_terrain.setVector3("region1", new Vector3f(15, 200, this.grassScale));
+
+        // DIRT texture
+        Texture dirt = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
+        dirt.setWrap(WrapMode.Repeat);
+        this.mat_terrain.setTexture("region2ColorMap", dirt);
+        this.mat_terrain.setVector3("region2", new Vector3f(0, 20, this.dirtScale));
+
+        // ROCK texture
+        Texture rock = this.assetManager.loadTexture("Textures/Terrain/Rock2/rock.jpg");
+        rock.setWrap(WrapMode.Repeat);
+        this.mat_terrain.setTexture("region3ColorMap", rock);
+        this.mat_terrain.setVector3("region3", new Vector3f(198, 260, this.rockScale));
+
+        this.mat_terrain.setTexture("region4ColorMap", rock);
+        this.mat_terrain.setVector3("region4", new Vector3f(198, 260, this.rockScale));
+
+        this.mat_terrain.setTexture("slopeColorMap", rock);
+        this.mat_terrain.setFloat("slopeTileFactor", 32);
+
+        this.mat_terrain.setFloat("terrainSize", 513);
+        
+        this.base = new FractalSum();
+        this.base.setRoughness(0.7f);
+        this.base.setFrequency(1.0f);
+        this.base.setAmplitude(1.0f);
+        this.base.setLacunarity(2.12f);
+        this.base.setOctaves(8);
+        this.base.setScale(0.02125f);
+        this.base.addModulator(new NoiseModulator() {
+
+            @Override
+            public float value(float... in) {
+                return ShaderUtils.clamp(in[0] * 0.5f + 0.5f, 0, 1);
+            }
+        });
+
+        FilteredBasis ground = new FilteredBasis(this.base);
+
+        this.perturb = new PerturbFilter();
+        this.perturb.setMagnitude(0.119f);
+
+        this.therm = new OptimizedErode();
+        this.therm.setRadius(5);
+        this.therm.setTalus(0.011f);
+
+        this.smooth = new SmoothFilter();
+        this.smooth.setRadius(1);
+        this.smooth.setEffect(0.7f);
+
+        this.iterate = new IterativeFilter();
+        this.iterate.addPreFilter(this.perturb);
+        this.iterate.addPostFilter(this.smooth);
+        this.iterate.setFilter(this.therm);
+        this.iterate.setIterations(1);
+
+        ground.addPreFilter(this.iterate);
+
+        this.terrainGrid = new TerrainGrid("terrain", 33, 129, new FractalTileLoader(ground, 256f));
+
+        this.terrainGrid.setMaterial(this.mat_terrain);
+        this.terrainGrid.setLocalTranslation(0, 0, 0);
+        this.terrainGrid.setLocalScale(2f, 1f, 2f);
+        this.terrainGrid.setLocked(false); // unlock it so we can edit the height
+        this.rootNode.attachChild(this.terrainGrid);
+        
+        TerrainLodControl control = new TerrainGridLodControl(this.terrainGrid, this.getCamera());
+        control.setLodCalculator(new DistanceLodCalculator(33, 2.7f)); // patch size, and a multiplier
+        this.terrainGrid.addControl(control);
+        
+        this.getCamera().setLocation(new Vector3f(0, 300, 0));
+
+        this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
 
         /**
-         * initialize the sky node.
-         * Our sky is a half sphere with the faces pointed inwards,
-         * and its color is flat blue (for now)
+         * Create PhysicsRigidBodyControl for collision
          */
-        skyNode = new Node("Sky");
-        Material skyMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        skyMaterial.setColor("Color", ColorRGBA.Blue);
-        Mesh skyMesh = new Dome(50,50,fogDistance);
-        Geometry skyGeom = new Geometry("Sky", skyMesh);
-        skyGeom.setMaterial(skyMaterial);
-        Vector3f skyPos = new Vector3f();
-        skyGeom.worldToLocal(new Vector3f(0,-1,0), skyPos);
-        skyGeom.setLocalTranslation(skyPos);
-        skyNode.attachChild(skyGeom);
-        skyNode.setQueueBucket(Bucket.Sky);
-        skyNode.setCullHint(Spatial.CullHint.Never);
-        rootNode.attachChild(skyNode);
+        List<Spatial> terrainGridChildren = terrainGrid.getChildren();
+        for(Spatial sp : terrainGridChildren) {
+        	if(sp.getClass() == TerrainQuad.class) {
+        		((TerrainQuad)sp).addControl(new RigidBodyControl(new HeightfieldCollisionShape(((TerrainQuad)sp).getHeightMap(), terrainGrid.getLocalScale()), 0));
+        	}
+        }
+        bulletAppState.getPhysicsSpace().addAll(terrainGrid);
+        
+        terrainGrid.addListener(new TerrainGridListener() {
 
-		objectNode = new Node("ObjectNode");
-		terrainNode = new Node("TerrainNode");
-		
-		double length = 33;
-		int seed = 9;
-	    int points = 9;
-		double[][] heightMap = {{0.25, 0.0 , 1.0, 0.0, 0.35, 0.0},
-								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0},
-								{0.0, 0.0 , 1.0, 0.0, 0.0, 0.0},
-								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0},
-								{0.5, 0.0 , 1.0, 0.0, 0.25, 0.0}};
-		Terrain terrain = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap);
-		double[][] render = terrain.renderHeights();
-		float[] flatRender = new float[render.length * render[0].length];
-		for (int i = 0; i < render.length; i++) {
-			for (int j = 0; j < render[0].length; j++) {
-				flatRender[(i * render[0].length) + j] = (float) render[i][j];
-			}
-		}
-		Material terrainMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-		Texture terrainTexture = new Texture2D((int)Math.round(length), (int)Math.round(length), Image.Format.RGBA8 );
-		terrainTexture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
-	    terrainTexture.setMagFilter(Texture.MagFilter.Nearest);
-		terrainTexture.setWrap(WrapMode.Repeat);
-		terrainMaterial.setColor("Color", ColorRGBA.Green);
-		terrainMaterial.setTexture("ColorMap", terrainTexture);
-		
-		terrainQuad = new TerrainQuad("Terrain",points,(int)length,flatRender);
-		TerrainLodControl control = new TerrainLodControl(terrainQuad, getCamera());
-		control.setLodCalculator( new DistanceLodCalculator(points, 2.7f) ); // patch size, and a multiplier
-		terrainQuad.addControl(control);
-        terrainQuad.setMaterial(terrainMaterial);
-        terrainQuad.setLocalTranslation(0, 0, 0);
-        terrainQuad.setLocalScale(1f,1f,1f);
-        terrainNode.attachChild(terrainQuad);
-        
-        logger.info("TerrainQuad: " + String.valueOf(terrainQuad.getHeightMap().length));
-        
+            public void gridMoved(Vector3f newCenter) {
+            }
+
+            public void tileAttached(Vector3f cell, TerrainQuad quad) {
+                while(quad.getControl(RigidBodyControl.class)!=null){
+                    quad.removeControl(RigidBodyControl.class);
+                }
+                quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrainGrid.getLocalScale()), 0));
+                bulletAppState.getPhysicsSpace().add(quad);
+            }
+
+            public void tileDetached(Vector3f cell, TerrainQuad quad) {
+                if (quad.getControl(RigidBodyControl.class) != null) {
+                    bulletAppState.getPhysicsSpace().remove(quad);
+                    quad.removeControl(RigidBodyControl.class);
+                }
+            }
+
+        });
+
         /**
          * add the sun (white directional light) to the root node
          */
         sun = new DirectionalLight();
-        sun.setDirection((new Vector3f(-0.5f, -1f, -0.5f)).normalize());
-        sun.setColor(ColorRGBA.White);
+        sun.setDirection((new Vector3f(1f, -0.5f, -0.1f)).normalizeLocal());
+        sun.setColor(new ColorRGBA(0.50f, 0.40f, 0.50f, 1.0f));
         rootNode.addLight(sun);
         
+        objectNode = new Node("ObjectNode");
 		for (int i = 0; i < meshPositions.size(); i++) {
         	Engine.logInfo("adding mesh from index " + i + " in meshBuffer");
             Vector3f localPos = (meshPositions.get(i).subtract(Engine.getWorldPosition())).toVector3f();
@@ -223,68 +348,169 @@ public class Engine extends SimpleApplication implements AnalogListener {
             geom.setMaterial(mat);
             objectNode.attachChild(geom);
         }
-		
 		rootNode.attachChild(objectNode);
-		rootNode.attachChild(terrainNode);
-		
-		rootNode.attachChild(createAxisMarker(20));
-		
-		cam.setLocation(new Vector3f(0, 10, -10));
-        cam.lookAtDirection(new Vector3f(0, -1.5f, -1).normalizeLocal(), Vector3f.UNIT_Y);
-        this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
-    }
-    
-    protected Node createAxisMarker(float arrowSize) {
+        // Add 5 physics spheres to the world, with random sizes and positions
+        // let them drop from the sky
+        for (int i = 0; i < 5; i++) {
+            float r = (float) (8 * Math.random());
+            Geometry sphere = new Geometry("cannonball", new Sphere(10, 10, r));
+            sphere.setMaterial(matWire);
+            float x = (float) (20 * Math.random()) - 40; // random position
+            float y = (float) (20 * Math.random()) - 40; // random position
+            float z = (float) (20 * Math.random()) - 40; // random position
+            sphere.setLocalTranslation(new Vector3f(x, 300 + y, z));
+            sphere.addControl(new RigidBodyControl(new SphereCollisionShape(r), 2));
+            rootNode.attachChild(sphere);
+            bulletAppState.getPhysicsSpace().add(sphere);
+        }
 
-        Material redMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        redMat.getAdditionalRenderState().setWireframe(true);
-        redMat.setColor("Color", ColorRGBA.Red);
+        if (usePhysics) {
+            CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
+            player = new CharacterControl(capsuleShape, 0.5f);
+            player.setJumpSpeed(20);
+            player.setFallSpeed(10);
+            player.setGravity(new Vector3f(0,-10,0));
+
+            player.setPhysicsLocation(cam.getLocation().clone());
+
+            bulletAppState.getPhysicsSpace().add(player);
+        }
         
-        Material greenMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        greenMat.getAdditionalRenderState().setWireframe(true);
-        greenMat.setColor("Color", ColorRGBA.Green);
-        
-        Material blueMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        blueMat.getAdditionalRenderState().setWireframe(true);
-        blueMat.setColor("Color", ColorRGBA.Blue);
-
-        Node axis = new Node();
-
-        // create arrows
-        Geometry arrowX = new Geometry("arrowX", new Arrow(new Vector3f(arrowSize, 0, 0)));
-        arrowX.setMaterial(redMat);
-        Geometry arrowY = new Geometry("arrowY", new Arrow(new Vector3f(0, arrowSize, 0)));
-        arrowY.setMaterial(greenMat);
-        Geometry arrowZ = new Geometry("arrowZ", new Arrow(new Vector3f(0, 0, arrowSize)));
-        arrowZ.setMaterial(blueMat);
-        axis.attachChild(arrowX);
-        axis.attachChild(arrowY);
-        axis.attachChild(arrowZ);
-
-        //axis.setModelBound(new BoundingBox());
-        return axis;
+        this.initKeys();
     }
     
     /**
      * Adds key mappings to keyboard buttons.
      * TODO: Controller support?
      */
-    private void setupKeys() {
+    private void initKeys() {
+        // You can map one or several inputs to one named action
     	flyCam.setMoveSpeed(50);
-        inputManager.addMapping("StrafeLeft", new KeyTrigger(KeyInput.KEY_A));
-        inputManager.addMapping("StrafeRight", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addMapping("Forward", new KeyTrigger(KeyInput.KEY_W));
-        inputManager.addMapping("Back", new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping("StrafeUp", new KeyTrigger(KeyInput.KEY_Q));
-        inputManager.addMapping("StrafeDown", new KeyTrigger(KeyInput.KEY_Z), new KeyTrigger(KeyInput.KEY_Y));
-        inputManager.addMapping("Space", new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addMapping("Return", new KeyTrigger(KeyInput.KEY_RETURN));
-        inputManager.addMapping("Esc", new KeyTrigger(KeyInput.KEY_ESCAPE));
-        inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_UP));
-        inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_DOWN));
-        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_LEFT));
-        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_RIGHT));
-        inputManager.addListener(this, "StrafeLeft", "StrafeRight", "Forward", "Back", "StrafeUp", "StrafeDown", "Space", "Reset", "Esc", "Up", "Down", "Left", "Right");
+        inputManager.addMapping("wireframe", new KeyTrigger(KeyInput.KEY_T));
+        inputManager.addListener(actionListener, "wireframe");
+        inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+        inputManager.addListener(actionListener, "shoot");
+        inputManager.addMapping("cameraDown", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+        inputManager.addListener(actionListener, "cameraDown");
+        
+        inputManager.addMapping("Lefts", new KeyTrigger(KeyInput.KEY_A));
+        inputManager.addMapping("Rights", new KeyTrigger(KeyInput.KEY_D));
+        inputManager.addMapping("Ups", new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping("Downs", new KeyTrigger(KeyInput.KEY_S));
+        inputManager.addMapping("Jumps", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addListener(actionListener, "Lefts");
+        inputManager.addListener(actionListener, "Rights");
+        inputManager.addListener(actionListener, "Ups");
+        inputManager.addListener(actionListener, "Downs");
+        inputManager.addListener(actionListener, "Jumps");
+    }
+    
+    private boolean left = false;
+    private boolean right = false;
+    private boolean up = false;
+    private boolean down = false;
+    private boolean moves = true;
+    private final ActionListener actionListener = new ActionListener() {
+
+        @Override
+        public void onAction(final String name, final boolean keyPressed, final float tpf) {
+        	// from TerrainGridTileLoaderTest
+        	if (name.equals("wireframe") && !keyPressed) {
+                wireframe = !wireframe;
+                if (!wireframe) {
+                    terrainGrid.setMaterial(matWire);
+                } else {
+                    terrainGrid.setMaterial(mat_terrain);
+                }
+            } else if (name.equals("shoot") && !keyPressed) {
+
+                Vector3f origin = cam.getWorldCoordinates(new Vector2f(settings.getWidth() / 2, settings.getHeight() / 2), 0.0f);
+                Vector3f direction = cam.getWorldCoordinates(new Vector2f(settings.getWidth() / 2, settings.getHeight() / 2), 0.3f);
+                direction.subtractLocal(origin).normalizeLocal();
+
+                Ray ray = new Ray(origin, direction);
+                CollisionResults results = new CollisionResults();
+                int numCollisions = terrainGrid.collideWith(ray, results);
+                if (numCollisions > 0) {
+                    CollisionResult hit = results.getClosestCollision();
+                    if (collisionMarker == null) {
+                        createCollisionMarker();
+                    }
+                    collisionMarker.setLocalTranslation(hit.getContactPoint().x,hit.getContactPoint().y,hit.getContactPoint().z);
+                }
+            } else if (name.equals("cameraDown") && !keyPressed) {
+            	if(moves) {
+            		moves = false;
+            		getCamera().setLocation(new Vector3f(0,300,0));
+            		getCamera().lookAtDirection(new Vector3f(0, -1, 0), Vector3f.UNIT_Y);
+            	}
+            	else {
+            		moves = true;
+            	}
+            } else if (name.equals("Lefts")) {
+            	if (keyPressed) {
+            		Engine.this.left = true;
+            	}
+            	else {
+                	Engine.this.left = false;
+                }
+            } else if (name.equals("Rights")) {
+            	if (keyPressed) {
+                	Engine.this.right = true;
+                } else {
+                	Engine.this.right = false;
+                }
+            } else if (name.equals("Ups")) {
+            	if (keyPressed) {
+            		Engine.this.up = true;
+                } else {
+                    Engine.this.up = false;
+                }
+            } else if (name.equals("Downs")) {
+            	if (keyPressed) {
+            		Engine.this.down = true;
+                } else {
+                    Engine.this.down = false;
+                }
+            } else if (name.equals("Jumps")) {
+            	Engine.this.player.jump(new Vector3f(0,10,0));;
+            }
+        }
+    };
+
+    public void loadHintText() {
+        hintText = new BitmapText(guiFont, false);
+        hintText.setSize(guiFont.getCharSet().getRenderedSize());
+        hintText.setLocalTranslation(0, getCamera().getHeight(), 0);
+        hintText.setText("Hit T to switch to wireframe");
+        hintText.setText("");
+        guiNode.attachChild(hintText);
+    }
+
+    protected void initCrossHairs() {
+        //guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
+        BitmapText ch = new BitmapText(guiFont, false);
+        ch.setSize(guiFont.getCharSet().getRenderedSize() * 2);
+        ch.setText("+"); // crosshairs
+        ch.setLocalTranslation( // center
+                settings.getWidth() / 2 - guiFont.getCharSet().getRenderedSize() / 3 * 2,
+                settings.getHeight() / 2 + ch.getLineHeight() / 2, 0);
+        guiNode.attachChild(ch);
+    }
+    
+    @Override
+    public void update() {
+        super.update();
+    }
+
+    private void createCollisionMarker() {
+        Sphere s = new Sphere(6, 6, 1);
+        collisionMarker = new Geometry("collisionMarker");
+        collisionMarker.setMesh(s);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.Orange);
+        collisionMarker.setMaterial(mat);
+        rootNode.attachChild(collisionMarker);
     }
     
     /**
@@ -310,7 +536,7 @@ public class Engine extends SimpleApplication implements AnalogListener {
      * of "SimpleApplication" in jME3 right now.
      */
     @Override
-    public void simpleUpdate(float tpf) {
+    public void simpleUpdate(final float tpf) {
     	if(shouldUpdateShapes) {
     		objectNode.detachAllChildren();
         	for (int i = 0; i < meshPositions.size(); i++) {
@@ -328,23 +554,27 @@ public class Engine extends SimpleApplication implements AnalogListener {
             }
         	shouldUpdateShapes = false;
     	}
-        move(walkDirection);
-        fpsText.setText("Location: " + getCoordinates());
-        walkDirection.set(Vector3f.ZERO);
-    }
-    
-    /**
-     * Moves the player/camera by adding the given vector to the 
-     * "worldPosition" vector. Note: this just sets the "worldPosition"
-     * vector, the actual effect of "moving" is produced by the renderer
-     * when it takes into account the value of "worldPosition"
-     * @param dir Direction of player/camera movement (should be a normalized vector)
-     */
-    public void move(Vector3f dir) {
-    	Vector3f loc = (rootNode.worldToLocal(dir, null));
-        Engine.worldPosition.addLocal(loc.x,loc.y,loc.z);
-        terrainNode.setLocalTranslation(terrainNode.worldToLocal(worldPosition.toVector3f(),null));
-        skyNode.setLocalTranslation(terrainNode.worldToLocal(worldPosition.toVector3f(),null));
+    	Vector3f camDir = this.cam.getDirection().clone().multLocal(0.6f);
+        Vector3f camLeft = this.cam.getLeft().clone().multLocal(0.4f);
+        this.walkDirection.set(0, 0, 0);
+        if (this.left && this.moves) {
+            this.walkDirection.addLocal(camLeft);
+        }
+        if (this.right && this.moves) {
+            this.walkDirection.addLocal(camLeft.negate());
+        }
+        if (this.up && this.moves) {
+            this.walkDirection.addLocal(camDir);
+        }
+        if (this.down && this.moves) {
+            this.walkDirection.addLocal(camDir.negate());
+        }
+        if (usePhysics) {
+            this.player.setWalkDirection(this.walkDirection);
+            if(moves) {
+            	this.cam.setLocation(this.player.getPhysicsLocation());
+            }
+        }
     }
     
     public static String getCoordinates() {
@@ -397,38 +627,6 @@ public class Engine extends SimpleApplication implements AnalogListener {
      */
     public static int getRandomInt(int min, int max) {
     	return (random.nextInt((max-min)));
-    }
-    
-    /**
-     * Controller input handler -- needs to be tested
-     */
-    public void onAnalog(String name, float value, float tpf) {
-        Vector3f left = rootNode.getLocalRotation().mult(Vector3f.UNIT_X.negate());
-        Vector3f forward = rootNode.getLocalRotation().mult(Vector3f.UNIT_Z.negate());
-        Vector3f up = rootNode.getLocalRotation().mult(Vector3f.UNIT_Y);
-        if (name.equals("StrafeLeft") && value > 0) {
-            walkDirection.addLocal(left.mult(tpf));
-        } else if (name.equals("StrafeRight") && value > 0) {
-            walkDirection.addLocal(left.negate().multLocal(tpf));
-        } else if (name.equals("Forward") && value > 0) {
-            walkDirection.addLocal(forward.mult(tpf));
-        } else if (name.equals("Back") && value > 0) {
-            walkDirection.addLocal(forward.negate().multLocal(tpf));
-        } else if (name.equals("StrafeUp") && value > 0) {
-            walkDirection.addLocal(up.mult(tpf));
-        } else if (name.equals("StrafeDown") && value > 0) {
-            walkDirection.addLocal(up.negate().multLocal(tpf));
-        } else if (name.equals("Up") && value > 0) {
-            // TODO : rotate rootNode
-        } else if (name.equals("Down") && value > 0) {
-        	// TODO : rotate rootNode
-        } else if (name.equals("Left") && value > 0) {
-        	// TODO : rotate rootNode
-        } else if (name.equals("Right") && value > 0) {
-        	// TODO : rotate rootNode
-        } else if (name.equals("Esc")) {
-            stop();
-        }
     }
     
     public static void logInfo(String msg) {

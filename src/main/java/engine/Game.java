@@ -28,7 +28,8 @@ public class Game {
 		Game g = new Game();
 		ArrayList<shapes.Shape> rPs = new ArrayList<shapes.Shape>();
 		for (int i = 0; i < 10; i++) {
-			rPs.add(new shapes.RectangularPrism(0.2f, 0.2f, 0.2f, Engine.getRandomDouble(0, 10), Engine.getRandomDouble(0, 10), Engine.getRandomDouble(0, 10)));
+			// Note: terrain is about 150 units high at the tallest, so try to keep your object's Y-coordinate above 150
+			rPs.add(new shapes.RectangularPrism(0.2f, 0.2f, 0.2f, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20)));
 		}
 		g.start();
 		g.addShapes(rPs);
