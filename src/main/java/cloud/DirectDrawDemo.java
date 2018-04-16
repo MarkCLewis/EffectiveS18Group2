@@ -122,7 +122,7 @@ public class DirectDrawDemo extends JPanel {
 	    	for (int x = 0; x < cloudarr.length; x++) {
 	    		for (int y = 0; y < cloudarr[x].length; y++)
 	    		{
-	    			Color nColor = new Color(0, 191,255, (int)( (cloudarr[x][y][3]) * 255));
+	    			Color nColor = new Color(0, 191,255, (int)( (cloudarr[x][y][0]) * 255));
 	    			canvas.setRGB(x, y, nColor.getRGB());
 	    		}
 	    	}
@@ -148,7 +148,7 @@ public class DirectDrawDemo extends JPanel {
         int width = 1000;
         int height = 1000;
         JFrame frame = new JFrame("Direct draw demo");
-        Cloud temp = new Cloud(0,0,0,1000,1000,10);
+        Cloud temp = new Cloud(0,0,0,1000,10,1000);
         DirectDrawDemo panel = new DirectDrawDemo(1000, 1000, temp);
         frame.add(panel);
         frame.pack();

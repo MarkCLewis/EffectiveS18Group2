@@ -4,19 +4,16 @@ import java.util.List;
 
 import entity.Entity;
 import virtualworld.terrain.Point;
-import virtualworld.terrain.Terrain;
 
 public class Node {
 	
-	//TODO
-	// Create entity interface for all classes that use WorldManager- terrain, Sheep, Trees, Towns, Roads, and clouds (Water too?)
-	// Make a list of entities that exist within specific node
-	// Also Node should hold center value outside of Terrain, and size
-	// items of a given size should be held in node that is big enough to hold object and the object's center exists within
-	// limit node depth / make minimum size of node
-	
-	//terrain
-	Terrain terrain;
+	// finished - Create entity interface for all classes that use WorldManager- 
+	// 			  terrain, Sheep, Trees, Towns, Roads, and clouds (Water too?)
+	// finished - Make a list of entities that exist within specific node
+	// finished - Node should hold center value outside of Terrain, and size
+	// finished - items of a given size should be held in node that is big enough to hold object 
+	// 			  object's center must exists within node.
+	// finished - limit node depth / make minimum size of node
 
 	//Nodes for traversal
 	Node parent = null;
@@ -35,23 +32,19 @@ public class Node {
 	
 	//takes Entity as an argument and puts it into the smallest node that can still completely hold the Entity
 	public void updateEntites(Entity ent) {
-		Point cent = ent.getCenter();
-		Point currcenter = this.center();
+		//Point cent = ent.getCenter();
+		//Point currcenter = this.center();
 		double sz = ent.getSize();
-		double leftent = cent.getX() - sz/2;
-		double rightent = cent.getX() + sz/2;
-		double upent = cent.getY() - sz/2;
-		double downent = cent.getY() + sz/2;
-		double leftnode = center.getX() - size/2;
-		double rightnode = center.getX() + size/2;
-		double upnode = center.getY() - size/2;
-		double downnode = center.getY() + size/2;
-		boolean test = (leftent < leftnode) && (rightent > rightnode);
-		
-		if (sz < size && this.getDepth() != maxDepth) {
+		if (sz < size/2 && this.getDepth() != maxDepth) {
 			if (children.length == 0) {
 				this.createChildren();
 			}
+			for (Node n: children) {
+				if(this.checkIfIn(ent, n)) {
+					n.updateEntites(ent);
+				}
+			}
+			/*
 			if (currcenter.getY() > cent.getY()) {
 				if (currcenter.getX() > cent.getX()) {
 					children[0].updateEntites(ent);
@@ -68,9 +61,22 @@ public class Node {
 					children[3].updateEntites(ent);
 				}
 			}
+			*/
 		} else {
 			entities.add(ent);
 		}
+	}
+
+	//for checking if an entity's center exists in a Node
+	public boolean checkIfIn(Entity ent, Node node) {
+		Point cent = ent.getCenter();
+		double nodeSz = node.getSize();
+		Point nodeCent = node.center;
+		boolean inBottom = nodeCent.getY() <= (cent.getY() + nodeSz/2);
+		boolean inRight = nodeCent.getX() <= (cent.getX() + nodeSz/2);
+		boolean inLeft = nodeCent.getX() > (cent.getX() - nodeSz/2);
+		boolean inTop = nodeCent.getY() > (cent.getY() - nodeSz/2);
+		return inBottom && inRight && inLeft && inTop;
 	}
 	
 	//updating when connecting to parent or child
@@ -123,7 +129,7 @@ public class Node {
 	
 	//Functions to implement
 	private Point center() {
-		return terrain.getCenter();
+		return center;
 	}
 	
 	public double getSize() {
@@ -132,6 +138,10 @@ public class Node {
 	
 	public int getDepth() {
 		return depth;
+	}
+	
+	public List<Entity> getEntities() {
+		return entities;
 	}
 	
 	//Gives all entities distance from camera
