@@ -34,6 +34,7 @@ import com.jme3.scene.plugins.blender.math.Vector3d;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Dome;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.system.AppSettings;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.terrain.geomipmap.TerrainGrid;
@@ -89,6 +90,9 @@ public class Engine extends SimpleApplication {
 			try {
 				INSTANCE = new Engine();
 				INSTANCE.setShowSettings(false);
+				AppSettings settings = new AppSettings(true);
+				settings.setResolution(1000, 800);
+				INSTANCE.setSettings(settings);
 			} catch (Exception e) {
 				throw new ExceptionInInitializerError(e);
 			}
@@ -277,7 +281,9 @@ public class Engine extends SimpleApplication {
 
         ground.addPreFilter(this.iterate);
 
-        this.terrainGrid = new TerrainGrid("terrain", 33, 129, new FractalTileLoader(ground, 256f));
+        int patchSize = 66;
+        int maxTerrainVisible = 258;
+        this.terrainGrid = new TerrainGrid("terrain", patchSize, maxTerrainVisible, new FractalTileLoader(ground, 256f));
 
         this.terrainGrid.setMaterial(this.mat_terrain);
         this.terrainGrid.setLocalTranslation(0, 0, 0);
@@ -286,7 +292,7 @@ public class Engine extends SimpleApplication {
         this.rootNode.attachChild(this.terrainGrid);
         
         TerrainLodControl control = new TerrainGridLodControl(this.terrainGrid, this.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(33, 2.7f)); // patch size, and a multiplier
+        control.setLodCalculator(new DistanceLodCalculator(patchSize, 2.7f)); // patch size, and a multiplier
         this.terrainGrid.addControl(control);
         
         this.getCamera().setLocation(new Vector3f(0, 300, 0));
@@ -352,12 +358,12 @@ public class Engine extends SimpleApplication {
         // Add 5 physics spheres to the world, with random sizes and positions
         // let them drop from the sky
         for (int i = 0; i < 5; i++) {
-            float r = (float) (8 * Math.random());
+            float r = (float) (8 * getRandomDouble(1,3));
             Geometry sphere = new Geometry("cannonball", new Sphere(10, 10, r));
             sphere.setMaterial(matWire);
-            float x = (float) (20 * Math.random()) - 40; // random position
-            float y = (float) (20 * Math.random()) - 40; // random position
-            float z = (float) (20 * Math.random()) - 40; // random position
+            float x = (float) (20 * getRandomDouble(0,1)) - 40; // random position
+            float y = (float) (20 * getRandomDouble(0,1)) - 40; // random position
+            float z = (float) (20 * getRandomDouble(0,1)) - 40; // random position
             sphere.setLocalTranslation(new Vector3f(x, 300 + y, z));
             sphere.addControl(new RigidBodyControl(new SphereCollisionShape(r), 2));
             rootNode.attachChild(sphere);
@@ -369,7 +375,7 @@ public class Engine extends SimpleApplication {
             player = new CharacterControl(capsuleShape, 0.5f);
             player.setJumpSpeed(20);
             player.setFallSpeed(10);
-            player.setGravity(new Vector3f(0,-10,0));
+            player.setGravity(new Vector3f(0,-20,0));
 
             player.setPhysicsLocation(cam.getLocation().clone());
 

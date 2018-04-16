@@ -21,7 +21,8 @@ public class Game {
 	/**
 	 * Example application
 	 * First you need a Game instance and then
-     * you can add your shapes
+     * you can add your shapes.
+     * The "Game.addShapes" function takes an ArrayList of Shapes, and adds all of them to the renderer.
      * @param args
      */
 	public static void main(String[] args) {
@@ -29,7 +30,7 @@ public class Game {
 		ArrayList<shapes.Shape> rPs = new ArrayList<shapes.Shape>();
 		for (int i = 0; i < 10; i++) {
 			// Note: terrain is about 150 units high at the tallest, so try to keep your object's Y-coordinate above 150
-			rPs.add(new shapes.RectangularPrism(0.2f, 0.2f, 0.2f, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20)));
+			rPs.add(new shapes.RectangularPrism(2f, 2f, 2f, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20)));
 		}
 		g.start();
 		g.addShapes(rPs);
