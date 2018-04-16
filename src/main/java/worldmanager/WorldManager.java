@@ -8,15 +8,44 @@ import shapes.Shape;
 import virtualworld.terrain.Point;
 
 public class WorldManager {
+	//	TODO
+	//	finished - update camera location
+	//		finished - 1. resends camera location to all Nodes
+	//		finished - 2. only updates after a few feet has walked so it isn't computing every frame/step
+	//
+	//	finished - tree traversal to collect geometry
 	
 	//data
 	Node rootNode;
 	Point cameraLoc;
-	double cameraStep = 10;
-	double maxView = 100;
 	
-	public WorldManager() {}
+	//This value is how far you can walk before the WorldManager loads more objects
+	double cameraStep = 1;
 	
+	//this value is the absolute farthest you can see.
+	double maxView = 10;
+	
+	//constructor
+	public WorldManager(Point cent, double sz) {
+		rootNode = new Node();
+		rootNode.updateCenter(cent);
+		rootNode.updateSize(sz);
+		rootNode.updateDepth(0);
+	}
+	
+	//Don't know how the much the point size scales to actual length in game.
+	//Initial values are purposefully super low so there's less of a chance of overworking the engine
+	//updateMaxView() lets you change the view distance quickly so the sweet spot can be found.
+	public void updateMaxView(double viewDistance) {
+		maxView = viewDistance;
+	}
+	
+	//similar to updateMaxView(), updateCameraStep() changes length it takes to update loaded objects
+	public void updateCameraStep(double dist) {
+		cameraStep = dist;
+	}
+	
+	//just in case
 	public void updateNode(Node n) {
 		rootNode = n;
 	}
@@ -66,12 +95,4 @@ public class WorldManager {
 		}
 		return nodeShapes;
 	}
-	
-	//	TODO
-	//	update camera location
-	//		finished - 1. resends camera location to all Nodes
-	//		2. only updates after a few feet has walked so it isn't computing every frame/step
-	//
-	//	tree traversal to collect geometry
-	
 }
