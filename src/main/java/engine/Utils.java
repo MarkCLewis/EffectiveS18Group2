@@ -120,6 +120,7 @@ public class Utils {
     	result.setBuffer(Type.TexCoord, 2, com.jme3.util.BufferUtils.createFloatBuffer(texCoord));
     	result.setBuffer(Type.Index,    3, com.jme3.util.BufferUtils.createIntBuffer(indexes));
     	result.updateBound();
+    	result.updateCounts();
     	return result;
     }
     

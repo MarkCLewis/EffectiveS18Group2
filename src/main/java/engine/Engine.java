@@ -159,11 +159,12 @@ public class Engine extends SimpleApplication {
     private float rockScale = 128;
     private Material matWire;
     private boolean wireframe = false;
+    private final static boolean renderKaylaTerrain = false; // set this to false to turn off kayla's terrain rendering
     protected BitmapText hintText;
     private Geometry collisionMarker;
     private BulletAppState bulletAppState;
 
-    private boolean usePhysics = true;
+    private final static boolean usePhysics = true;
     
     private CharacterControl player;
     private FractalSum base;
@@ -207,130 +208,132 @@ public class Engine extends SimpleApplication {
         matWire.getAdditionalRenderState().setWireframe(true);
         matWire.setColor("Color", ColorRGBA.Green);
     	
-    	this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
-    	
-    	// Parameters to material:
-        // regionXColorMap: X = 1..4 the texture that should be appliad to state X
-        // regionX: a Vector3f containing the following information:
-        //      regionX.x: the start height of the region
-        //      regionX.y: the end height of the region
-        //      regionX.z: the texture scale for the region
-        //  it might not be the most elegant way for storing these 3 values, but it packs the data nicely :)
-        // slopeColorMap: the texture to be used for cliffs, and steep mountain sites
-        // slopeTileFactor: the texture scale for slopes
-        // terrainSize: the total size of the terrain (used for scaling the texture)
-        // GRASS texture
-        Texture grass = this.assetManager.loadTexture("Textures/Terrain/splat/grass.jpg");
-        grass.setWrap(WrapMode.Repeat);
-        this.mat_terrain.setTexture("region1ColorMap", grass);
-        this.mat_terrain.setVector3("region1", new Vector3f(15, 200, this.grassScale));
+        if(renderKaylaTerrain) {
+	    	this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
+	    	
+	    	// Parameters to material:
+	        // regionXColorMap: X = 1..4 the texture that should be appliad to state X
+	        // regionX: a Vector3f containing the following information:
+	        //      regionX.x: the start height of the region
+	        //      regionX.y: the end height of the region
+	        //      regionX.z: the texture scale for the region
+	        //  it might not be the most elegant way for storing these 3 values, but it packs the data nicely :)
+	        // slopeColorMap: the texture to be used for cliffs, and steep mountain sites
+	        // slopeTileFactor: the texture scale for slopes
+	        // terrainSize: the total size of the terrain (used for scaling the texture)
+	        // GRASS texture
+	        Texture grass = this.assetManager.loadTexture("Textures/Terrain/splat/grass.jpg");
+	        grass.setWrap(WrapMode.Repeat);
+	        this.mat_terrain.setTexture("region1ColorMap", grass);
+	        this.mat_terrain.setVector3("region1", new Vector3f(15, 200, this.grassScale));
+	
+	        // DIRT texture
+	        Texture dirt = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
+	        dirt.setWrap(WrapMode.Repeat);
+	        this.mat_terrain.setTexture("region2ColorMap", dirt);
+	        this.mat_terrain.setVector3("region2", new Vector3f(0, 20, this.dirtScale));
+	
+	        // ROCK texture
+	        Texture rock = this.assetManager.loadTexture("Textures/Terrain/Rock2/rock.jpg");
+	        rock.setWrap(WrapMode.Repeat);
+	        this.mat_terrain.setTexture("region3ColorMap", rock);
+	        this.mat_terrain.setVector3("region3", new Vector3f(198, 260, this.rockScale));
+	
+	        this.mat_terrain.setTexture("region4ColorMap", rock);
+	        this.mat_terrain.setVector3("region4", new Vector3f(198, 260, this.rockScale));
+	
+	        this.mat_terrain.setTexture("slopeColorMap", rock);
+	        this.mat_terrain.setFloat("slopeTileFactor", 32);
+	
+	        this.mat_terrain.setFloat("terrainSize", 513);
+	        
+	        this.base = new FractalSum();
+	        this.base.setRoughness(0.7f);
+	        this.base.setFrequency(1.0f);
+	        this.base.setAmplitude(1.0f);
+	        this.base.setLacunarity(2.12f);
+	        this.base.setOctaves(8);
+	        this.base.setScale(0.02125f);
+	        this.base.addModulator(new NoiseModulator() {
+	
+	            @Override
+	            public float value(float... in) {
+	                return ShaderUtils.clamp(in[0] * 0.5f + 0.5f, 0, 1);
+	            }
+	        });
+	
+	        FilteredBasis ground = new FilteredBasis(this.base);
+	
+	        this.perturb = new PerturbFilter();
+	        this.perturb.setMagnitude(0.119f);
+	
+	        this.therm = new OptimizedErode();
+	        this.therm.setRadius(5);
+	        this.therm.setTalus(0.011f);
+	
+	        this.smooth = new SmoothFilter();
+	        this.smooth.setRadius(1);
+	        this.smooth.setEffect(0.7f);
+	
+	        this.iterate = new IterativeFilter();
+	        this.iterate.addPreFilter(this.perturb);
+	        this.iterate.addPostFilter(this.smooth);
+	        this.iterate.setFilter(this.therm);
+	        this.iterate.setIterations(1);
+	
+	        ground.addPreFilter(this.iterate);
+	
+	        int patchSize = 66;
+	        int maxTerrainVisible = 258;
+	        this.terrainGrid = new TerrainGrid("terrain", patchSize, maxTerrainVisible, new FractalTileLoader(ground, 256f));
+	
+	        this.terrainGrid.setMaterial(this.mat_terrain);
+	        this.terrainGrid.setLocalTranslation(0, 0, 0);
+	        this.terrainGrid.setLocalScale(2f, 1f, 2f);
+	        this.terrainGrid.setLocked(false); // unlock it so we can edit the height
+	        this.rootNode.attachChild(this.terrainGrid);
+	        
+	        TerrainLodControl control = new TerrainGridLodControl(this.terrainGrid, this.getCamera());
+	        control.setLodCalculator(new DistanceLodCalculator(patchSize, 2.7f)); // patch size, and a multiplier
+	        this.terrainGrid.addControl(control);
+	        
+	        /**
+	         * Create PhysicsRigidBodyControl for collision
+	         */
+	        List<Spatial> terrainGridChildren = terrainGrid.getChildren();
+	        for(Spatial sp : terrainGridChildren) {
+	        	if(sp.getClass() == TerrainQuad.class) {
+	        		((TerrainQuad)sp).addControl(new RigidBodyControl(new HeightfieldCollisionShape(((TerrainQuad)sp).getHeightMap(), terrainGrid.getLocalScale()), 0));
+	        	}
+	        }
+	        bulletAppState.getPhysicsSpace().addAll(terrainGrid);
+	        
+	        terrainGrid.addListener(new TerrainGridListener() {
 
-        // DIRT texture
-        Texture dirt = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
-        dirt.setWrap(WrapMode.Repeat);
-        this.mat_terrain.setTexture("region2ColorMap", dirt);
-        this.mat_terrain.setVector3("region2", new Vector3f(0, 20, this.dirtScale));
+	            public void gridMoved(Vector3f newCenter) {
+	            }
 
-        // ROCK texture
-        Texture rock = this.assetManager.loadTexture("Textures/Terrain/Rock2/rock.jpg");
-        rock.setWrap(WrapMode.Repeat);
-        this.mat_terrain.setTexture("region3ColorMap", rock);
-        this.mat_terrain.setVector3("region3", new Vector3f(198, 260, this.rockScale));
+	            public void tileAttached(Vector3f cell, TerrainQuad quad) {
+	                while(quad.getControl(RigidBodyControl.class)!=null){
+	                    quad.removeControl(RigidBodyControl.class);
+	                }
+	                quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrainGrid.getLocalScale()), 0));
+	                bulletAppState.getPhysicsSpace().add(quad);
+	            }
 
-        this.mat_terrain.setTexture("region4ColorMap", rock);
-        this.mat_terrain.setVector3("region4", new Vector3f(198, 260, this.rockScale));
+	            public void tileDetached(Vector3f cell, TerrainQuad quad) {
+	                if (quad.getControl(RigidBodyControl.class) != null) {
+	                    bulletAppState.getPhysicsSpace().remove(quad);
+	                    quad.removeControl(RigidBodyControl.class);
+	                }
+	            }
 
-        this.mat_terrain.setTexture("slopeColorMap", rock);
-        this.mat_terrain.setFloat("slopeTileFactor", 32);
-
-        this.mat_terrain.setFloat("terrainSize", 513);
-        
-        this.base = new FractalSum();
-        this.base.setRoughness(0.7f);
-        this.base.setFrequency(1.0f);
-        this.base.setAmplitude(1.0f);
-        this.base.setLacunarity(2.12f);
-        this.base.setOctaves(8);
-        this.base.setScale(0.02125f);
-        this.base.addModulator(new NoiseModulator() {
-
-            @Override
-            public float value(float... in) {
-                return ShaderUtils.clamp(in[0] * 0.5f + 0.5f, 0, 1);
-            }
-        });
-
-        FilteredBasis ground = new FilteredBasis(this.base);
-
-        this.perturb = new PerturbFilter();
-        this.perturb.setMagnitude(0.119f);
-
-        this.therm = new OptimizedErode();
-        this.therm.setRadius(5);
-        this.therm.setTalus(0.011f);
-
-        this.smooth = new SmoothFilter();
-        this.smooth.setRadius(1);
-        this.smooth.setEffect(0.7f);
-
-        this.iterate = new IterativeFilter();
-        this.iterate.addPreFilter(this.perturb);
-        this.iterate.addPostFilter(this.smooth);
-        this.iterate.setFilter(this.therm);
-        this.iterate.setIterations(1);
-
-        ground.addPreFilter(this.iterate);
-
-        int patchSize = 66;
-        int maxTerrainVisible = 258;
-        this.terrainGrid = new TerrainGrid("terrain", patchSize, maxTerrainVisible, new FractalTileLoader(ground, 256f));
-
-        this.terrainGrid.setMaterial(this.mat_terrain);
-        this.terrainGrid.setLocalTranslation(0, 0, 0);
-        this.terrainGrid.setLocalScale(2f, 1f, 2f);
-        this.terrainGrid.setLocked(false); // unlock it so we can edit the height
-        this.rootNode.attachChild(this.terrainGrid);
-        
-        TerrainLodControl control = new TerrainGridLodControl(this.terrainGrid, this.getCamera());
-        control.setLodCalculator(new DistanceLodCalculator(patchSize, 2.7f)); // patch size, and a multiplier
-        this.terrainGrid.addControl(control);
+	        });
+        }
         
         this.getCamera().setLocation(new Vector3f(0, 300, 0));
 
         this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
-
-        /**
-         * Create PhysicsRigidBodyControl for collision
-         */
-        List<Spatial> terrainGridChildren = terrainGrid.getChildren();
-        for(Spatial sp : terrainGridChildren) {
-        	if(sp.getClass() == TerrainQuad.class) {
-        		((TerrainQuad)sp).addControl(new RigidBodyControl(new HeightfieldCollisionShape(((TerrainQuad)sp).getHeightMap(), terrainGrid.getLocalScale()), 0));
-        	}
-        }
-        bulletAppState.getPhysicsSpace().addAll(terrainGrid);
-        
-        terrainGrid.addListener(new TerrainGridListener() {
-
-            public void gridMoved(Vector3f newCenter) {
-            }
-
-            public void tileAttached(Vector3f cell, TerrainQuad quad) {
-                while(quad.getControl(RigidBodyControl.class)!=null){
-                    quad.removeControl(RigidBodyControl.class);
-                }
-                quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrainGrid.getLocalScale()), 0));
-                bulletAppState.getPhysicsSpace().add(quad);
-            }
-
-            public void tileDetached(Vector3f cell, TerrainQuad quad) {
-                if (quad.getControl(RigidBodyControl.class) != null) {
-                    bulletAppState.getPhysicsSpace().remove(quad);
-                    quad.removeControl(RigidBodyControl.class);
-                }
-            }
-
-        });
 
         /**
          * add the sun (white directional light) to the root node
@@ -370,7 +373,7 @@ public class Engine extends SimpleApplication {
             bulletAppState.getPhysicsSpace().add(sphere);
         }
 
-        if (usePhysics) {
+        if (usePhysics && renderKaylaTerrain) {
             CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
             player = new CharacterControl(capsuleShape, 0.5f);
             player.setJumpSpeed(20);
@@ -391,11 +394,13 @@ public class Engine extends SimpleApplication {
      */
     private void initKeys() {
         // You can map one or several inputs to one named action
-    	flyCam.setMoveSpeed(50);
-        inputManager.addMapping("wireframe", new KeyTrigger(KeyInput.KEY_T));
-        inputManager.addListener(actionListener, "wireframe");
-        inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-        inputManager.addListener(actionListener, "shoot");
+    	if(renderKaylaTerrain) {
+	        inputManager.addMapping("wireframe", new KeyTrigger(KeyInput.KEY_T));
+	        inputManager.addListener(actionListener, "wireframe");
+	        inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+	        inputManager.addListener(actionListener, "shoot");
+    	}
+        
         inputManager.addMapping("cameraDown", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         inputManager.addListener(actionListener, "cameraDown");
         
@@ -421,14 +426,14 @@ public class Engine extends SimpleApplication {
         @Override
         public void onAction(final String name, final boolean keyPressed, final float tpf) {
         	// from TerrainGridTileLoaderTest
-        	if (name.equals("wireframe") && !keyPressed) {
+        	if (name.equals("wireframe") && !keyPressed && renderKaylaTerrain) {
                 wireframe = !wireframe;
                 if (!wireframe) {
                     terrainGrid.setMaterial(matWire);
                 } else {
                     terrainGrid.setMaterial(mat_terrain);
                 }
-            } else if (name.equals("shoot") && !keyPressed) {
+            } else if (name.equals("shoot") && !keyPressed && renderKaylaTerrain) {
 
                 Vector3f origin = cam.getWorldCoordinates(new Vector2f(settings.getWidth() / 2, settings.getHeight() / 2), 0.0f);
                 Vector3f direction = cam.getWorldCoordinates(new Vector2f(settings.getWidth() / 2, settings.getHeight() / 2), 0.3f);
@@ -488,7 +493,9 @@ public class Engine extends SimpleApplication {
         hintText = new BitmapText(guiFont, false);
         hintText.setSize(guiFont.getCharSet().getRenderedSize());
         hintText.setLocalTranslation(0, getCamera().getHeight(), 0);
-        hintText.setText("Hit T to switch to wireframe");
+        if(renderKaylaTerrain) {
+        	hintText.setText("Hit T to switch to wireframe");
+        }
         hintText.setText("");
         guiNode.attachChild(hintText);
     }
@@ -575,7 +582,7 @@ public class Engine extends SimpleApplication {
         if (this.down && this.moves) {
             this.walkDirection.addLocal(camDir.negate());
         }
-        if (usePhysics) {
+        if (usePhysics && renderKaylaTerrain) {
             this.player.setWalkDirection(this.walkDirection);
             if(moves) {
             	this.cam.setLocation(this.player.getPhysicsLocation());
