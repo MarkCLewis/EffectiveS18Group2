@@ -13,7 +13,8 @@ public class test {
 		//RectangularPrism rP = new RectangularPrism(3, 3, 1, 5, 5, 0);
 		//RectangularPrism rP2 = new RectangularPrism(3, 3, 1, 5, 5, 5);
 		Sphere s = new Sphere((float)0.5, 0 ,3, 3);
-		Cloud t = new Cloud (5,375,0,10,30,10);
+		Cloud t = new Cloud (5,300,0,50,2,100);
+		//Cloud t = new Cloud (5,300,0,100,30,100);
 		ArrayList<Shape> spheres = t.makeShape3d();
 		
 		/*Cloud z = new Cloud(3,10, -10, 20,3,10);
@@ -28,7 +29,7 @@ public class test {
 		}
 */
 		g.start();
-		System.out.println(spheres.size());
+		//System.out.println(spheres.size());
 
 	}
 
