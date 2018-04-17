@@ -39,6 +39,8 @@ public class Game {
 			rPs.add(new shapes.Quad(5f, new float[] {1,1,-1,-1}, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20)));
 			rPs.add(new shapes.Cylinder(5f, 2f, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20), Engine.getRandomFloat(0,20), Engine.getRandomFloat(150, 300), Engine.getRandomFloat(0,20)));
 		}
+		// add terrain quads
+		rPs.add(new shapes.Quad(5f, new float[] {1,1,-1,-1}, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20)));
 		double length = 1000;
 		int seed = 100;
 	    int points = 31;

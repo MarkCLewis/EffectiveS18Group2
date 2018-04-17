@@ -484,7 +484,7 @@ public class Engine extends SimpleApplication {
                 } else {
                     Engine.this.down = false;
                 }
-            } else if (name.equals("Jumps")) {
+            } else if (name.equals("Jumps") && usePhysics && renderKaylaTerrain) {
             	Engine.this.player.jump(new Vector3f(0,10,0));;
             }
         }
