@@ -17,7 +17,10 @@ import java.nio.file.Paths;
 
 import org.lwjgl.BufferUtils;
 
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
@@ -91,7 +94,33 @@ public class Utils {
     		return getMeshFromSphere((shapes.Sphere)shape);
     	} else if(shape instanceof shapes.RectangularPrism) {
     		return getMeshFromRectPrism((shapes.RectangularPrism)shape);
-    	} else throw new IllegalArgumentException();
+    	} else if(shape instanceof shapes.Quad) {
+    		return getMeshFromQuad((shapes.Quad)shape);
+    	} else {
+    		throw new IllegalArgumentException();
+    	}
+    }
+    
+    public static Mesh getMeshFromQuad(shapes.Quad shape) {
+    	Mesh result = new Mesh();
+    	float[] cornerHeights = shape.getCornerHeights();
+    	float halfSize = shape.getSize()/2f;
+    	Vector3f [] vertices = new Vector3f[4];
+    	vertices[0] = new Vector3f(halfSize,cornerHeights[0],-halfSize); // top left
+    	vertices[1] = new Vector3f(halfSize,cornerHeights[1],halfSize); // top right
+    	vertices[2] = new Vector3f(-halfSize,cornerHeights[2],halfSize); // bottom right
+    	vertices[3] = new Vector3f(-halfSize,cornerHeights[3],-halfSize); // bottom left
+    	Vector2f [] texCoord = new Vector2f[4];
+    	texCoord[0] = new Vector2f(0,0);
+    	texCoord[1] = new Vector2f(1,0);
+    	texCoord[2] = new Vector2f(0,1);
+    	texCoord[3] = new Vector2f(1,1);
+    	int [] indexes = { 0,3,2, 2,1,0 };
+    	result.setBuffer(Type.Position, 3, com.jme3.util.BufferUtils.createFloatBuffer(vertices));
+    	result.setBuffer(Type.TexCoord, 2, com.jme3.util.BufferUtils.createFloatBuffer(texCoord));
+    	result.setBuffer(Type.Index,    3, com.jme3.util.BufferUtils.createIntBuffer(indexes));
+    	result.updateBound();
+    	return result;
     }
     
     public static Mesh getMeshFromSphere(shapes.Sphere shape) {
