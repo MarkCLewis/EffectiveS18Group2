@@ -598,7 +598,7 @@ public class Engine extends SimpleApplication {
     	return Engine.worldPosition.clone();
     }
 
-    public void changeShapes(ArrayList<shapes.Shape> shapes) {
+    public void changeShapes(List<shapes.Shape> shapes) {
     	meshBuffer.clear();
     	meshPositions.clear();
     	for (shapes.Shape shape : shapes) {
