@@ -121,7 +121,7 @@ public class Cloud implements Entity {
 			yOff += yInc;
 		}
 		//testing
-		clearEdges();
+		//clearEdges();
 	}
 	
 	
@@ -149,7 +149,7 @@ public class Cloud implements Entity {
 		double posX = 0;
 		double posY = 0;
 		double posZ = 0;
-		for (int y = 0; y < height - 1; y++)
+		for (int y = 0; y < height; y++)
 		{
 			for (int x = 0; x < length; x++)
 			{
@@ -404,6 +404,12 @@ public class Cloud implements Entity {
     			cloudArr[x][z][height-1] = 0;
     }
     
+    //todo smooth the edges so it looks less square
+    
+    private void smoothEdges()
+    {
+    	
+    }
     
 }
 

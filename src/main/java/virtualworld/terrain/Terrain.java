@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import engine.Engine;
 import entity.Entity;
 import shapes.Shape;
 import shapes.Quad;
@@ -13,9 +14,9 @@ public class Terrain implements Entity {
 	
 	public static void main(String[] args) {
 	   
-		double length = 1000;
-		int seed = 10;
-	    int points = 31;
+		double length = 5000;
+		int seed = 500;
+	    int points = 61;
 		double[][] heightMap = {{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
@@ -48,7 +49,10 @@ public class Terrain implements Entity {
 			System.out.print("\n");
 		}*/
 		List<Shape> quads = t.getShapes();
-		System.out.println(quads.size());
+		Quad q =((Quad)(quads.get(0)));
+		Quad q1 =((Quad)(quads.get(1)));
+		System.out.println((Arrays.toString(q.getCornerHeights())));
+		System.out.println((Arrays.toString(q1.getCornerHeights())));
 	}
 	
     // (x, z) coordinate of the terrain center
@@ -85,6 +89,7 @@ public class Terrain implements Entity {
         double[][][] subTerrains = splitArray();
         return new Terrain[] {
         	
+        		//0 Top-left
             new Terrain(
                 new Point(
                 		center.getX() - (length/4), 
@@ -93,6 +98,7 @@ public class Terrain implements Entity {
                 heightSeed,
                 pointsPerSide,
                 subTerrains[0]),
+            //1  Top-right
             new Terrain(
                 new Point(
                 		center.getX() + (length/4), 
@@ -101,6 +107,7 @@ public class Terrain implements Entity {
                 heightSeed,
                 pointsPerSide,
                 subTerrains[1]),
+            //2 bottom-left
             new Terrain(
                 new Point(
                 		center.getX() - (length/4), 
@@ -109,6 +116,7 @@ public class Terrain implements Entity {
                 heightSeed,
                 pointsPerSide,
                 subTerrains[2]),
+            //3 bottom-right
             new Terrain(
                 new Point(
                 		center.getX() + (length/4), 
@@ -140,7 +148,7 @@ public class Terrain implements Entity {
     //function takes in a 0,1,2,3 for the 4 different parts of the terrain
     private double[][][] splitArray() {
     	
-    	if(!mapIsSet) renderHeights();
+    	if(!mapIsSet) renderBaseHeights();
     	//Integer division so will always round down
     	int splitSize = (pointsPerSide + 1)/2;
     	
@@ -174,7 +182,7 @@ public class Terrain implements Entity {
 			for (int c = 0; c < pointsPerSide; c++) {
 				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
 				if (heightMap[r][c] == -1.0) {
-					heightMap[r][c] = 170 + perlNoise.noise2D(nc, nr) * heightSeed;
+					heightMap[r][c] = 150 + perlNoise.noise2D(nc, nr) * heightSeed;
 				}
 				
 			}
@@ -191,7 +199,7 @@ public class Terrain implements Entity {
     		double nr = (topLeft.getY() + (increment * r))/length - 0.5;
 			for (int c = 0; c < pointsPerSide; c++) {
 				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
-					heightMap[r][c] = 160 + perlNoise.noise2D(nc, nr) * heightSeed;
+					heightMap[r][c] = 150 + perlNoise.noise2D(7 * nc, 7 * nr) * heightSeed;
 			}
     	}
     	
@@ -224,17 +232,16 @@ public class Terrain implements Entity {
 		
 		if (!mapIsSet) renderBaseHeights();
 		
-		Point topLeft = new Point(center.getX() - (length / 2), center.getY() + (length / 2));
+		Point topLeft = new Point(center.getX() - (length / 2), center.getY() - (length / 2));
     	double increment = length / pointsPerSide;
     	List<Shape> quads = new ArrayList<Shape>();
     	
     	for (int r = 0; r < heightMap.length -1; r++) {
-    		double quadXCoordinate = (topLeft.getY() + (increment * r) + (increment/2));
+    		double quadZCoordinate = (topLeft.getY() + (increment * r) + (increment/2));
 			for (int c = 0; c < heightMap.length -1; c++) {
-				double quadZCoordinate = (topLeft.getX() + (increment * c) + (increment/2));
+				double quadXCoordinate = (topLeft.getX() + (increment * c) + (increment/2));
 				float[] corners = {(float)heightMap[r][c], (float)heightMap[r][c+1], (float)heightMap[r+1][c+1], (float)heightMap[r+1][c]};
-				double quadHeight = averageHeights(corners);
-				 quads.add(new Quad((float)increment, corners, quadXCoordinate, quadHeight, quadZCoordinate));
+				 quads.add(new Quad((float)increment, corners, quadXCoordinate, 0.0, quadZCoordinate));
 				}
 				
 			}
@@ -242,12 +249,5 @@ public class Terrain implements Entity {
 		return quads; 
 	}
 
-	private double averageHeights(float[] corners) {
-		float sum = 0;
-		for(float x : corners) {
-			sum += x;
-		}
-		return (double) (sum/corners.length);
-	}
 }
 

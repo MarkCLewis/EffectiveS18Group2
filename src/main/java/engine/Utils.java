@@ -121,7 +121,7 @@ public class Utils {
     	Vector3f[] normalVecs = new Vector3f[4];
     	normalVecs[0] = (vertices[1].subtract(vertices[0])).cross((vertices[3].subtract(vertices[0])));
     	normalVecs[1] = (vertices[2].subtract(vertices[1])).cross((vertices[0].subtract(vertices[1])));
-    	normalVecs[2] = (vertices[3].subtract(vertices[2])).cross((vertices[1].subtract(vertices[2])));
+    	normalVecs[2] = (vertices[1].subtract(vertices[2])).cross((vertices[3].subtract(vertices[2])));
     	normalVecs[3] = (vertices[2].subtract(vertices[3])).cross((vertices[0].subtract(vertices[3])));
     	normals = new float[]{
     			normalVecs[0].x,normalVecs[0].y,normalVecs[0].z, 
