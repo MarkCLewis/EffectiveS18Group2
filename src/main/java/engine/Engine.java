@@ -198,7 +198,7 @@ public class Engine extends SimpleApplication {
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
 
-		this.flyCam.setMoveSpeed(100f);
+		this.flyCam.setMoveSpeed(1000f);
     	ScreenshotAppState state = new ScreenshotAppState();
     	this.stateManager.attach(state);
 
@@ -332,7 +332,7 @@ public class Engine extends SimpleApplication {
 	        });
         }
         
-        this.getCamera().setLocation(new Vector3f(0, 300, 0));
+        this.getCamera().setLocation(new Vector3f(0, 2000, 0));
 
         this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
 
