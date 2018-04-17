@@ -35,7 +35,7 @@ public class Node {
 		//Point cent = ent.getCenter();
 		//Point currcenter = this.center();
 		double sz = ent.getSize();
-		if (sz < size/2 && this.getDepth() != maxDepth) {
+		if (sz < size/2 && this.getDepth() < maxDepth) {
 			if (children.length == 0) {
 				this.createChildren();
 			}
@@ -84,23 +84,27 @@ public class Node {
 		parent = p;
 	}
 	
-	//may never be needed because of split function, but keeping for possible unforeseen use cases
+	//unlikely to be needed, just in case
 	public void updateChild(Node[] c) {
 		children = c;
 	}
 	
+	//for defining size
 	public void updateSize(double sz) {
 		size = sz;
 	}
 	
+	//for defining the center point
 	public void updateCenter(Point cent) {
 		center = cent;
 	}
 	
+	//for defining the depth of the node
 	public void updateDepth(int dep) {
 		depth = dep;
 	}
 	
+	//function to create Children if called
 	public void createChildren() {
 		double offset = size/4;
 		children = new Node[4];
@@ -127,19 +131,22 @@ public class Node {
 		}
 	}
 	
-	//Functions to implement
-	private Point center() {
+	//returns center of Node
+	private Point getCenter() {
 		return center;
 	}
 	
+	//returns size of Node
 	public double getSize() {
 		return size;
 	}
 	
+	//returns depth of Node
 	public int getDepth() {
 		return depth;
 	}
 	
+	//returns a list of all the entities contained within the Node
 	public List<Entity> getEntities() {
 		return entities;
 	}
@@ -149,9 +156,7 @@ public class Node {
 		while(children.length > 0) {
 			for(Entity e: entities) {
 				Point start = e.getCenter();
-				double numer = start.getY()-target.getY();
-				double denom = start.getX()-target.getX();
-				double dist = numer/denom;
+				double dist = findDist(target,start);
 				e.distFromCamera(dist);
 			}
 			for(Node newnode: children) {
@@ -160,12 +165,19 @@ public class Node {
 		}
 	}
 	
+	//finds the euclidean distance between two points
+	public double findDist(Point target, Point start) {
+		double numer = start.getY()-target.getY();
+		double denom = start.getX()-target.getX();
+		return Math.abs(numer/denom);
+	}
+	
 	//find out what position of camera uses
 	//probably won't need, as cameraDist covers pretty much all cases surrounding camera needs
 	public Node findCamera(Point target) {
 		Node currNode = this;
-		while(currNode.center() != target && currNode.getDepth() != maxDepth) {
-			Point currcenter = currNode.center();
+		while(currNode.getCenter() != target && currNode.getDepth() < maxDepth) {
+			Point currcenter = currNode.getCenter();
 			if (currcenter.getY() > target.getY()) {
 				if (currcenter.getX() > target.getX()) {
 					currNode = children[0];
