@@ -4,28 +4,24 @@ public class Shape {
 	/**
 	 * Location of shape's center in world coordinates.
 	 */
-	private final double[] center = new double[3];
+	private double[] center;
 	/**
 	 * Euler rotation vector of shape in radians.
 	 * {xRotation, yRotation, zRotation}
 	 */
-	private final float[] rotation = new float[3];
+	private float[] rotation;
 	
 	public Shape(double xPos, double yPos, double zPos, float xRot, float yRot, float zRot) {
-		this.center[0] = xPos;
-		this.center[1] = yPos;
-		this.center[2] = xPos;
-		this.rotation[0] = xRot;
-		this.rotation[1] = yRot;
-		this.rotation[2] = zRot;
+		this.center = new double[] {xPos, yPos, zPos};
+		this.rotation = new float[] {xRot, yRot, zRot};
 	}
 	
 	public double[] getCenter() {
-		return center.clone();
+		return new double[]  {center[0],center[1],center[2]};
 	}
 	
 	public float[] getRotation() {
-		return rotation.clone();
+		return new float[] {rotation[0],rotation[1],rotation[2]};
 	}
 	
 	public double getXPos() {

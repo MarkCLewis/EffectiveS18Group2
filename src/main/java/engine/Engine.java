@@ -1,6 +1,7 @@
 package engine;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
@@ -127,19 +128,19 @@ public class Engine extends SimpleApplication {
 	 * "meshPositions" collection; a mesh at index i will have its
 	 * position data at index i inside of "meshPositions"
 	 */
-	private final static ArrayList<Geometry> geomBuffer = new ArrayList<Geometry>();
+	private final ArrayList<Geometry> geomBuffer = new ArrayList<Geometry>();
 	/**
 	 * This buffer holds the positions of meshes in world coordinates that 
 	 * are to be rendered in the NEXT frame.
 	 * Elements in this collection correspond to the elements in "meshBuffer"
 	 * with the same index.
 	 */
-	private final static ArrayList<Vector3d> geomPositions = new ArrayList<Vector3d>();
+	private final ArrayList<Vector3d> geomPositions = new ArrayList<Vector3d>();
 	
 	/**
 	 * The position of the camera/player in world coordinates
 	 */
-	private final static Vector3d worldPosition = new Vector3d();
+	private final Vector3d worldPosition = new Vector3d(0,0,0);
 	
 	private DirectionalLight sun;
 	private Node objectNode;
@@ -192,8 +193,7 @@ public class Engine extends SimpleApplication {
      */
     @Override
     public void simpleInitApp() {
-    	// old stuff
-    	logger.info("simpleInitApp");
+    	//logger.info("simpleInitApp");
     	cam.setFrustumFar(10000);
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
@@ -346,9 +346,9 @@ public class Engine extends SimpleApplication {
         
         objectNode = new Node("ObjectNode");
 		for (int i = 0; i < geomPositions.size(); i++) {
-        	Engine.logInfo("adding mesh from index " + i + " in meshBuffer");
+        	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
             Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
-            Engine.logInfo("mesh origin is " + localPos.toString());
+            //Engine.logInfo("mesh origin is " + localPos.toString());
             Geometry geom = geomBuffer.get(i);
             Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
             mat.setColor("Diffuse", ColorRGBA.White);
@@ -554,9 +554,9 @@ public class Engine extends SimpleApplication {
     	if(shouldUpdateShapes) {
     		objectNode.detachAllChildren();
         	for (int i = 0; i < geomPositions.size(); i++) {
-            	Engine.logInfo("adding mesh from index " + i + " in meshBuffer");
+            	//Engine.logInfo("adding geometry from index " + i + " in meshBuffer");
                 Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
-                Engine.logInfo("mesh origin is " + localPos.toString());
+                //Engine.logInfo("geometry origin is " + localPos.toString());
                 Geometry geom = geomBuffer.get(i);
                 Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
                 mat.setColor("Diffuse", ColorRGBA.White);
@@ -596,16 +596,16 @@ public class Engine extends SimpleApplication {
     }
     
     public Vector3d getWorldPosition() {
-    	Vector3f loc = this.cam.getLocation();
-    	return new Vector3d(loc.x,loc.y,loc.z);
+    	return new Vector3d(this.worldPosition.x,this.worldPosition.y,this.worldPosition.z);
     }
 
     public void changeShapes(List<shapes.Shape> shapes) {
     	geomBuffer.clear();
     	geomPositions.clear();
     	for (shapes.Shape shape : shapes) {
-    		Engine.logInfo("addShape");
+    		//Engine.logInfo("addShape");
         	double[] pos = shape.getCenter();
+        	//Engine.logInfo("addShape with center: " + java.util.Arrays.toString(pos));
         	Vector3d vector3d = new Vector3d(pos[0],pos[1],pos[2]);
             Geometry m = Utils.getGeomFromShape(shape);
             geomBuffer.add(m);
