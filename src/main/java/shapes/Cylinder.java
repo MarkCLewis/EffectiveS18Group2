@@ -4,8 +4,11 @@ public class Cylinder extends Shape {
 	private float height;
 	private float radius;
 	
-	public Cylinder(float _height, float _radius, double xPos, double yPos, double zPos) {
-		super(xPos, yPos, zPos);
+	public Cylinder(
+			float _height, float _radius, 
+			double xPos, double yPos, double zPos,
+			float xRot, float yRot, float zRot) {
+		super(xPos, yPos, zPos, xRot, yRot, zRot);
 		this.height = _height;
 		this.radius = _radius;
 	}

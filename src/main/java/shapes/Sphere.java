@@ -4,7 +4,7 @@ public class Sphere extends Shape {
 	private float radius;
 	
 	public Sphere(float _radius, double xPos, double yPos, double zPos) {
-		super(xPos, yPos, zPos);
+		super(xPos, yPos, zPos,0,0,0);
 		this.radius = _radius;
 	}
 	

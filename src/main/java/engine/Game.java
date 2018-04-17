@@ -32,6 +32,7 @@ public class Game {
 		for (int i = 0; i < 10; i++) {
 			// Note: terrain is about 150 units high at the tallest, so try to keep your object's Y-coordinate above 150
 			rPs.add(new shapes.Quad(5f, new float[] {1,1,-1,-1}, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20)));
+			rPs.add(new shapes.Cylinder(5f, 2f, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20), Engine.getRandomFloat(0,20), Engine.getRandomFloat(150, 300), Engine.getRandomFloat(0,20)));
 		}
 		g.start();
 		g.addShapes(rPs);

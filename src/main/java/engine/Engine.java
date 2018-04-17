@@ -68,6 +68,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.opencl.Image.ImageFormat;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FogFilter;
+import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 
 /**
@@ -126,14 +127,14 @@ public class Engine extends SimpleApplication {
 	 * "meshPositions" collection; a mesh at index i will have its
 	 * position data at index i inside of "meshPositions"
 	 */
-	private final static ArrayList<Mesh> meshBuffer = new ArrayList<Mesh>();
+	private final static ArrayList<Geometry> geomBuffer = new ArrayList<Geometry>();
 	/**
 	 * This buffer holds the positions of meshes in world coordinates that 
 	 * are to be rendered in the NEXT frame.
 	 * Elements in this collection correspond to the elements in "meshBuffer"
 	 * with the same index.
 	 */
-	private final static ArrayList<Vector3d> meshPositions = new ArrayList<Vector3d>();
+	private final static ArrayList<Vector3d> geomPositions = new ArrayList<Vector3d>();
 	
 	/**
 	 * The position of the camera/player in world coordinates
@@ -344,11 +345,11 @@ public class Engine extends SimpleApplication {
         rootNode.addLight(sun);
         
         objectNode = new Node("ObjectNode");
-		for (int i = 0; i < meshPositions.size(); i++) {
+		for (int i = 0; i < geomPositions.size(); i++) {
         	Engine.logInfo("adding mesh from index " + i + " in meshBuffer");
-            Vector3f localPos = (meshPositions.get(i).subtract(Engine.getWorldPosition())).toVector3f();
+            Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
             Engine.logInfo("mesh origin is " + localPos.toString());
-            Geometry geom = new Geometry("Object" + i, meshBuffer.get(i));
+            Geometry geom = geomBuffer.get(i);
             Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
             mat.setColor("Diffuse", ColorRGBA.White);
             mat.setColor("Specular", ColorRGBA.White);
@@ -552,11 +553,11 @@ public class Engine extends SimpleApplication {
     public void simpleUpdate(final float tpf) {
     	if(shouldUpdateShapes) {
     		objectNode.detachAllChildren();
-        	for (int i = 0; i < meshPositions.size(); i++) {
+        	for (int i = 0; i < geomPositions.size(); i++) {
             	Engine.logInfo("adding mesh from index " + i + " in meshBuffer");
-                Vector3f localPos = (meshPositions.get(i).subtract(Engine.getWorldPosition())).toVector3f();
+                Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
                 Engine.logInfo("mesh origin is " + localPos.toString());
-                Geometry geom = new Geometry("Object" + i, meshBuffer.get(i));
+                Geometry geom = geomBuffer.get(i);
                 Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
                 mat.setColor("Diffuse", ColorRGBA.White);
                 mat.setColor("Specular", ColorRGBA.White);
@@ -590,24 +591,25 @@ public class Engine extends SimpleApplication {
         }
     }
     
-    public static String getCoordinates() {
-        return Engine.worldPosition.toString();
+    public String getCoordinates() {
+        return this.getWorldPosition().toString();
     }
     
-    public static Vector3d getWorldPosition() {
-    	return Engine.worldPosition.clone();
+    public Vector3d getWorldPosition() {
+    	Vector3f loc = this.cam.getLocation();
+    	return new Vector3d(loc.x,loc.y,loc.z);
     }
 
     public void changeShapes(List<shapes.Shape> shapes) {
-    	meshBuffer.clear();
-    	meshPositions.clear();
+    	geomBuffer.clear();
+    	geomPositions.clear();
     	for (shapes.Shape shape : shapes) {
     		Engine.logInfo("addShape");
         	double[] pos = shape.getCenter();
         	Vector3d vector3d = new Vector3d(pos[0],pos[1],pos[2]);
-            Mesh m = Utils.getMeshFromShape(shape);
-            meshBuffer.add(m);
-            meshPositions.add(vector3d);
+            Geometry m = Utils.getGeomFromShape(shape);
+            geomBuffer.add(m);
+            geomPositions.add(vector3d);
     	}
     	shouldUpdateShapes = true;
     }

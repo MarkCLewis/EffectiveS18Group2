@@ -19,6 +19,7 @@ import org.lwjgl.BufferUtils;
 
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.shape.Box;
@@ -87,22 +88,22 @@ public class Utils {
     	return new String(encoded, encoding);
     }
     
-    public static Mesh getMeshFromShape(shapes.Shape shape) {
+    public static Geometry getGeomFromShape(shapes.Shape shape) {
     	if(shape instanceof shapes.Cylinder) {
-    		return getMeshFromCylinder((shapes.Cylinder)shape);
+    		return getGeomFromCylinder((shapes.Cylinder)shape);
     	} else if(shape instanceof shapes.Sphere) {
-    		return getMeshFromSphere((shapes.Sphere)shape);
+    		return getGeomFromSphere((shapes.Sphere)shape);
     	} else if(shape instanceof shapes.RectangularPrism) {
-    		return getMeshFromRectPrism((shapes.RectangularPrism)shape);
+    		return getGeomFromRectPrism((shapes.RectangularPrism)shape);
     	} else if(shape instanceof shapes.Quad) {
-    		return getMeshFromQuad((shapes.Quad)shape);
+    		return getGeomFromQuad((shapes.Quad)shape);
     	} else {
     		throw new IllegalArgumentException();
     	}
     }
     
-    public static Mesh getMeshFromQuad(shapes.Quad shape) {
-    	Mesh result = new Mesh();
+    public static Geometry getGeomFromQuad(shapes.Quad shape) {
+    	Mesh mesh = new Mesh();
     	float[] cornerHeights = shape.getCornerHeights();
     	float halfSize = shape.getSize()/2f;
     	Vector3f[] vertices = new Vector3f[4];
@@ -127,26 +128,36 @@ public class Utils {
     			normalVecs[1].x,normalVecs[1].y,normalVecs[1].z,
     			normalVecs[2].x,normalVecs[2].y,normalVecs[2].z,
     			normalVecs[3].x,normalVecs[3].y,normalVecs[3].z};
-    	result.setBuffer(Type.Normal, 3, com.jme3.util.BufferUtils.createFloatBuffer(normals));
-    	result.setBuffer(Type.Position, 3, com.jme3.util.BufferUtils.createFloatBuffer(vertices));
-    	result.setBuffer(Type.TexCoord, 2, com.jme3.util.BufferUtils.createFloatBuffer(texCoord));
-    	result.setBuffer(Type.Index,    3, com.jme3.util.BufferUtils.createIntBuffer(indexes));
-    	result.updateBound();
-    	result.updateCounts();
-    	return result;
+    	mesh.setBuffer(Type.Normal, 3, com.jme3.util.BufferUtils.createFloatBuffer(normals));
+    	mesh.setBuffer(Type.Position, 3, com.jme3.util.BufferUtils.createFloatBuffer(vertices));
+    	mesh.setBuffer(Type.TexCoord, 2, com.jme3.util.BufferUtils.createFloatBuffer(texCoord));
+    	mesh.setBuffer(Type.Index,    3, com.jme3.util.BufferUtils.createIntBuffer(indexes));
+    	mesh.updateBound();
+    	mesh.updateCounts();
+    	Geometry geom = new Geometry("Quad"+shape.hashCode(),mesh);
+    	return geom;
     }
     
-    public static Mesh getMeshFromSphere(shapes.Sphere shape) {
-    	return new Sphere(10,10,shape.getRadius());
+    public static Geometry getGeomFromSphere(shapes.Sphere shape) {
+    	Mesh mesh = new Sphere(10,10,shape.getRadius());
+    	Geometry geom = new Geometry("Sphere"+shape.hashCode(),mesh);
+    	geom.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
+    	return geom;
     }
     
-    public static Mesh getMeshFromCylinder(shapes.Cylinder shape) {
-    	return new Cylinder(10,10,shape.getRadius(),shape.getHeight());
+    public static Geometry getGeomFromCylinder(shapes.Cylinder shape) {
+    	Mesh mesh = new Cylinder(10,10,shape.getRadius(),shape.getHeight());
+    	Geometry geom = new Geometry("Cylinder"+shape.hashCode(),mesh);
+    	geom.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
+    	return geom;
     }
     
-    public static Mesh getMeshFromRectPrism(shapes.RectangularPrism shape) {
+    public static Geometry getGeomFromRectPrism(shapes.RectangularPrism shape) {
     	float[] dim = shape.getDimensions();
-    	return new Box(dim[0],dim[1],dim[2]);
+    	Mesh mesh = new Box(dim[0],dim[1],dim[2]);
+    	Geometry geom = new Geometry("RectPrism"+shape.hashCode(),mesh);
+    	geom.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
+    	return geom;
     }
     
     /**
