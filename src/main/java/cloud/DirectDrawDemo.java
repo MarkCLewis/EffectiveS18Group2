@@ -30,8 +30,8 @@ public class DirectDrawDemo extends JPanel {
         Color a = new Color(r,g,b,al);
         //fillCanvas(Color.BLUE);
         this.cloud = cloud;
-        drawCloud();
-        //drawCloud3d();
+        //drawCloud();
+        drawCloud3d();
         //printCloudArray();
         //drawRect(a, 0, 0, width/2, height/2);
         
@@ -156,6 +156,7 @@ public class DirectDrawDemo extends JPanel {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
+
 
 
 }

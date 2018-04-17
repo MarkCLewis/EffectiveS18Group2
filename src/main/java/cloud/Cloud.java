@@ -9,7 +9,7 @@ import virtualworld.terrain.Perlin;
 import virtualworld.terrain.Point;
 public class Cloud implements Entity {
 	
-//width might be an optional to create different kind of cloud	
+//height might be an optional to create different kind of cloud since it is often not more than 5 or 10	
 
 	public Cloud (double x, double y, double z, int newLength, int newHeight, int newWidth)
 	{
@@ -22,8 +22,6 @@ public class Cloud implements Entity {
 		center = new Point(x,z);
 		makeCloudArray2d();
 		cloudArr = new double[length][width][height];
-		makeCloudArray3d();
-		cloud = makeShape3d();
 	}
 	//determine how big the cloud is 
 	
@@ -39,15 +37,34 @@ public class Cloud implements Entity {
 	private ArrayList<Shape> cloud;
 	private int neighborCount = 0;		
 
-    
+	private double xInc = 0;
+	private double yInc = 0;
+	private double zInc = 0;
+	private int oct = 0;
+	private double res = 0;
+	private boolean inverse = false;
+	
+	public void getInverse()
+	{
+		inverse = true;
+	}
+	
+	public void setOffSets(double x, double y, double z, int octave, double resistance)
+	{
+		xInc = x/length;
+		yInc = y/height;
+		zInc = z/width;
+		oct = octave;
+		res = resistance;
+	}
 	private void makeCloudArray2d()
 	{
 		//working code
 		//only for 2d cloud
 		//2d array to represent 2d cloud
 		//increase the increment increase the number of scattered clouds within a frame
-		double xInc = 1.0/length;
-		double yInc = 0.3/width;
+		double xInc = 3.0/length;
+		double yInc = 3.0/width;
 		//System.out.println(xInc +" " + yInc +"\n\n");
 		double yOff = 0;
 		for (int y = 0; y < width; y++){
@@ -57,8 +74,8 @@ public class Cloud implements Entity {
 				double value = (((float)(func.OctavePerlin(xOff,yOff, 3, 4))));
 				//offset so it is between 0 and 1
 				double check = (value + 1) /2;
-				if (check > 0.5)
-					check = 0;
+				//if (check > 0.5)
+				//	check = 0;
 				dimArr[x][y] = check; 
 				xOff += xInc;
 			}
@@ -69,9 +86,9 @@ public class Cloud implements Entity {
 	private void makeCloudArray3d() 
 	{
 		//semi working ish
-		double xInc = 2.0/length;
-		double yInc = 4.0/height;
-		double zInc = 5.0/width; // have to change later
+		//double xInc = 0.75/length;
+		//double yInc = 1.0/height;
+		//double zInc = 3.0/width; // have to change later
 		//System.out.println(xInc +" " + yInc +"\n\n");
 		double yOff = 0;
 		
@@ -83,11 +100,19 @@ public class Cloud implements Entity {
 				double xOff = func.noise2D(y,z);
 				for (int x = 0; x < length; x++){
 					//get value from perlin noise function
-					double value = (func.OctavePerlin3d(xOff,zOff, yOff, 1, 4));
+					double value = (func.OctavePerlin3d(xOff,zOff, yOff, oct, res));
 					//offset so it is between 0 and 1
 					double check = (value + 1) /2;
-					if (check > 0.45)
-						check = 0;
+					if (inverse) 
+					{
+						if(check < 0.45)
+							check = 0;
+					}
+					else
+					{
+						if (check > 0.45 )//|| check < 0.20)
+							check = 0;
+					}
 					cloudArr[x][z][y] = check; 
 					xOff += xInc;
 				}
@@ -95,46 +120,20 @@ public class Cloud implements Entity {
 			}
 			yOff += yInc;
 		}
+		//testing
+		clearEdges();
 	}
 	
-	public List<Sphere> makeShape()
-	{
-		List<Sphere> cSphere = new ArrayList<Sphere>();
-		//calculate midpoint to get the right center
-		int midX = width/2;
-		int midY = length/2;
-		int midZ = length/2;
-		
-		double originX = center.getX();
-		double originZ = center.getY();
-		double originY = y;
-		
-		double posX = 0;
-		double posY = height;
-		double posZ = 0;
-		for (int x = 0; x < length; x++)
-		{
-			for (int z = 0; z < width; z++)
-			{
-				if (dimArr[x][z] > 0)
-				{
-					posX = originX - midX + x; //xcoord
-					//posY = originY + midY - y; //yCoord
-					posZ = originZ - midZ + z;
-					cSphere.add(new Sphere((float) 1, posX, height, posZ));
-					//radius 2 is arbitrary for testing purposes
-				}
-			}
-		}
-		return cSphere;
-	}
 	
 	//Given a particular array, create a sphere for each location where cloudArr[x][z][y] is non - zero
 	//The radius of the sphere is dependent on the value hold by cloudArr[x][z][y]
 	
 	public ArrayList<Shape> makeShape3d()
 	{
-		//reduceCluster();
+		makeCloudArray3d();
+		reduceCluster();
+		//offTheTop();
+		//cirrocumulus();
 		ArrayList<Shape> cSphere = new ArrayList<Shape>();
 		//calculate midpoint to get the right center
 		int midX = length/2;
@@ -150,7 +149,7 @@ public class Cloud implements Entity {
 		double posX = 0;
 		double posY = 0;
 		double posZ = 0;
-		for (int y = 0; y < height; y++)
+		for (int y = 0; y < height - 1; y++)
 		{
 			for (int x = 0; x < length; x++)
 			{
@@ -161,7 +160,7 @@ public class Cloud implements Entity {
 						posX = originX - midX/sF + x/sF; //xcoord
 						posY = originY + midY/sF - y/sF; //yCoord
 						posZ = originZ - midZ/sF + z/sF;
-						cSphere.add(new Sphere((float) (cloudArr[x][z][y]) * 3 ,posX, posY, posZ));
+						cSphere.add(new Sphere((float) (cloudArr[x][z][y] - 0.1) * 3 ,posX, posY, posZ));
 						//cSphere.add(new Sphere((float) (0.35),posX, posY, posZ));
 						//radius 2 is arbitrary for testing purposes
 					}
@@ -228,7 +227,7 @@ public class Cloud implements Entity {
 		
 		if (check.getLeft() >= pass)
 		{
-			double newRadius = check.getRight() / 3.0 + cloudArr[x][z][y]/2;
+			double newRadius = check.getRight() / 2.0 + cloudArr[x][z][y]/2;
 			cloudArr[x][z][y] = newRadius;
 			clearNeighbors(x,z,y);
 		}
@@ -305,6 +304,107 @@ public class Cloud implements Entity {
 		if (validLoc (x, z ,y+1))
 			cloudArr[x][z][y+1] = 0;
 	}
+	
+	private void clearEdges()
+	{
+		for (int x = 0; x < length; x++)
+			for (int z = 0; z < width; z++)
+				for (int y = 0; y < height; y++)
+				{
+					if (x < 2 || x > (length - 3))
+					{
+						cloudArr[x][z][y] = 0;
+					}
+					else if (z < 2 || z > (width - 3))
+					{
+						cloudArr[x][z][y] = 0;
+					}
+				}
+	}
+	
+    //trying to make another type of cloud, not based on perlin noise
+    private void cirrocumulus()
+    {
+		double xInc = 1.0/length;
+		double yInc = 2.0/height;
+		double zInc = 1.3/width;
+		
+		double yOff = 0;
+    	for (int y = 0; y < height; y++)
+    	{
+    		double zOff = 0;
+    		for (int z = 1; z < width ; z++)
+    		{
+    			double xOff = 0;
+    			for (int x = 1; x < length; x++)
+    			{
+    				if (y == 0)
+    				{
+    					if ( (z % 6 == 0))
+    					{
+    						if (x % 5 == 0)
+    						{
+    							double val = (func.OctavePerlin3d(xOff, zOff, yOff, 1, 2) + 1 ) /2;
+    							//changing the neighbor to surround this particular point, creating a pseudo small clous
+    							cloudArr[x][z][y] = val;
+    							cloudArr[x-1][z][y] = val;
+    							cloudArr[x+1][z][y] = val;
+    							cloudArr[x][z-1][y] = val;
+    							cloudArr[x][z+1][y] = val;
+    							cloudArr[x][z][y+1] = val;
+    						}
+    					}
+    					else
+    						cloudArr[x][z][y] = 0;
+    				}
+    				
+    				if (y == 3)
+    				{
+    					if (z % 6 == 3)
+    					{
+    						if (x % 5 == 3)
+    						{
+    							double val = (func.OctavePerlin3d(xOff, zOff, yOff, 1, 2) + 1 ) /2;
+    							//changing the neighbor to surround this particular point, creating a pseudo small clous
+    							cloudArr[x][z][y] = val;
+    							cloudArr[x-1][z][y] = val;
+    							cloudArr[x+1][z][y] = val;
+    							cloudArr[x][z-1][y] = val;
+    							cloudArr[x][z+1][y] = val;
+    							cloudArr[x][z][y+1] = val;
+    							cloudArr[x][z][y-1] = val;
+    						}
+    					}
+    				}
+    				
+    				else 
+    				{
+    					/*if (cloudArr[x][z][y-1] > 0)
+    					{
+    						double val = (func.OctavePerlin3d(xOff, zOff, yOff, 3, 4) + 1)/2.0;
+    						cloudArr[x][z][y] = val;
+    						if (z + 1 < width)
+    							cloudArr[x][z+1][y] = val;
+    					}
+    					else*/
+    						cloudArr[x][z][y] = 0;
+    				}
+    				xOff += xInc;
+    			}   				
+    			zOff += zInc;
+    		}
+    		yOff += yInc;
+    	}
+    }
+    
+    private void offTheTop()
+    {
+    	for (int x = 0; x < length; x++)
+    		for (int z = 0; z < width; z++)
+    			cloudArr[x][z][height-1] = 0;
+    }
+    
+    
 }
 
 
