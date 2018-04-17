@@ -1,6 +1,7 @@
 package shapes;
 
 public class Shape {
+
 	/**
 	 * Location of shape's center in world coordinates.
 	 */
