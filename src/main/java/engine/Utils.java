@@ -105,17 +105,29 @@ public class Utils {
     	Mesh result = new Mesh();
     	float[] cornerHeights = shape.getCornerHeights();
     	float halfSize = shape.getSize()/2f;
-    	Vector3f [] vertices = new Vector3f[4];
+    	Vector3f[] vertices = new Vector3f[4];
     	vertices[0] = new Vector3f(halfSize,cornerHeights[0],-halfSize); // top left
     	vertices[1] = new Vector3f(halfSize,cornerHeights[1],halfSize); // top right
     	vertices[2] = new Vector3f(-halfSize,cornerHeights[2],halfSize); // bottom right
     	vertices[3] = new Vector3f(-halfSize,cornerHeights[3],-halfSize); // bottom left
-    	Vector2f [] texCoord = new Vector2f[4];
-    	texCoord[0] = new Vector2f(0,0);
-    	texCoord[1] = new Vector2f(1,0);
-    	texCoord[2] = new Vector2f(0,1);
-    	texCoord[3] = new Vector2f(1,1);
-    	int [] indexes = { 0,3,2, 2,1,0 };
+    	Vector2f[] texCoord = new Vector2f[4];
+    	texCoord[0] = new Vector2f(0,1);
+    	texCoord[1] = new Vector2f(1,1);
+    	texCoord[2] = new Vector2f(1,0);
+    	texCoord[3] = new Vector2f(0,0);
+    	int[] indexes = { 0,3,2, 2,1,0 };
+    	float[] normals = new float[12];
+    	Vector3f[] normalVecs = new Vector3f[4];
+    	normalVecs[0] = (vertices[1].subtract(vertices[0])).cross((vertices[3].subtract(vertices[0])));
+    	normalVecs[1] = (vertices[2].subtract(vertices[1])).cross((vertices[0].subtract(vertices[1])));
+    	normalVecs[2] = (vertices[3].subtract(vertices[2])).cross((vertices[1].subtract(vertices[2])));
+    	normalVecs[3] = (vertices[2].subtract(vertices[3])).cross((vertices[0].subtract(vertices[3])));
+    	normals = new float[]{
+    			normalVecs[0].x,normalVecs[0].y,normalVecs[0].z, 
+    			normalVecs[1].x,normalVecs[1].y,normalVecs[1].z,
+    			normalVecs[2].x,normalVecs[2].y,normalVecs[2].z,
+    			normalVecs[3].x,normalVecs[3].y,normalVecs[3].z};
+    	result.setBuffer(Type.Normal, 3, com.jme3.util.BufferUtils.createFloatBuffer(normals));
     	result.setBuffer(Type.Position, 3, com.jme3.util.BufferUtils.createFloatBuffer(vertices));
     	result.setBuffer(Type.TexCoord, 2, com.jme3.util.BufferUtils.createFloatBuffer(texCoord));
     	result.setBuffer(Type.Index,    3, com.jme3.util.BufferUtils.createIntBuffer(indexes));
