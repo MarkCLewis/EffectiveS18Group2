@@ -68,7 +68,7 @@ public final class EngineTerrainLoader implements TerrainGridTileLoader {
 	private HeightMap getHeightMapAt(Vector3f location) {
         AbstractHeightMap heightmap = null;
         
-        FloatBuffer buffer = this.noise.getBuffer(location.x * (this.quadSize - 1), location.z * (this.quadSize - 1), 0, this.quadSize);
+        FloatBuffer buffer = this.noise.getBuffer(location.x * (this.quadSize - 1), location.z * (this.quadSize - 1), 7, this.quadSize);
 
         float[] arr = buffer.array();
         for (int i = 0; i < arr.length; i++) {

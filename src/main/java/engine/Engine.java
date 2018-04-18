@@ -232,27 +232,27 @@ public class Engine extends SimpleApplication {
 	        Texture grass = this.assetManager.loadTexture("Textures/Terrain/splat/grass.jpg");
 	        grass.setWrap(WrapMode.Repeat);
 	        this.mat_terrain.setTexture("region1ColorMap", grass);
-	        this.mat_terrain.setVector3("region1", new Vector3f(15, 200, this.grassScale));
+	        this.mat_terrain.setVector3("region1", new Vector3f(-125, 30, this.grassScale));
 	
 	        // DIRT texture
 	        Texture dirt = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
 	        dirt.setWrap(WrapMode.Repeat);
 	        this.mat_terrain.setTexture("region2ColorMap", dirt);
-	        this.mat_terrain.setVector3("region2", new Vector3f(0, 20, this.dirtScale));
+	        this.mat_terrain.setVector3("region2", new Vector3f(-200, -120, this.dirtScale));
 	
 	        // ROCK texture
 	        Texture rock = this.assetManager.loadTexture("Textures/Terrain/Rock2/rock.jpg");
 	        rock.setWrap(WrapMode.Repeat);
 	        this.mat_terrain.setTexture("region3ColorMap", rock);
-	        this.mat_terrain.setVector3("region3", new Vector3f(198, 260, this.rockScale));
+	        this.mat_terrain.setVector3("region3", new Vector3f(28, 260, this.rockScale));
 	
 	        this.mat_terrain.setTexture("region4ColorMap", rock);
-	        this.mat_terrain.setVector3("region4", new Vector3f(198, 260, this.rockScale));
+	        this.mat_terrain.setVector3("region4", new Vector3f(28, 260, this.rockScale));
 	
 	        this.mat_terrain.setTexture("slopeColorMap", rock);
 	        this.mat_terrain.setFloat("slopeTileFactor", 32);
 	
-	        this.mat_terrain.setFloat("terrainSize", 513);
+	        this.mat_terrain.setFloat("terrainSize", 1025);
 	        
 	        /*
 	        this.base = new FractalSum();
@@ -292,9 +292,9 @@ public class Engine extends SimpleApplication {
 	        ground.addPreFilter(this.iterate);
 	        FractalTileLoader loader = new FractalTileLoader(ground, 256f);
 			*/
-	        EngineTerrainLoader loader = new EngineTerrainLoader(1.0f, Engine.getRandomFloat(10, 100));
-	        int patchSize = 66;
-	        int maxTerrainVisible = 258;
+	        EngineTerrainLoader loader = new EngineTerrainLoader(1.0f, Engine.getRandomFloat(15, 20));
+	        int patchSize = 129;
+	        int maxTerrainVisible = 1025;
 	        this.terrainGrid = new TerrainGrid("terrain", patchSize, maxTerrainVisible, loader);
 	
 	        this.terrainGrid.setMaterial(this.mat_terrain);
@@ -341,7 +341,7 @@ public class Engine extends SimpleApplication {
 	        });
         }
         
-        this.getCamera().setLocation(new Vector3f(0, 200, 0));
+        this.getCamera().setLocation(new Vector3f(0, 100, 0));
 
         this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
 
@@ -365,27 +365,13 @@ public class Engine extends SimpleApplication {
 		objectNode.setMaterial(objectMaterial);
 		rootNode.attachChild(objectNode);
 		bulletAppState.getPhysicsSpace().addAll(objectNode);
-        // Add 5 physics spheres to the world, with random sizes and positions
-        // let them drop from the sky
-        for (int i = 0; i < 5; i++) {
-            float r = (float) (8 * getRandomDouble(1,3));
-            Geometry sphere = new Geometry("cannonball", new Sphere(10, 10, r));
-            sphere.setMaterial(matWire);
-            float x = Engine.getRandomFloat(-100f,100f); // random position
-            float y = Engine.getRandomFloat(-100f,100f); // random position
-            float z = Engine.getRandomFloat(-100f,100f); // random position
-            sphere.setLocalTranslation(new Vector3f(x, 300 + y, z));
-            sphere.addControl(new RigidBodyControl(new SphereCollisionShape(r), 2));
-            rootNode.attachChild(sphere);
-            bulletAppState.getPhysicsSpace().add(sphere);
-        }
 
         if (usePhysics) {
             CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
             player = new CharacterControl(capsuleShape, 0.5f);
-            player.setJumpSpeed(20);
-            player.setFallSpeed(100);
-            player.setGravity(new Vector3f(0,-1,0));
+            player.setJumpSpeed(50);
+            player.setFallSpeed(50);
+            player.setGravity(new Vector3f(0,-80,0));
 
             player.setPhysicsLocation(cam.getLocation().clone());
 
@@ -496,7 +482,7 @@ public class Engine extends SimpleApplication {
                     Engine.this.down = false;
                 }
             } else if (name.equals("Jumps") && usePhysics) {
-            	Engine.this.player.jump(new Vector3f(0,10,0));;
+            	Engine.this.player.jump(new Vector3f(0,30,0));;
             }
         }
     };
@@ -505,10 +491,7 @@ public class Engine extends SimpleApplication {
         hintText = new BitmapText(guiFont, false);
         hintText.setSize(guiFont.getCharSet().getRenderedSize());
         hintText.setLocalTranslation(0, getCamera().getHeight(), 0);
-        if(renderKaylaTerrain) {
-        	hintText.setText("Hit T to switch to wireframe");
-        }
-        hintText.setText("");
+        hintText.setText("Hit T to switch to wireframe");
         guiNode.attachChild(hintText);
     }
 

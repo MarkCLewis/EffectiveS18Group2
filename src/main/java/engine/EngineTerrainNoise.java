@@ -4,6 +4,8 @@ import java.nio.FloatBuffer;
 
 import com.jme3.terrain.noise.Basis;
 import com.jme3.terrain.noise.basis.Noise;
+import com.jme3.terrain.noise.modulator.Modulator;
+import com.jme3.terrain.noise.modulator.NoiseModulator;
 
 import virtualworld.terrain.Perlin;
 
@@ -24,8 +26,8 @@ public final class EngineTerrainNoise extends Noise implements Basis {
 	}
 
 	@Override
-	public float value(float x, float y, float z) {
-		float ret = (float) (pNoise.noise3D(this.noiseScale * x, this.noiseScale * y, this.noiseScale * z) * heightSeed);
+	public float value(float x, float z, float base) {
+		float ret = (float) ((pNoise.noise2D(this.noiseScale * x, this.noiseScale * z) * base) * heightSeed);
 		//Engine.logInfo("EngineTerrainNoise: value at (" + x + "," + y + "," + x + ") = " + ret);
 		return ret;
 	}
