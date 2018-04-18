@@ -15,11 +15,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import org.lwjgl.BufferUtils;
-
+import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
+import com.jme3.bullet.collision.shapes.CylinderCollisionShape;
+import com.jme3.bullet.collision.shapes.MeshCollisionShape;
 import com.jme3.bullet.collision.shapes.SimplexCollisionShape;
+import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -28,6 +31,7 @@ import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.util.BufferUtils;
 
 public class Utils {
 	
@@ -110,6 +114,14 @@ public class Utils {
     	float[] cornerHeights = shape.getCornerHeights();
     	float halfSize = shape.getSize()/2f;
     	Vector3f[] vertices = new Vector3f[4];
+    	/**
+    	 * Vertex Layout:
+    	 *   2 - - - 3
+    	 *   |       |
+    	 *   |       |
+    	 *   |       |
+    	 *   0 - - - 1
+    	 */
     	vertices[0] = new Vector3f(-halfSize,cornerHeights[3],halfSize); // bottom left
     	vertices[1] = new Vector3f(halfSize,cornerHeights[2],halfSize); // bottom right
     	vertices[2] = new Vector3f(-halfSize,cornerHeights[0],-halfSize); // top left
@@ -131,21 +143,18 @@ public class Utils {
     			normalVecs[1].x,normalVecs[1].y,normalVecs[1].z,
     			normalVecs[2].x,normalVecs[2].y,normalVecs[2].z,
     			normalVecs[3].x,normalVecs[3].y,normalVecs[3].z};
-    	mesh.setBuffer(Type.Normal, 3, com.jme3.util.BufferUtils.createFloatBuffer(normals));
-    	mesh.setBuffer(Type.Position, 3, com.jme3.util.BufferUtils.createFloatBuffer(vertices));
-    	mesh.setBuffer(Type.TexCoord, 2, com.jme3.util.BufferUtils.createFloatBuffer(texCoord));
-    	mesh.setBuffer(Type.Index,    3, com.jme3.util.BufferUtils.createIntBuffer(indexes));
+    	mesh.setBuffer(Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
+    	mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
+    	mesh.setBuffer(Type.TexCoord, 2, BufferUtils.createFloatBuffer(texCoord));
+    	mesh.setBuffer(Type.Index,    3, BufferUtils.createIntBuffer(indexes));
     	mesh.updateBound();
-    	mesh.updateCounts();
+    	MeshCollisionShape mcs = new MeshCollisionShape(mesh, false);
+    	RigidBodyControl rbc = new RigidBodyControl();
+    	rbc.setMass(0);
+    	rbc.setKinematicSpatial(false);
+    	rbc.setCollisionShape(mcs);
     	Geometry geom = new Geometry("Quad"+shape.hashCode(),mesh);
-    	//RigidBodyControl rbc = new RigidBodyControl(0);
-    	//SimplexCollisionShape scs1 = new SimplexCollisionShape(vertices[2],vertices[0],vertices[1]);
-    	//SimplexCollisionShape scs2 = new SimplexCollisionShape(vertices[1],vertices[3],vertices[2]);
-    	//CompoundCollisionShape ccs = new CompoundCollisionShape();
-        //rbc.setKinematicSpatial(false);
-        //rbc.setApplyPhysicsLocal(true);
-        //rbc.setEnabled(false);
-        //m.addControl(rbc);
+    	geom.addControl(rbc);
     	return geom;
     }
     
@@ -153,13 +162,22 @@ public class Utils {
     	Mesh mesh = new Sphere(10,10,shape.getRadius());
     	Geometry geom = new Geometry("Sphere"+shape.hashCode(),mesh);
     	geom.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
+    	SphereCollisionShape scs = new SphereCollisionShape(shape.getRadius());
+    	RigidBodyControl rbc = new RigidBodyControl(scs);
+    	geom.addControl(rbc);
     	return geom;
     }
     
     public static Geometry getGeomFromCylinder(shapes.Cylinder shape) {
-    	Mesh mesh = new Cylinder(10,10,shape.getRadius(),shape.getHeight());
+    	int axisSamples = 20;
+    	int radialSamples = 20;
+    	Mesh mesh = new Cylinder(axisSamples,radialSamples,shape.getRadius(),shape.getHeight(),true);
     	Geometry geom = new Geometry("Cylinder"+shape.hashCode(),mesh);
-    	geom.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
+    	CylinderCollisionShape scs = new CylinderCollisionShape(new Vector3f(shape.getRadius(),shape.getHeight()/2,shape.getRadius()), 2);
+    	RigidBodyControl rbc = new RigidBodyControl(scs);
+    	Quaternion rot = (new Quaternion()).fromAngles(shape.getXRot(), shape.getYRot(), shape.getZRot());
+    	geom.addControl(rbc);
+    	rbc.setPhysicsRotation(rot);
     	return geom;
     }
     
@@ -167,7 +185,11 @@ public class Utils {
     	float[] dim = shape.getDimensions();
     	Mesh mesh = new Box(dim[0],dim[1],dim[2]);
     	Geometry geom = new Geometry("RectPrism"+shape.hashCode(),mesh);
-    	geom.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
+    	BoxCollisionShape bcs = new BoxCollisionShape(new Vector3f(dim[0]/2,dim[1]/2,dim[2]/2));
+    	RigidBodyControl rbc = new RigidBodyControl(bcs);
+    	Quaternion rot = (new Quaternion()).fromAngles(shape.getXRot(), shape.getYRot(), shape.getZRot());
+    	geom.addControl(rbc);
+    	rbc.setPhysicsRotation(rot);
     	return geom;
     }
     

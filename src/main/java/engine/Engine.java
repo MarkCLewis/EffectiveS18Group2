@@ -359,7 +359,7 @@ public class Engine extends SimpleApplication {
             Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
             //Engine.logInfo("mesh origin is " + localPos.toString());
             Geometry geom = geomBuffer.get(i);
-            geom.setLocalTranslation(localPos);
+            geom.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             objectNode.attachChild(geom);
         }
 		objectNode.setMaterial(objectMaterial);
@@ -553,7 +553,7 @@ public class Engine extends SimpleApplication {
                 Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
                 //Engine.logInfo("geometry origin is " + localPos.toString());
                 Geometry geom = geomBuffer.get(i);
-                geom.setLocalTranslation(localPos);
+                geom.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
                 objectNode.attachChild(geom);
             }
         	objectNode.setMaterial(objectMaterial);
