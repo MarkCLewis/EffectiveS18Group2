@@ -39,6 +39,7 @@ public class Game {
 			rPs.add(new shapes.Quad(5f, new float[] {1,1,-1,-1}, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20)));
 			rPs.add(new shapes.Cylinder(5f, 2f, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20), Engine.getRandomFloat(0,20), Engine.getRandomFloat(150, 300), Engine.getRandomFloat(0,20)));
 		}
+		/*
 		double length = 5000;
 		int seed = 500;
 	    int points = 61;
@@ -52,12 +53,13 @@ public class Game {
 		List<shapes.Shape> quads = t.getShapes();
 		Terrain[] ters = t.split();
 		System.out.println(quads.size());
+		*/
 		g.start();
 		g.addShapes(rPs);
-		g.addShapes(ters[0].getShapes());
+		/*g.addShapes(ters[0].getShapes());
 		g.addShapes(ters[1].getShapes());
 		g.addShapes(ters[2].getShapes());
-		g.addShapes(ters[3].getShapes());
+		g.addShapes(ters[3].getShapes());*/
 	}
   
 }

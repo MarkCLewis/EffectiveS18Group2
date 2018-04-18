@@ -17,6 +17,9 @@ import java.nio.file.Paths;
 
 import org.lwjgl.BufferUtils;
 
+import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
+import com.jme3.bullet.collision.shapes.SimplexCollisionShape;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -135,6 +138,14 @@ public class Utils {
     	mesh.updateBound();
     	mesh.updateCounts();
     	Geometry geom = new Geometry("Quad"+shape.hashCode(),mesh);
+    	//RigidBodyControl rbc = new RigidBodyControl(0);
+    	//SimplexCollisionShape scs1 = new SimplexCollisionShape(vertices[2],vertices[0],vertices[1]);
+    	//SimplexCollisionShape scs2 = new SimplexCollisionShape(vertices[1],vertices[3],vertices[2]);
+    	//CompoundCollisionShape ccs = new CompoundCollisionShape();
+        //rbc.setKinematicSpatial(false);
+        //rbc.setApplyPhysicsLocal(true);
+        //rbc.setEnabled(false);
+        //m.addControl(rbc);
     	return geom;
     }
     

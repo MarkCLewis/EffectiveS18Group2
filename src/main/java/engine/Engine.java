@@ -16,6 +16,7 @@ import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.debug.DebugTools;
+import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
@@ -144,6 +145,7 @@ public class Engine extends SimpleApplication {
 	
 	private DirectionalLight sun;
 	private Node objectNode;
+	private Material objectMaterial;
 	private DebugTools debugTools;
 
 	private boolean shouldUpdateShapes = false;
@@ -161,7 +163,7 @@ public class Engine extends SimpleApplication {
     private float rockScale = 128;
     private Material matWire;
     private boolean wireframe = false;
-    private final static boolean renderKaylaTerrain = false; // set this to false to turn off kayla's terrain rendering
+    private final static boolean renderKaylaTerrain = true; // set this to false to turn off kayla's terrain rendering
     protected BitmapText hintText;
     private Geometry collisionMarker;
     private BulletAppState bulletAppState;
@@ -208,6 +210,10 @@ public class Engine extends SimpleApplication {
         matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWire.getAdditionalRenderState().setWireframe(true);
         matWire.setColor("Color", ColorRGBA.Green);
+        objectMaterial = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        objectMaterial.setColor("Diffuse", ColorRGBA.White);
+        objectMaterial.setColor("Specular", ColorRGBA.White);
+        objectMaterial.setFloat("Shininess", 64);
     	
         if(renderKaylaTerrain) {
 	    	this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
@@ -248,6 +254,7 @@ public class Engine extends SimpleApplication {
 	
 	        this.mat_terrain.setFloat("terrainSize", 513);
 	        
+	        /*
 	        this.base = new FractalSum();
 	        this.base.setRoughness(0.7f);
 	        this.base.setFrequency(1.0f);
@@ -283,10 +290,12 @@ public class Engine extends SimpleApplication {
 	        this.iterate.setIterations(1);
 	
 	        ground.addPreFilter(this.iterate);
-	
+	        FractalTileLoader loader = new FractalTileLoader(ground, 256f);
+			*/
+	        EngineTerrainLoader loader = new EngineTerrainLoader(1.0f, Engine.getRandomFloat(10, 100));
 	        int patchSize = 66;
 	        int maxTerrainVisible = 258;
-	        this.terrainGrid = new TerrainGrid("terrain", patchSize, maxTerrainVisible, new FractalTileLoader(ground, 256f));
+	        this.terrainGrid = new TerrainGrid("terrain", patchSize, maxTerrainVisible, loader);
 	
 	        this.terrainGrid.setMaterial(this.mat_terrain);
 	        this.terrainGrid.setLocalTranslation(0, 0, 0);
@@ -332,7 +341,7 @@ public class Engine extends SimpleApplication {
 	        });
         }
         
-        this.getCamera().setLocation(new Vector3f(0, 2000, 0));
+        this.getCamera().setLocation(new Vector3f(0, 200, 0));
 
         this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
 
@@ -350,36 +359,33 @@ public class Engine extends SimpleApplication {
             Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
             //Engine.logInfo("mesh origin is " + localPos.toString());
             Geometry geom = geomBuffer.get(i);
-            Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-            mat.setColor("Diffuse", ColorRGBA.White);
-            mat.setColor("Specular", ColorRGBA.White);
-            mat.setFloat("Shininess", 64);
             geom.setLocalTranslation(localPos);
-            geom.setMaterial(mat);
             objectNode.attachChild(geom);
         }
+		objectNode.setMaterial(objectMaterial);
 		rootNode.attachChild(objectNode);
+		bulletAppState.getPhysicsSpace().addAll(objectNode);
         // Add 5 physics spheres to the world, with random sizes and positions
         // let them drop from the sky
         for (int i = 0; i < 5; i++) {
             float r = (float) (8 * getRandomDouble(1,3));
             Geometry sphere = new Geometry("cannonball", new Sphere(10, 10, r));
             sphere.setMaterial(matWire);
-            float x = (float) (20 * getRandomDouble(0,1)) - 40; // random position
-            float y = (float) (20 * getRandomDouble(0,1)) - 40; // random position
-            float z = (float) (20 * getRandomDouble(0,1)) - 40; // random position
+            float x = Engine.getRandomFloat(-100f,100f); // random position
+            float y = Engine.getRandomFloat(-100f,100f); // random position
+            float z = Engine.getRandomFloat(-100f,100f); // random position
             sphere.setLocalTranslation(new Vector3f(x, 300 + y, z));
             sphere.addControl(new RigidBodyControl(new SphereCollisionShape(r), 2));
             rootNode.attachChild(sphere);
             bulletAppState.getPhysicsSpace().add(sphere);
         }
 
-        if (usePhysics && renderKaylaTerrain) {
+        if (usePhysics) {
             CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
             player = new CharacterControl(capsuleShape, 0.5f);
             player.setJumpSpeed(20);
-            player.setFallSpeed(10);
-            player.setGravity(new Vector3f(0,-20,0));
+            player.setFallSpeed(100);
+            player.setGravity(new Vector3f(0,-1,0));
 
             player.setPhysicsLocation(cam.getLocation().clone());
 
@@ -396,12 +402,11 @@ public class Engine extends SimpleApplication {
     private void initKeys() {
         // You can map one or several inputs to one named action
     	if(renderKaylaTerrain) {
-	        inputManager.addMapping("wireframe", new KeyTrigger(KeyInput.KEY_T));
 	        inputManager.addListener(actionListener, "wireframe");
 	        inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
 	        inputManager.addListener(actionListener, "shoot");
     	}
-        
+    	inputManager.addMapping("wireframe", new KeyTrigger(KeyInput.KEY_T));
         inputManager.addMapping("cameraDown", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         inputManager.addListener(actionListener, "cameraDown");
         
@@ -427,12 +432,18 @@ public class Engine extends SimpleApplication {
         @Override
         public void onAction(final String name, final boolean keyPressed, final float tpf) {
         	// from TerrainGridTileLoaderTest
-        	if (name.equals("wireframe") && !keyPressed && renderKaylaTerrain) {
+        	if (name.equals("wireframe") && !keyPressed) {
                 wireframe = !wireframe;
                 if (!wireframe) {
-                    terrainGrid.setMaterial(matWire);
+                	if(renderKaylaTerrain) {
+                		terrainGrid.setMaterial(matWire);
+                	}
+                	objectNode.setMaterial(matWire);
                 } else {
-                    terrainGrid.setMaterial(mat_terrain);
+                	if(renderKaylaTerrain) {
+                		terrainGrid.setMaterial(mat_terrain);
+                	}
+                	objectNode.setMaterial(objectMaterial);
                 }
             } else if (name.equals("shoot") && !keyPressed && renderKaylaTerrain) {
 
@@ -484,7 +495,7 @@ public class Engine extends SimpleApplication {
                 } else {
                     Engine.this.down = false;
                 }
-            } else if (name.equals("Jumps") && usePhysics && renderKaylaTerrain) {
+            } else if (name.equals("Jumps") && usePhysics) {
             	Engine.this.player.jump(new Vector3f(0,10,0));;
             }
         }
@@ -552,20 +563,18 @@ public class Engine extends SimpleApplication {
     @Override
     public void simpleUpdate(final float tpf) {
     	if(shouldUpdateShapes) {
+    		bulletAppState.getPhysicsSpace().removeAll(objectNode);
     		objectNode.detachAllChildren();
         	for (int i = 0; i < geomPositions.size(); i++) {
             	//Engine.logInfo("adding geometry from index " + i + " in meshBuffer");
                 Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
                 //Engine.logInfo("geometry origin is " + localPos.toString());
                 Geometry geom = geomBuffer.get(i);
-                Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-                mat.setColor("Diffuse", ColorRGBA.White);
-                mat.setColor("Specular", ColorRGBA.White);
-                mat.setFloat("Shininess", 64);
                 geom.setLocalTranslation(localPos);
-                geom.setMaterial(mat);
                 objectNode.attachChild(geom);
             }
+        	objectNode.setMaterial(objectMaterial);
+        	bulletAppState.getPhysicsSpace().addAll(objectNode);
         	shouldUpdateShapes = false;
     	}
     	Vector3f camDir = this.cam.getDirection().clone().multLocal(0.6f);
@@ -583,7 +592,7 @@ public class Engine extends SimpleApplication {
         if (this.down && this.moves) {
             this.walkDirection.addLocal(camDir.negate());
         }
-        if (usePhysics && renderKaylaTerrain) {
+        if (usePhysics) {
             this.player.setWalkDirection(this.walkDirection);
             if(moves) {
             	this.cam.setLocation(this.player.getPhysicsLocation());
