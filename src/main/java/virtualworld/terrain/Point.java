@@ -3,21 +3,21 @@ package virtualworld.terrain;
 public class Point {
 	
   private final double x;
-  private final double y;
+  private final double z;
 
-  public Point(double x, double y) {
+  public Point(double x, double z) {
     this.x = x;
-    this.y = y;
+    this.z = z;
   }
 
   public double getX() { return x; }
-  public double getY() { return y; }
+  public double getZ() { return z; }
 
 
 
   public boolean equals(Point o) {
     return this.getX() == o.getX() &&
-           this.getY() == o.getY();
+           this.getZ() == o.getZ();
   }
 
 }

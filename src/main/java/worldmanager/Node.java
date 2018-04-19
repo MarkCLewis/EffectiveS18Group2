@@ -72,10 +72,10 @@ public class Node {
 		Point cent = ent.getCenter();
 		double nodeSz = node.getSize();
 		Point nodeCent = node.center;
-		boolean inBottom = nodeCent.getY() <= (cent.getY() + nodeSz/2);
+		boolean inBottom = nodeCent.getZ() <= (cent.getZ() + nodeSz/2);
 		boolean inRight = nodeCent.getX() <= (cent.getX() + nodeSz/2);
 		boolean inLeft = nodeCent.getX() > (cent.getX() - nodeSz/2);
-		boolean inTop = nodeCent.getY() > (cent.getY() - nodeSz/2);
+		boolean inTop = nodeCent.getZ() > (cent.getZ() - nodeSz/2);
 		return inBottom && inRight && inLeft && inTop;
 	}
 	
@@ -112,16 +112,16 @@ public class Node {
 			Node newchild = new Node();
 			Point newcent;
 			if (i == 0) {
-				newcent = new Point(this.center.getX()-offset, this.center.getY()+offset);
+				newcent = new Point(this.center.getX()-offset, this.center.getZ()+offset);
 			}
 			else if (i == 1) {
-				newcent = new Point(this.center.getX()+offset, this.center.getY()+offset);
+				newcent = new Point(this.center.getX()+offset, this.center.getZ()+offset);
 			}
 			else if (i == 2) {
-				newcent = new Point(this.center.getX()-offset, this.center.getY()-offset);
+				newcent = new Point(this.center.getX()-offset, this.center.getZ()-offset);
 			}
 			else {
-				newcent = new Point(this.center.getX()+offset, this.center.getY()-offset);
+				newcent = new Point(this.center.getX()+offset, this.center.getZ()-offset);
 			}
 			newchild.updateSize(size/2);
 			newchild.updateParent(this);
@@ -167,7 +167,7 @@ public class Node {
 	
 	//finds the euclidean distance between two points
 	public double findDist(Point target, Point start) {
-		double numer = start.getY()-target.getY();
+		double numer = start.getZ()-target.getZ();
 		double denom = start.getX()-target.getX();
 		return Math.abs(numer/denom);
 	}
@@ -178,7 +178,7 @@ public class Node {
 		Node currNode = this;
 		while(currNode.getCenter() != target && currNode.getDepth() < maxDepth) {
 			Point currcenter = currNode.getCenter();
-			if (currcenter.getY() > target.getY()) {
+			if (currcenter.getZ() > target.getZ()) {
 				if (currcenter.getX() > target.getX()) {
 					currNode = children[0];
 				}
@@ -186,7 +186,7 @@ public class Node {
 					currNode = children[1];
 				}
 			}
-			else if (currcenter.getY() < target.getY()) {
+			else if (currcenter.getZ() < target.getZ()) {
 				if (currcenter.getX() > target.getX()) {
 					currNode = children[2];
 				}

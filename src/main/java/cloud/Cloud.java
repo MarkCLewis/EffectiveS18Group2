@@ -143,7 +143,7 @@ public class Cloud implements Entity {
 		double sF = 1;
 		
 		double originX = center.getX();
-		double originZ = center.getY();
+		double originZ = center.getZ();
 		double originY = y;
 		
 		double posX = 0;

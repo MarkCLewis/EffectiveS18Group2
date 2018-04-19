@@ -33,10 +33,10 @@ public class Road implements Entity {
 		ArrayList<Point> tmp = new ArrayList<Point>();
 		
 		double distance = Math.sqrt((start.getX()-end.getX())*(start.getX()-end.getX()) 
-						+ (start.getY()-end.getX())*(start.getY()-end.getY()));
-    	double m = (end.getY()-start.getY())/(end.getX()-start.getX());
+						+ (start.getZ()-end.getX())*(start.getZ()-end.getZ()));
+    	double m = (end.getZ()-start.getZ())/(end.getX()-start.getX());
     	
-    	double b = end.getY() - (m * end.getX());
+    	double b = end.getZ() - (m * end.getX());
         for(int i=0; i < distance; i++) {
             tmp.add(new Point(0.0, 0.0));
         }
