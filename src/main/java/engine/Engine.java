@@ -1,77 +1,49 @@
 package engine;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
-import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
-import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.debug.DebugTools;
-import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.DirectionalLight;
-import com.jme3.light.PointLight;
 import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.FogFilter;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.plugins.blender.math.Vector3d;
-import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Dome;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
-import com.jme3.scene.Spatial;
-import com.jme3.scene.debug.Arrow;
 import com.jme3.terrain.geomipmap.TerrainGrid;
 import com.jme3.terrain.geomipmap.TerrainGridListener;
 import com.jme3.terrain.geomipmap.TerrainGridLodControl;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
-import com.jme3.terrain.geomipmap.grid.FractalTileLoader;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
-import com.jme3.terrain.noise.ShaderUtils;
-import com.jme3.terrain.noise.basis.FilteredBasis;
-import com.jme3.terrain.noise.filter.IterativeFilter;
-import com.jme3.terrain.noise.filter.OptimizedErode;
-import com.jme3.terrain.noise.filter.PerturbFilter;
-import com.jme3.terrain.noise.filter.SmoothFilter;
-import com.jme3.terrain.noise.fractal.FractalSum;
-import com.jme3.terrain.noise.modulator.NoiseModulator;
-import com.jme3.texture.Texture2D;
-import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
-
-import shapes.Shape;
-import virtualworld.terrain.Point;
-import virtualworld.terrain.Terrain;
-
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Ray;
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
-import com.jme3.opencl.Image.ImageFormat;
-import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.FogFilter;
-import com.jme3.renderer.Camera;
-import com.jme3.renderer.queue.RenderQueue.Bucket;
 
 /**
  * The game's main engine logic
@@ -129,14 +101,7 @@ public class Engine extends SimpleApplication {
 	 * "meshPositions" collection; a mesh at index i will have its
 	 * position data at index i inside of "meshPositions"
 	 */
-	private final ArrayList<Geometry> geomBuffer = new ArrayList<Geometry>();
-	/**
-	 * This buffer holds the positions of meshes in world coordinates that 
-	 * are to be rendered in the NEXT frame.
-	 * Elements in this collection correspond to the elements in "meshBuffer"
-	 * with the same index.
-	 */
-	private final ArrayList<Vector3d> geomPositions = new ArrayList<Vector3d>();
+	private final ArrayList<EngineGeometry> geomBuffer = new ArrayList<EngineGeometry>();
 	
 	/**
 	 * The position of the camera/player in world coordinates
@@ -163,7 +128,7 @@ public class Engine extends SimpleApplication {
     private float rockScale = 128;
     private Material matWire;
     private boolean wireframe = false;
-    private final static boolean renderKaylaTerrain = true; // set this to false to turn off kayla's terrain rendering
+    private final static boolean renderKaylaTerrain = false; // set this to false to turn off kayla's terrain rendering
     protected BitmapText hintText;
     private Geometry collisionMarker;
     private BulletAppState bulletAppState;
@@ -171,11 +136,6 @@ public class Engine extends SimpleApplication {
     private final static boolean usePhysics = true;
     
     private CharacterControl player;
-    private FractalSum base;
-    private PerturbFilter perturb;
-    private OptimizedErode therm;
-    private SmoothFilter smooth;
-    private IterativeFilter iterate;
     
     private final Vector3f walkDirection = new Vector3f();
 
@@ -254,44 +214,6 @@ public class Engine extends SimpleApplication {
 	
 	        this.mat_terrain.setFloat("terrainSize", 1025);
 	        
-	        /*
-	        this.base = new FractalSum();
-	        this.base.setRoughness(0.7f);
-	        this.base.setFrequency(1.0f);
-	        this.base.setAmplitude(1.0f);
-	        this.base.setLacunarity(2.12f);
-	        this.base.setOctaves(8);
-	        this.base.setScale(0.02125f);
-	        this.base.addModulator(new NoiseModulator() {
-	
-	            @Override
-	            public float value(float... in) {
-	                return ShaderUtils.clamp(in[0] * 0.5f + 0.5f, 0, 1);
-	            }
-	        });
-	
-	        FilteredBasis ground = new FilteredBasis(this.base);
-	
-	        this.perturb = new PerturbFilter();
-	        this.perturb.setMagnitude(0.119f);
-	
-	        this.therm = new OptimizedErode();
-	        this.therm.setRadius(5);
-	        this.therm.setTalus(0.011f);
-	
-	        this.smooth = new SmoothFilter();
-	        this.smooth.setRadius(1);
-	        this.smooth.setEffect(0.7f);
-	
-	        this.iterate = new IterativeFilter();
-	        this.iterate.addPreFilter(this.perturb);
-	        this.iterate.addPostFilter(this.smooth);
-	        this.iterate.setFilter(this.therm);
-	        this.iterate.setIterations(1);
-	
-	        ground.addPreFilter(this.iterate);
-	        FractalTileLoader loader = new FractalTileLoader(ground, 256f);
-			*/
 	        EngineTerrainLoader loader = new EngineTerrainLoader(1.0f, Engine.getRandomFloat(15, 20));
 	        int patchSize = 129;
 	        int maxTerrainVisible = 1025;
@@ -341,7 +263,7 @@ public class Engine extends SimpleApplication {
 	        });
         }
         
-        this.getCamera().setLocation(new Vector3f(0, 100, 0));
+        this.getCamera().setLocation(new Vector3f(0, 300, 0));
 
         this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
 
@@ -354,15 +276,15 @@ public class Engine extends SimpleApplication {
         rootNode.addLight(sun);
         
         objectNode = new Node("ObjectNode");
-		for (int i = 0; i < geomPositions.size(); i++) {
+		for (int i = 0; i < geomBuffer.size(); i++) {
         	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
-            Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
+            EngineGeometry engGeom = geomBuffer.get(i);
+			Vector3f localPos = (engGeom.getJME3Position().subtract(getWorldPosition())).toVector3f();
             //Engine.logInfo("mesh origin is " + localPos.toString());
-            Geometry geom = geomBuffer.get(i);
+            Geometry geom = engGeom.getJME3Geometry(this.assetManager);
             geom.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             objectNode.attachChild(geom);
         }
-		objectNode.setMaterial(objectMaterial);
 		rootNode.attachChild(objectNode);
 		bulletAppState.getPhysicsSpace().addAll(objectNode);
 
@@ -424,12 +346,10 @@ public class Engine extends SimpleApplication {
                 	if(renderKaylaTerrain) {
                 		terrainGrid.setMaterial(matWire);
                 	}
-                	objectNode.setMaterial(matWire);
                 } else {
                 	if(renderKaylaTerrain) {
                 		terrainGrid.setMaterial(mat_terrain);
                 	}
-                	objectNode.setMaterial(objectMaterial);
                 }
             } else if (name.equals("shoot") && !keyPressed && renderKaylaTerrain) {
 
@@ -510,7 +430,7 @@ public class Engine extends SimpleApplication {
     public void update() {
         super.update();
     }
-
+    
     private void createCollisionMarker() {
         Sphere s = new Sphere(6, 6, 1);
         collisionMarker = new Geometry("collisionMarker");
@@ -548,15 +468,15 @@ public class Engine extends SimpleApplication {
     	if(shouldUpdateShapes) {
     		bulletAppState.getPhysicsSpace().removeAll(objectNode);
     		objectNode.detachAllChildren();
-        	for (int i = 0; i < geomPositions.size(); i++) {
-            	//Engine.logInfo("adding geometry from index " + i + " in meshBuffer");
-                Vector3f localPos = (geomPositions.get(i).subtract(getWorldPosition())).toVector3f();
-                //Engine.logInfo("geometry origin is " + localPos.toString());
-                Geometry geom = geomBuffer.get(i);
+    		for (int i = 0; i < geomBuffer.size(); i++) {
+            	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
+                EngineGeometry engGeom = geomBuffer.get(i);
+    			Vector3f localPos = (engGeom.getJME3Position().subtract(getWorldPosition())).toVector3f();
+                //Engine.logInfo("mesh origin is " + localPos.toString());
+                Geometry geom = engGeom.getJME3Geometry(this.assetManager);
                 geom.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
                 objectNode.attachChild(geom);
             }
-        	objectNode.setMaterial(objectMaterial);
         	bulletAppState.getPhysicsSpace().addAll(objectNode);
         	shouldUpdateShapes = false;
     	}
@@ -593,15 +513,9 @@ public class Engine extends SimpleApplication {
 
     public void changeShapes(List<shapes.Shape> shapes) {
     	geomBuffer.clear();
-    	geomPositions.clear();
     	for (shapes.Shape shape : shapes) {
-    		//Engine.logInfo("addShape");
-        	double[] pos = shape.getCenter();
-        	//Engine.logInfo("addShape with center: " + java.util.Arrays.toString(pos));
-        	Vector3d vector3d = new Vector3d(pos[0],pos[1],pos[2]);
-            Geometry m = Utils.getGeomFromShape(shape);
-            geomBuffer.add(m);
-            geomPositions.add(vector3d);
+            EngineGeometry eg = new EngineGeometry(shape);
+            geomBuffer.add(eg);
     	}
     	shouldUpdateShapes = true;
     }

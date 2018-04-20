@@ -232,13 +232,13 @@ public class Terrain implements Entity {
 		if (!mapIsSet) renderBaseHeights();
 		
 		Point topLeft = new Point(center.getX() - (length / 2), center.getZ() + (length / 2));
-		Engine.logInfo(topLeft.getX() + " " + topLeft.getZ());
+		//Engine.logInfo(topLeft.getX() + " " + topLeft.getZ());
     	double increment = length / pointsPerSide;
     	List<Shape> quads = new ArrayList<Shape>();
     	
     	for (int r = 0; r < heightMap.length -1; r++) {
     		double quadZCoordinate = topLeft.getZ() -((increment * r) + (increment/2));
-    		Engine.logInfo(quadZCoordinate + "");
+    		//Engine.logInfo(quadZCoordinate + "");
 			for (int c = 0; c < heightMap.length-1; c++) {
 				double quadXCoordinate = topLeft.getX() + (increment * c) + (increment/2);
 				float[] corners = {(float)heightMap[r+1][c], (float)heightMap[r+1][c+1], (float)heightMap[r][c+1], (float)heightMap[r][c]};

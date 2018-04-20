@@ -33,14 +33,16 @@ public class Game {
      */
 	public static void main(String[] args) {
 		Game g = new Game();
-		ArrayList<shapes.Shape> rPs = new ArrayList<shapes.Shape>();
-		for (int i = 0; i < 10; i++) {
-			// Note: terrain is about 150 units high at the tallest, so try to keep your object's Y-coordinate above 150
-			rPs.add(new shapes.Quad(5f, new float[] {1,1,-1,-1}, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20)));
-			rPs.add(new shapes.Cylinder(5f, 2f, Engine.getRandomDouble(0,20), Engine.getRandomDouble(150, 300), Engine.getRandomDouble(0,20), Engine.getRandomFloat(0,20), Engine.getRandomFloat(150, 300), Engine.getRandomFloat(0,20)));
-		}
+		Point center = new Point(0,0);
+		double[][] heightMap = {{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
+				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
+				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
+				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
+				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0}};
+		Terrain t = new Terrain(center, 5000, Engine.getRandomDouble(400, 600), 61, heightMap);
+		List<shapes.Shape> shapes = t.getShapes();
 		g.start();
-		g.addShapes(rPs);
+		g.addShapes(shapes);
 	}
   
 }

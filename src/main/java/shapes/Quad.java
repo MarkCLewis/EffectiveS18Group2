@@ -29,7 +29,7 @@ public class Quad extends Shape {
 	 * @param zPos world z coordinate
 	 */
 	public Quad(float size, float[] cornerHeights, double xPos, double yPos, double zPos) {
-		super(xPos,yPos,zPos,0,0,0);
+		super(xPos,yPos,zPos,0,0,0,true); // Quads are ALWAYS immobile
 		this.size = size;
 		this.cornerHeights = cornerHeights.clone();
 	}
