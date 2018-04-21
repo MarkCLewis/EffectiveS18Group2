@@ -14,6 +14,10 @@ public class WorldManager {
 	//		finished - 2. only updates after a few feet has walked so it isn't computing every frame/step
 	//
 	//	finished - tree traversal to collect geometry
+	//
+	//	Create a function that will return a height at a given Point
+	//		1. should find the active terrain on that point, should only be one
+	//		2. create a function in Entity that will allow me to turn their active state on/off
 	
 	//data
 	Node rootNode;
@@ -31,6 +35,7 @@ public class WorldManager {
 		rootNode.updateCenter(cent);
 		rootNode.updateSize(sz);
 		rootNode.updateDepth(0);
+		cameraLoc = cent;
 	}
 	
 	//Don't know how the much the point size scales to actual length in game.

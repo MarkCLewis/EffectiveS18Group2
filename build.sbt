@@ -12,7 +12,7 @@ lazy val root = (project in file(".")).
     libraryDependencies ++= Seq(
   		"org.apache.commons" % "commons-math3" % "3.1.1",
   		"com.novocode" % "junit-interface" % "0.11" % Test,
-      "junit" % "junit" % "3.8.1",
+      //"junit" % "junit" % "3.8.1",
   		"org.joml" % "joml" % "1.9.8",
   		"org.joml" % "joml-2d" % "1.6.0",
       "org.jmonkeyengine" % "jme3-blender" % "3.2.1-stable",
