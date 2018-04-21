@@ -1,5 +1,6 @@
 package worldmanager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import entity.Entity;
@@ -24,7 +25,7 @@ public class Node {
 	private double size;
 	private int depth;
 	private int maxDepth = 9;
-	List<Entity> entities;
+	List<Entity> entities = new ArrayList<>();
 	
 	
 	//Constructor
