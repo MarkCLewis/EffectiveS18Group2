@@ -7,6 +7,7 @@ import com.sun.javafx.geom.Shape;
 
 import virtualworld.terrain.Point;
 import virtualworld.terrain.Terrain;
+import worldmanager.WorldManager;
 
 public class Game {
   
@@ -34,13 +35,18 @@ public class Game {
 	public static void main(String[] args) {
 		Game g = new Game();
 		Point center = new Point(0,0);
+		
+		WorldManager world = new WorldManager(center, 5000);
+		
 		double[][] heightMap = {{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0}};
 		Terrain t = new Terrain(center, 5000, Engine.getRandomDouble(400, 600), 61, heightMap);
-		List<shapes.Shape> shapes = t.getShapes();
+		world.addEntity(t);
+		//List<shapes.Shape> shapes = t.getShapes();
+		List<shapes.Shape> shapes = world.getGeometry();
 		g.start();
 		g.addShapes(shapes);
 	}
