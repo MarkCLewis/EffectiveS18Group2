@@ -46,7 +46,7 @@ public class Game {
 		Terrain t = new Terrain(center, 5000, Engine.getRandomDouble(400, 600), 61, heightMap);
 		world.addEntity(t);
 		//List<shapes.Shape> shapes = t.getShapes();
-		List<shapes.Shape> shapes = world.getGeometry();
+		List<shapes.Shape> shapes = world.getGeometry(center);
 		g.start();
 		g.addShapes(shapes);
 	}
