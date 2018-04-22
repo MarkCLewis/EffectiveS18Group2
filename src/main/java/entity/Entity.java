@@ -18,6 +18,9 @@ public interface Entity {
 
 	// return a list of shapes that can be passed into graphics
 	public List<Shape> getShapes();
+	
+	//determines if an object is active or not. Only really used for Terrain
+	public boolean isActive();
 
 	//	pseudocode for distFromCamera:
 	//

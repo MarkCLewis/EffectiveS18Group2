@@ -14,10 +14,10 @@ public class TestEntity implements Entity {
 	double cameraDist;
 	List<Shape> shapes = new ArrayList<>();
 	
-	public TestEntity(Point p, double s) {
+	public TestEntity(Point p, double s, double h) {
 		cent = p;
 		sz = s;
-		Shape shape = new Shape(cent.getX(), cent.getY(), 4.0);
+		Shape shape = new Shape(cent.getX(), cent.getZ(), h);
 		shapes.add(shape);
 	}
 	
@@ -35,6 +35,10 @@ public class TestEntity implements Entity {
 	
 	public List<Shape> getShapes() {
 		return shapes;
+	}
+	
+	public boolean isActive() {
+		return true;
 	}
 
 }

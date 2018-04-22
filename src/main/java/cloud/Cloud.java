@@ -411,6 +411,11 @@ public class Cloud implements Entity {
     	
     }
     
+    public boolean isActive() 
+    {
+    	return true;
+    }
+    
 }
 
 

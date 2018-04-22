@@ -68,6 +68,11 @@ public class WorldManager {
 		}
 	}
 	
+	//gets height at a given point
+	public double getHeight(Point point) {
+		return rootNode.findHeight(point);
+	}
+	
 	//tree traversal to get geometry that is within the max specified distance
 	public List<Shape> getGeometry() {
 		return traverseGeometry(rootNode, maxView);
@@ -90,11 +95,13 @@ public class WorldManager {
 		List<Shape> nodeShapes = new ArrayList<>();
 		if (node.findDist(node.center, cameraLoc) < max) {
 			for(Entity e: ents) {
-				if (nodeShapes == null || nodeShapes.isEmpty()) {
-					nodeShapes = e.getShapes();
-				}
-				else {
-					nodeShapes.addAll(e.getShapes());
+				if(e.isActive()) {
+					if (nodeShapes == null || nodeShapes.isEmpty()) {
+						nodeShapes = e.getShapes();
+					}
+					else {
+						nodeShapes.addAll(e.getShapes());
+					}
 				}
 			}
 		}

@@ -79,7 +79,11 @@ public class Road implements Entity {
         // TODO Auto-generated method stub
         return null;
     }
-
+    
+    @Override
+    public boolean isActive() {
+    	return true;
+    }
 
 }
 

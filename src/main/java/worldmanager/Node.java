@@ -5,6 +5,7 @@ import java.util.List;
 
 import entity.Entity;
 import virtualworld.terrain.Point;
+import virtualworld.terrain.Terrain;
 
 public class Node {
 	
@@ -24,7 +25,7 @@ public class Node {
 	Point center;
 	private double size;
 	private int depth;
-	private int maxDepth = 9;
+	private int maxDepth = 40;
 	List<Entity> entities = new ArrayList<>();
 	
 	
@@ -168,9 +169,29 @@ public class Node {
 	
 	//finds the euclidean distance between two points
 	public double findDist(Point target, Point start) {
-		double numer = start.getZ()-target.getZ();
-		double denom = start.getX()-target.getX();
-		return Math.abs(numer/denom);
+		double b = Math.abs(start.getZ()-target.getZ());
+		double c = Math.abs(start.getX()-target.getX());
+		double a = (b*b) + (c*c);
+		return Math.sqrt(a);
+	}
+	
+	//finds Terrain that both contains given point and is in an active state and returns height
+	public double findHeight(Point target) {
+		for(Entity e: entities) {
+			if(e instanceof Terrain) {
+				if(e.isActive()) {
+					return ((Terrain) e).getHeightAt(target);
+				}
+				else {
+					for (Node n: children) {
+						if (checkIfIn(e, n)) {
+							n.findHeight(target);
+						}
+					}
+				}
+			}
+		}
+		return 0;
 	}
 	
 	//find out what position of camera uses

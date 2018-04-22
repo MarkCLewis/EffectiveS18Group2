@@ -250,6 +250,11 @@ public class Terrain implements Entity {
     	
 		return quads; 
 	}
+	
+	@Override
+	public boolean isActive() {
+		return true;
+	}
 
 }
 
