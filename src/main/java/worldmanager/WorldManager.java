@@ -74,7 +74,8 @@ public class WorldManager {
 	}
 	
 	//tree traversal to get geometry that is within the max specified distance
-	public List<Shape> getGeometry() {
+	public List<Shape> getGeometry(Point point) {
+		updateCamera(point);
 		return traverseGeometry(rootNode, maxView);
 	}
 	

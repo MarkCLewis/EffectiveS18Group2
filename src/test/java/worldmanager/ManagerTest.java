@@ -63,8 +63,7 @@ public class ManagerTest {
 			world.addEntity(tester);
 		}
 		
-		List<Shape> allShapes = world.getGeometry();
-		System.out.println(allShapes.size());
+		List<Shape> allShapes = world.getGeometry(new Point(0.0,0.0));
 		/*for(Shape s : allShapes) {
 			System.out.println(s);
 			System.out.println(s.getCenter()[0]);
