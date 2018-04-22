@@ -17,7 +17,7 @@ public class TestEntity implements Entity {
 	public TestEntity(Point p, double s) {
 		cent = p;
 		sz = s;
-		Shape shape = new Shape(cent.getX(), cent.getY(), 4.0);
+		Shape shape = new Shape(cent.getX(), cent.getZ(), 4.0);
 		shapes.add(shape);
 	}
 	
@@ -35,6 +35,10 @@ public class TestEntity implements Entity {
 	
 	public List<Shape> getShapes() {
 		return shapes;
+	}
+	
+	public boolean isActive() {
+		return true;
 	}
 
 }

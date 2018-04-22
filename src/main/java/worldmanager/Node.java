@@ -24,7 +24,7 @@ public class Node {
 	Point center;
 	private double size;
 	private int depth;
-	private int maxDepth = 9;
+	private int maxDepth = 40;
 	List<Entity> entities = new ArrayList<>();
 	
 	
@@ -168,9 +168,10 @@ public class Node {
 	
 	//finds the euclidean distance between two points
 	public double findDist(Point target, Point start) {
-		double numer = start.getZ()-target.getZ();
-		double denom = start.getX()-target.getX();
-		return Math.abs(numer/denom);
+		double b = Math.abs(start.getZ()-target.getZ());
+		double c = Math.abs(start.getX()-target.getX());
+		double a = (b*b) + (c*c);
+		return Math.sqrt(a);
 	}
 	
 	//find out what position of camera uses
