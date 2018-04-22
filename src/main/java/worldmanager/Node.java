@@ -5,6 +5,7 @@ import java.util.List;
 
 import entity.Entity;
 import virtualworld.terrain.Point;
+import virtualworld.terrain.Terrain;
 
 public class Node {
 	
@@ -172,6 +173,25 @@ public class Node {
 		double c = Math.abs(start.getX()-target.getX());
 		double a = (b*b) + (c*c);
 		return Math.sqrt(a);
+	}
+	
+	//finds Terrain that both contains given point and is in an active state and returns height
+	public double findHeight(Point target) {
+		for(Entity e: entities) {
+			if(e instanceof Terrain) {
+				if(e.isActive()) {
+					return ((Terrain) e).getHeightAt(target);
+				}
+				else {
+					for (Node n: children) {
+						if (checkIfIn(e, n)) {
+							n.findHeight(target);
+						}
+					}
+				}
+			}
+		}
+		return 0;
 	}
 	
 	//find out what position of camera uses

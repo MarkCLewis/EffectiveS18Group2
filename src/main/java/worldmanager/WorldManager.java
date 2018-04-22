@@ -70,7 +70,7 @@ public class WorldManager {
 	
 	//gets height at a given point
 	public double getHeight(Point point) {
-		return 0;
+		return rootNode.findHeight(point);
 	}
 	
 	//tree traversal to get geometry that is within the max specified distance
