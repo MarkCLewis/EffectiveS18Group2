@@ -17,14 +17,12 @@ public class Terrain implements Entity {
 		double length = 5000;
 		int seed = 500;
 	    int points = 61;
-		double[][] heightMap = {{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
-								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
-								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
-								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
-								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0}};
-	
-		Terrain t = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap);
+		double[][] heightMap = {{0.0}};
 		
+		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(4, 3, 2, 150, 400); 
+		
+		//Terrain t = new Terrain(new Point(0.0,0.0), length, points, heightMap, ta);
+		Terrain t = Terrain.forMountainValley(new Point(0.0,0.0), length, 100);
 		double[][] render = t.renderBaseHeights();
 		
 		System.out.println("rendered top level terrain");
@@ -34,48 +32,64 @@ public class Terrain implements Entity {
 			}
 			System.out.print("\n");
 		}
-	/*	
-		Terrain[] split = t.split();
-		
-		Terrain topLeft = split[0];
-		
-		double[][] render2 = topLeft.renderHeights();
-	    
-		System.out.println("rendered top left terrain");
-		for (double[] a : render2) {
-			for (double height : a) {
-				System.out.print(height + " ");
-			}
-			System.out.print("\n");
-		}*/
-		List<Shape> quads = t.getShapes();
-		Quad q =((Quad)(quads.get(0)));
-		Quad q1 =((Quad)(quads.get(1)));
-		System.out.println((Arrays.toString(q.getCornerHeights())));
-		System.out.println((Arrays.toString(q1.getCornerHeights())));
 	}
 	
     // (x, z) coordinate of the terrain center
 	//private final Pair<Double, Double> center;
 	private final double[][] heightMap;
 	private final Point center;
-	private final Perlin perlNoise = Perlin.getInstance();
+	private TerrainHeightAlgorithm noise;
 	private final int pointsPerSide;
 	private boolean mapIsSet;
 
     // length the area that the terrain covers and the height seed between each point.
     private final double length;
-    private final double heightSeed;
     
     
 	
-	public Terrain(Point c, double len, double heightS, int points, double[][] constructionArray) {
+	public Terrain(Point c, double len, int points, double[][] constructionArray, TerrainHeightAlgorithm noiseAlgorithm) {
 		center = c;
         length = len;
-        heightSeed = heightS;
 		pointsPerSide = points;
         heightMap = expandArray(constructionArray);
+        noise = noiseAlgorithm;
         mapIsSet = false;
+	}
+	
+	//Static Constructors. LOD stand for game units covered per Quad
+	
+	public static Terrain forFeilds(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(2, 2, 2, 150, 500);
+		double [][] placeholderArray = {{0.0}};
+		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+	}
+	
+	public static Terrain forHills(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(5, 3, 3, 150, 500);
+		double [][] placeholderArray = {{0.0}};
+		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+	}
+	
+	public static Terrain forMountains(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(8, 3, 3, 150, 600);
+		double [][] placeholderArray = {{0.0}};
+		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+	}
+	
+	public static Terrain forMountainValley(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = new ValleyHeightAlgorithm(8, 3, 3, 150, 600, 1.5);
+		double [][] placeholderArray = {{0.0}};
+		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+	}
+	
+	private static int pointsFromLOD(double length, int lod) {
+		int possiblePoints = (int)(length/lod);
+		if (possiblePoints % 2 ==0) {
+			return possiblePoints + 1;
+		} else {
+			return possiblePoints;
+		}
+		
 	}
 
     //returns a pair that represents the center of the terrain object
@@ -95,36 +109,36 @@ public class Terrain implements Entity {
                 		center.getX() - (length/4), 
                 		center.getZ() + (length/4)),
                 length/2,
-                heightSeed,
                 pointsPerSide,
-                subTerrains[0]),
+                subTerrains[0],
+                noise),
             //1  Top-right
             new Terrain(
                 new Point(
                 		center.getX() + (length/4), 
                 		center.getZ() + (length/4)),
                 length/2,
-                heightSeed,
                 pointsPerSide,
-                subTerrains[1]),
+                subTerrains[1],
+                noise),
             //2 bottom-left
             new Terrain(
                 new Point(
                 		center.getX() - (length/4), 
                 		center.getZ() - (length/4)),
                 length/2,
-                heightSeed,
                 pointsPerSide,
-                subTerrains[2]),
+                subTerrains[2],
+                noise),
             //3 bottom-right
             new Terrain(
                 new Point(
                 		center.getX() + (length/4), 
                 		center.getZ() - (length/4)),
                 length/2,
-                heightSeed,
                 pointsPerSide,
-                subTerrains[3]),
+                subTerrains[3],
+                noise),
         };   
     }
     
@@ -181,7 +195,8 @@ public class Terrain implements Entity {
 			for (int c = 0; c < pointsPerSide; c++) {
 				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
 				if (heightMap[r][c] == -1.0) {
-					heightMap[r][c] = 150 + perlNoise.noise2D(nc, nr) * heightSeed;
+					//heightMap[r][c] = 150 + perlNoise.noise2D(nc, nr) * heightSeed;
+					heightMap[r][c] =  noise.generateHeight(nc, nr);
 				}
 				
 			}
@@ -198,7 +213,8 @@ public class Terrain implements Entity {
     		double nr = (topLeft.getZ() - (increment * r))/length - 0.5;
 			for (int c = 0; c < pointsPerSide; c++) {
 				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
-					heightMap[r][c] = 150 + perlNoise.noise2D(7 * nc, 7 * nr) * heightSeed;
+					//heightMap[r][c] = 150 + perlNoise.noise2D(7 * nc, 7 * nr) * heightSeed;
+					heightMap[r][c] = noise.generateHeight(nc, nr);
 			}
     	}
     	
@@ -210,7 +226,8 @@ public class Terrain implements Entity {
     	double worldZ = spot.getZ()/length - 0.5;
 		double worldX = spot.getX()/length - 0.5;
 		
-		return perlNoise.noise2D(worldX, worldZ) * heightSeed;
+		//return perlNoise.noise2D(worldX, worldZ) * heightSeed;
+		return noise.generateHeight(worldX, worldZ);
 		
     }
      
@@ -232,18 +249,15 @@ public class Terrain implements Entity {
 		if (!mapIsSet) renderBaseHeights();
 		
 		Point topLeft = new Point(center.getX() - (length / 2), center.getZ() + (length / 2));
-		//Engine.logInfo(topLeft.getX() + " " + topLeft.getZ());
     	double increment = length / pointsPerSide;
     	List<Shape> quads = new ArrayList<Shape>();
     	
     	for (int r = 0; r < heightMap.length -1; r++) {
     		double quadZCoordinate = topLeft.getZ() -((increment * r) + (increment/2));
-    		//Engine.logInfo(quadZCoordinate + "");
 			for (int c = 0; c < heightMap.length-1; c++) {
 				double quadXCoordinate = topLeft.getX() + (increment * c) + (increment/2);
 				float[] corners = {(float)heightMap[r+1][c], (float)heightMap[r+1][c+1], (float)heightMap[r][c+1], (float)heightMap[r][c]};
 				 quads.add(new Quad((float)increment, corners, quadXCoordinate, 0.0, quadZCoordinate));
-				 //Engine.logInfo(quadXCoordinate + " " + quadZCoordinate);
 				}
 				
 			}

@@ -37,16 +37,11 @@ public class Game {
 		Point center = new Point(0,0);
 		
 		WorldManager world = new WorldManager(center, 5000);
-		
-		double[][] heightMap = {{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
-				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
-				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
-				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
-				{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0}};
-		Terrain t = new Terrain(center, 5000, Engine.getRandomDouble(400, 600), 61, heightMap);
+
+		Terrain t = Terrain.forHills(center, 5000, 100);
 		world.addEntity(t);
-		//List<shapes.Shape> shapes = t.getShapes();
-		List<shapes.Shape> shapes = world.getGeometry(center);
+		List<shapes.Shape> shapes = t.getShapes();
+		//List<shapes.Shape> shapes = world.getGeometry(center);
 		g.start();
 		g.addShapes(shapes);
 	}
