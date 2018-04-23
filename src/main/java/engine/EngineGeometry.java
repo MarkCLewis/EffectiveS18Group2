@@ -68,6 +68,10 @@ public class EngineGeometry {
     	this.geom = new Geometry("Cylinder"+shape.hashCode(),this.mesh);
     	CylinderCollisionShape scs = new CylinderCollisionShape(new Vector3f(shape.getRadius(),shape.getHeight()/2,shape.getRadius()), 2);
     	RigidBodyControl rbc = new RigidBodyControl(scs);
+    	if(shape.isImmobile()) {
+    		rbc.setMass(0);
+        	rbc.setKinematicSpatial(false);
+    	}
     	Quaternion rot = (new Quaternion()).fromAngles(shape.getXRot(), shape.getYRot(), shape.getZRot());
     	this.geom.addControl(rbc);
     	rbc.setPhysicsRotation(rot);
@@ -83,6 +87,10 @@ public class EngineGeometry {
     	this.geom.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
     	SphereCollisionShape scs = new SphereCollisionShape(shape.getRadius());
     	RigidBodyControl rbc = new RigidBodyControl(scs);
+    	if(shape.isImmobile()) {
+    		rbc.setMass(0);
+        	rbc.setKinematicSpatial(false);
+    	}
     	this.geom.addControl(rbc);
     	this.mat = shape.getMaterial();
 	}
@@ -93,6 +101,10 @@ public class EngineGeometry {
     	this.geom = new Geometry("RectPrism"+shape.hashCode(),this.mesh);
     	BoxCollisionShape bcs = new BoxCollisionShape(new Vector3f(dim[0]/2,dim[1]/2,dim[2]/2));
     	RigidBodyControl rbc = new RigidBodyControl(bcs);
+    	if(shape.isImmobile()) {
+    		rbc.setMass(0);
+        	rbc.setKinematicSpatial(false);
+    	}
     	Quaternion rot = (new Quaternion()).fromAngles(shape.getXRot(), shape.getYRot(), shape.getZRot());
     	this.geom.addControl(rbc);
     	rbc.setPhysicsRotation(rot);
@@ -140,8 +152,10 @@ public class EngineGeometry {
     	this.mesh.updateBound();
     	MeshCollisionShape mcs = new MeshCollisionShape(mesh, false);
     	RigidBodyControl rbc = new RigidBodyControl();
-    	rbc.setMass(0);
-    	rbc.setKinematicSpatial(false);
+    	if(shape.isImmobile()) {
+    		rbc.setMass(0);
+        	rbc.setKinematicSpatial(false);
+    	}
     	rbc.setCollisionShape(mcs);
     	this.geom = new Geometry("Quad"+shape.hashCode(),mesh);
     	this.geom.addControl(rbc);
