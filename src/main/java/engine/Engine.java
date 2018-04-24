@@ -110,10 +110,10 @@ public class Engine extends SimpleApplication {
 	
 	private DirectionalLight sun;
 	private Node objectNode;
-	private Material objectMaterial;
 	private DebugTools debugTools;
 
 	private boolean shouldUpdateShapes = false;
+	private boolean shouldResetObjectMaterials = false;
 	
 	//private static final Terrain terrain = new Terrain(new Point(0.0,0.0), 100, 10, ))
 	private static final Logger logger = Logger.getLogger(Engine.class.getName());
@@ -170,10 +170,6 @@ public class Engine extends SimpleApplication {
         matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWire.getAdditionalRenderState().setWireframe(true);
         matWire.setColor("Color", ColorRGBA.Green);
-        objectMaterial = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        objectMaterial.setColor("Diffuse", ColorRGBA.White);
-        objectMaterial.setColor("Specular", ColorRGBA.White);
-        objectMaterial.setFloat("Shininess", 64);
     	
         if(renderKaylaTerrain) {
 	    	this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
@@ -309,11 +305,9 @@ public class Engine extends SimpleApplication {
      */
     private void initKeys() {
         // You can map one or several inputs to one named action
-    	if(renderKaylaTerrain) {
-	        inputManager.addListener(actionListener, "wireframe");
-	        inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-	        inputManager.addListener(actionListener, "shoot");
-    	}
+	    inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+	    inputManager.addListener(actionListener, "shoot");
+    	inputManager.addListener(actionListener, "wireframe");
     	inputManager.addMapping("wireframe", new KeyTrigger(KeyInput.KEY_T));
         inputManager.addMapping("cameraDown", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         inputManager.addListener(actionListener, "cameraDown");
@@ -336,30 +330,34 @@ public class Engine extends SimpleApplication {
     private boolean down = false;
     private boolean moves = true;
     private final ActionListener actionListener = new ActionListener() {
-
         @Override
         public void onAction(final String name, final boolean keyPressed, final float tpf) {
-        	// from TerrainGridTileLoaderTest
         	if (name.equals("wireframe") && !keyPressed) {
                 wireframe = !wireframe;
                 if (!wireframe) {
                 	if(renderKaylaTerrain) {
                 		terrainGrid.setMaterial(matWire);
                 	}
+                	objectNode.setMaterial(matWire);
                 } else {
                 	if(renderKaylaTerrain) {
                 		terrainGrid.setMaterial(mat_terrain);
                 	}
+                	shouldResetObjectMaterials = true;
                 }
-            } else if (name.equals("shoot") && !keyPressed && renderKaylaTerrain) {
-
+            } else if (name.equals("shoot") && !keyPressed) {
                 Vector3f origin = cam.getWorldCoordinates(new Vector2f(settings.getWidth() / 2, settings.getHeight() / 2), 0.0f);
                 Vector3f direction = cam.getWorldCoordinates(new Vector2f(settings.getWidth() / 2, settings.getHeight() / 2), 0.3f);
                 direction.subtractLocal(origin).normalizeLocal();
 
                 Ray ray = new Ray(origin, direction);
                 CollisionResults results = new CollisionResults();
-                int numCollisions = terrainGrid.collideWith(ray, results);
+                int numCollisions = 0;
+                if(renderKaylaTerrain) {
+                	numCollisions = terrainGrid.collideWith(ray, results);
+                } else {
+                	numCollisions = objectNode.collideWith(ray, results);
+                }
                 if (numCollisions > 0) {
                     CollisionResult hit = results.getClosestCollision();
                     if (collisionMarker == null) {
@@ -440,24 +438,7 @@ public class Engine extends SimpleApplication {
         collisionMarker.setMaterial(mat);
         rootNode.attachChild(collisionMarker);
     }
-    
-    /**
-     * Sets up the fog in the game which helps add a sense of depth and
-     * obscures all the ugly pop-in artifacts in the distance
-     */
-    private void setupFog() {
-        // use fog to give more sense of depth
-        FilterPostProcessor fpp;
-        FogFilter fog;
-        fpp=new FilterPostProcessor(assetManager);
-        fog=new FogFilter();
-        fog.setFogColor(new ColorRGBA(0.0f, 0.0f, 0.0f, 1.0f));
-        fog.setFogDistance(fogDistance);
-        fog.setFogDensity(2.0f);
-        fpp.addFilter(fog);
-        viewPort.addProcessor(fpp);
-    }
-    
+
     /**
      * Updates the player/camera position and changes display text.
      * Note: this isn't quite working yet. We're using the default behavior
@@ -479,6 +460,13 @@ public class Engine extends SimpleApplication {
             }
         	bulletAppState.getPhysicsSpace().addAll(objectNode);
         	shouldUpdateShapes = false;
+    	} else if(shouldResetObjectMaterials) {
+    		for (int i = 0; i < geomBuffer.size(); i++) {
+    			EngineGeometry eg = geomBuffer.get(i);
+    			Spatial s = objectNode.getChild(eg.getGeomName());
+    			s.setMaterial(eg.getMaterial(assetManager));
+    		}
+    		shouldResetObjectMaterials = false;
     	}
     	Vector3f camDir = this.cam.getDirection().clone().multLocal(0.6f);
         Vector3f camLeft = this.cam.getLeft().clone().multLocal(0.4f);

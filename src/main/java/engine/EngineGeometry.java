@@ -162,6 +162,10 @@ public class EngineGeometry {
     	this.mat = shape.getMaterial();
 	}
 	
+	public String getGeomName() {
+		return this.geom.getName();
+	}
+	
 	/** 
 	 * Returns this geometry's position vector.
 	 * @return the geometry's position vector
@@ -182,7 +186,7 @@ public class EngineGeometry {
 	 * Returns this EngineGeometry's material object
 	 * @return the material object
 	 */
-	public RenderMaterial getMaterial() {
+	public RenderMaterial getRenderMaterial() {
 		return this.mat;
 	}
 	
@@ -205,7 +209,6 @@ public class EngineGeometry {
     	ret.setColor("Specular", Utils.getColor(this.mat.getSpecularColor()));
     	ret.setFloat("Shininess", this.mat.getShininess());
     	ret.setBoolean("VertexLighting",this.mat.isUsingVertexLighting());
-    	//ret.setBoolean("UseVertexColor",this.mat.isUsingVertexColor());
     	ret.setTexture("DiffuseMap", assetManager.loadTexture("Textures/Terrain/splat/grass.jpg"));
     	ret.setTexture("NormalMap", assetManager.loadTexture("Textures/Terrain/splat/grass_normal.jpg"));
     	if(this.mat.isUsingTransparency()) {
