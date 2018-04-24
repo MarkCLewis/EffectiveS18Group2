@@ -263,7 +263,7 @@ public class Engine extends SimpleApplication {
 	        });
         }
         
-        this.getCamera().setLocation(new Vector3f(0, 500, 0));
+        this.getCamera().setLocation(new Vector3f(0, 6000, 0));
 
         this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
 

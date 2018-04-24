@@ -5,6 +5,7 @@ import java.util.List;
 
 import engine.Engine;
 import entity.Entity;
+import javafx.geometry.Point3D;
 import shapes.Shape;
 import shapes.Quad;
 
@@ -21,8 +22,8 @@ public class Terrain implements Entity {
 		
 		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(4, 3, 2, 150, 400); 
 		
-		//Terrain t = new Terrain(new Point(0.0,0.0), length, points, heightMap, ta);
-		Terrain t = Terrain.forMountainValley(new Point(0.0,0.0), length, 100);
+		Terrain t = new Terrain(new Point(0.0,0.0), length, points, heightMap, ta);
+		//Terrain t = Terrain.forMountainValley(new Point(0.0,0.0), length, 100);
 		double[][] render = t.renderBaseHeights();
 		
 		System.out.println("rendered top level terrain");
@@ -32,6 +33,19 @@ public class Terrain implements Entity {
 			}
 			System.out.print("\n");
 		}
+		
+		List<Point3D> trees = t.getTrees();
+		
+		if (trees.isEmpty()) {
+			System.out.println("No trees");
+		} else {
+			System.out.println("Not empty");
+		}
+		
+		for (Point3D tree: trees) {
+			System.out.print(tree.toString() + " ");
+		}
+		
 	}
 	
     // (x, z) coordinate of the terrain center
@@ -59,19 +73,19 @@ public class Terrain implements Entity {
 	//Static Constructors. LOD stand for game units covered per Quad
 	
 	public static Terrain forFeilds(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(2, 2, 2, 150, 500);
+		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(.75, 3, 3, 150, 300);
 		double [][] placeholderArray = {{0.0}};
 		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
 	}
 	
 	public static Terrain forHills(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(5, 3, 3, 150, 500);
+		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(2, 3, 6, 150, 500);
 		double [][] placeholderArray = {{0.0}};
 		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
 	}
 	
 	public static Terrain forMountains(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(8, 3, 3, 150, 600);
+		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(2, 3, 10, 150, 1000);
 		double [][] placeholderArray = {{0.0}};
 		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
 	}
@@ -229,6 +243,26 @@ public class Terrain implements Entity {
 		//return perlNoise.noise2D(worldX, worldZ) * heightSeed;
 		return noise.generateHeight(worldX, worldZ);
 		
+    }
+    
+    public List<Point3D> getTrees() {
+    	Point topLeft = new Point(center.getX() - (length / 2), center.getZ() + (length / 2));
+    	double increment = 5;
+    	ArrayList<Point3D> trees = new ArrayList<Point3D>();
+    	
+    	for (int r = 0; r < pointsPerSide; r++) {
+    		double nr = (topLeft.getZ() - (increment * r))/length - 0.5;
+			for (int c = 0; c < pointsPerSide; c++) {
+				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
+				Point3D p = noise.placeTree(nc, nr);
+				if (p != null) {
+					trees.add(p);
+				}
+			}
+    	}
+    	
+		return trees;
+    	
     }
      
      
