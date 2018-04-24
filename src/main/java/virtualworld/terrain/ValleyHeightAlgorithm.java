@@ -11,6 +11,7 @@ public class ValleyHeightAlgorithm extends TerrainHeightAlgorithm {
 		octaveScale = scale;
 		baseHeight = height;
 		heightSeed = size;
+		treeSparseness = 10;
 		noise = Perlin.getInstance();
 		redistribution = redis;
 	}
