@@ -38,7 +38,7 @@ public class Game {
 		
 		WorldManager world = new WorldManager(center, 5000);		
 
-		Terrain t = Terrain.forMountains(center, 10000, 10);
+		Terrain t = Terrain.forMountains(center, 1000, 20);
 		Terrain[] ters = t.split();
 		world.addEntity(t);
 		List<shapes.Shape> shapes = t.getShapes();
