@@ -190,27 +190,27 @@ public class EngineGeometry {
 		if(this.geomMat == null) {
 			this.geomMat = this.getMaterial(assetManager);
 			this.geom.setMaterial(this.geomMat);
-			//if(this.mat.isUsingTransparency()) {
-	    		//this.geom.setQueueBucket(Bucket.Transparent);  
-	    	//}
+			if(this.mat.isUsingTransparency()) {
+	    		this.geom.setQueueBucket(Bucket.Transparent);  
+	    		}
 		}
 		return this.geom;
 	}
     
     public Material getMaterial(AssetManager assetManager) {
     	Material ret = new Material(assetManager,"Common/MatDefs/Light/Lighting.j3md");
-    	//ret.setBoolean("UseMaterialColors",true);
-    	//ret.setColor("Diffuse", Utils.getColor(this.mat.getDiffuseColor()));
-    	//ret.setColor("Ambient", Utils.getColor(this.mat.getAmbientColor()));
-    	//ret.setColor("Specular", Utils.getColor(this.mat.getSpecularColor()));
-    	//ret.setFloat("Shininess", this.mat.getShininess());
-    	//ret.setBoolean("VertexLighting",this.mat.isUsingVertexLighting());
+    	ret.setBoolean("UseMaterialColors",true);
+    	ret.setColor("Diffuse", Utils.getColor(this.mat.getDiffuseColor()));
+    	ret.setColor("Ambient", Utils.getColor(this.mat.getAmbientColor()));
+    	ret.setColor("Specular", Utils.getColor(this.mat.getSpecularColor()));
+    	ret.setFloat("Shininess", this.mat.getShininess());
+    	ret.setBoolean("VertexLighting",this.mat.isUsingVertexLighting());
     	//ret.setBoolean("UseVertexColor",this.mat.isUsingVertexColor());
-    	//ret.setTexture("DiffuseMap", assetManager.loadTexture("Textures/Terrain/splat/grass.jpg"));
-    	//ret.setTexture("NormalMap", assetManager.loadTexture("Textures/Terrain/splat/grass_normal.jpg"));
-    	//if(this.mat.isUsingTransparency()) {
-    		//ret.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-    	//}
+    	ret.setTexture("DiffuseMap", assetManager.loadTexture("Textures/Terrain/splat/grass.jpg"));
+    	ret.setTexture("NormalMap", assetManager.loadTexture("Textures/Terrain/splat/grass_normal.jpg"));
+    	if(this.mat.isUsingTransparency()) {
+    		ret.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+    	}
     	return ret;
     }
 }
