@@ -36,7 +36,7 @@ public class Game {
 		Game g = new Game();
 		Point center = new Point(0,0);
 		
-		WorldManager world = new WorldManager(center, 5000);
+		WorldManager world = new WorldManager(center, 5000);		
 
 		Terrain t = Terrain.forHills(center, 5000, 100);
 		world.addEntity(t);
