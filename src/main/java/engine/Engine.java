@@ -101,7 +101,7 @@ public class Engine extends SimpleApplication {
 	 * "meshPositions" collection; a mesh at index i will have its
 	 * position data at index i inside of "meshPositions"
 	 */
-	private final ArrayList<EngineGeometry> geomBuffer = new ArrayList<EngineGeometry>();
+	private final ArrayList<EngineSpatial> spatialBuffer = new ArrayList<EngineSpatial>();
 	
 	/**
 	 * The position of the camera/player in world coordinates
@@ -272,14 +272,14 @@ public class Engine extends SimpleApplication {
         rootNode.addLight(sun);
         
         objectNode = new Node("ObjectNode");
-		for (int i = 0; i < geomBuffer.size(); i++) {
+		for (int i = 0; i < spatialBuffer.size(); i++) {
         	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
-            EngineGeometry engGeom = geomBuffer.get(i);
-			Vector3f localPos = (engGeom.getJME3Position().subtract(getWorldPosition())).toVector3f();
+            EngineSpatial engSpatial = spatialBuffer.get(i);
+			Vector3f localPos = (engSpatial.getJME3Position().subtract(getWorldPosition())).toVector3f();
             //Engine.logInfo("mesh origin is " + localPos.toString());
-            Geometry geom = engGeom.getJME3Geometry(this.assetManager);
-            geom.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
-            objectNode.attachChild(geom);
+            Spatial spatial = engSpatial.getJME3Spatial(this.assetManager);
+            spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
+            objectNode.attachChild(spatial);
         }
 		rootNode.attachChild(objectNode);
 		bulletAppState.getPhysicsSpace().addAll(objectNode);
@@ -449,20 +449,20 @@ public class Engine extends SimpleApplication {
     	if(shouldUpdateShapes) {
     		bulletAppState.getPhysicsSpace().removeAll(objectNode);
     		objectNode.detachAllChildren();
-    		for (int i = 0; i < geomBuffer.size(); i++) {
+    		for (int i = 0; i < spatialBuffer.size(); i++) {
             	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
-                EngineGeometry engGeom = geomBuffer.get(i);
-    			Vector3f localPos = (engGeom.getJME3Position().subtract(getWorldPosition())).toVector3f();
+                EngineSpatial engSpatial = spatialBuffer.get(i);
+    			Vector3f localPos = (engSpatial.getJME3Position().subtract(getWorldPosition())).toVector3f();
                 //Engine.logInfo("mesh origin is " + localPos.toString());
-                Geometry geom = engGeom.getJME3Geometry(this.assetManager);
-                geom.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
-                objectNode.attachChild(geom);
+                Spatial spatial = engSpatial.getJME3Spatial(this.assetManager);
+                spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
+                objectNode.attachChild(spatial);
             }
         	bulletAppState.getPhysicsSpace().addAll(objectNode);
         	shouldUpdateShapes = false;
     	} else if(shouldResetObjectMaterials) {
-    		for (int i = 0; i < geomBuffer.size(); i++) {
-    			EngineGeometry eg = geomBuffer.get(i);
+    		for (int i = 0; i < spatialBuffer.size(); i++) {
+    			EngineSpatial eg = spatialBuffer.get(i);
     			Spatial s = objectNode.getChild(eg.getGeomName());
     			s.setMaterial(eg.getMaterial(assetManager));
     		}
@@ -500,10 +500,10 @@ public class Engine extends SimpleApplication {
     }
 
     public void changeShapes(List<shapes.Shape> shapes) {
-    	geomBuffer.clear();
+    	spatialBuffer.clear();
     	for (shapes.Shape shape : shapes) {
-            EngineGeometry eg = new EngineGeometry(shape);
-            geomBuffer.add(eg);
+            EngineSpatial eg = new EngineSpatial(shape);
+            spatialBuffer.add(eg);
     	}
     	shouldUpdateShapes = true;
     }

@@ -38,17 +38,24 @@ public class Game {
 		
 		WorldManager world = new WorldManager(center, 5000);		
 
-		Terrain t = Terrain.forMountains(center, 1000, 20);
+		Terrain t = Terrain.forMountains(center, 16384, 16);
 		Terrain[] ters = t.split();
-		world.addEntity(t);
-		List<shapes.Shape> shapes = t.getShapes();
+		List<shapes.Shape> shapes = new ArrayList<shapes.Shape>();
+		//shapes.add(t.getHeightMapSurface());
+		shapes.add(ters[0].getHeightMapSurface());
+		shapes.add(ters[1].getHeightMapSurface());
+		shapes.add(ters[2].getHeightMapSurface());
+		shapes.add(ters[3].getHeightMapSurface());
+		//world.addEntity(t);
+		//List<shapes.Shape> shapes = t.getShapes();
 		//List<shapes.Shape> shapes2 = world.getGeometry(center);
-		List<shapes.Shape> shapes2 = ters[0].getShapes();
-		shapes2.addAll(ters[1].getShapes());
-		shapes2.addAll(ters[2].getShapes());
-		shapes2.addAll(ters[3].getShapes());
+		//List<shapes.Shape> shapes2 = ters[0].getShapes();
+		//shapes2.addAll(ters[1].getShapes());
+		//shapes2.addAll(ters[2].getShapes());
+		//shapes2.addAll(ters[3].getShapes());
 		g.start();
-		g.addShapes(shapes2);
+		g.addShapes(shapes);
+		//g.addShapes(shapes2);
 		//g.addShapes(ters[0].getShapes());
 		//g.addShapes(ters[1].getShapes());
 		//g.addShapes(ters[2].getShapes());

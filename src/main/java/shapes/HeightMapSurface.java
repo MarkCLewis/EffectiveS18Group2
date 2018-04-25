@@ -2,9 +2,12 @@ package shapes;
 
 public class HeightMapSurface extends Shape {
 	
-	private float sideLength;
-	private int pointsPerSide;
+	private int sideLength;
+	private int patchSize;
 	private float[] heightMap;
+	private float scaleX;
+	private float scaleY;
+	private float scaleZ;
 	
 	/**
 	 * Construct a new Height Map Surface.
@@ -31,29 +34,74 @@ public class HeightMapSurface extends Shape {
 	 * @param yPos world y coordinate
 	 * @param zPos world z coordinate
 	 */
-	public HeightMapSurface(float sideLength, int pointsPerSide, float[] heightMap, double xPos, double yPos, double zPos) {
+	public HeightMapSurface(int sideLength, int patchSize, float[] heightMap, double xPos, double yPos, double zPos) {
 		super(xPos,yPos,zPos,0,0,0,true); // Height maps are always immobile
-		if(heightMap.length != pointsPerSide*pointsPerSide) {
-			throw new IllegalArgumentException("Height map was not the correct length; height map must have length p^2, where p is the number of points per side.");
+		boolean checkSideLengthIsPowTwoPlusOne = (sideLength-1) > 0 && (((sideLength-1) & ((sideLength-1) - 1)) == 0);
+		boolean checkPatchSizeIsPowTwoPlusOne = ((patchSize-1) > 0) && (((patchSize-1) & ((patchSize-1) - 1)) == 0);
+		if(heightMap.length != sideLength * sideLength) {
+			throw new IllegalArgumentException("Height map was not the correct length (height map length was " + heightMap.length + "); height map must have length L^2, where L is the side length.\nLength given was " + sideLength);
+		}
+		else if(!checkSideLengthIsPowTwoPlusOne) {
+			throw new IllegalArgumentException("Side length must be 2^N + 1. (" + sideLength + " given)");
+		}
+		else if(!checkPatchSizeIsPowTwoPlusOne) {
+			throw new IllegalArgumentException("Patch size must be 2^N + 1. (" + patchSize + " given)");
 		}
 		this.sideLength = sideLength;
-		this.pointsPerSide = pointsPerSide;
+		this.patchSize = patchSize;
 		this.heightMap = heightMap.clone();
+	}
+	
+	public HeightMapSurface(int sideLength, int patchSize, float[] heightMap, float scaleX, float scaleY, float scaleZ, double xPos, double yPos, double zPos) {
+		super(xPos,yPos,zPos,0,0,0,true); // Height maps are always immobile
+		boolean checkSideLengthIsPowTwoPlusOne = (sideLength-1) > 0 && (((sideLength-1) & ((sideLength-1) - 1)) == 0);
+		boolean checkPatchSizeIsPowTwoPlusOne = ((patchSize-1) > 0) && (((patchSize-1) & ((patchSize-1) - 1)) == 0);
+		if(heightMap.length != sideLength * sideLength) {
+			throw new IllegalArgumentException("Height map was not the correct length (height map length was " + heightMap.length + "); height map must have length L^2, where L is the side length.\nLength given was " + sideLength);
+		}
+		else if(!checkSideLengthIsPowTwoPlusOne) {
+			throw new IllegalArgumentException("Side length must be 2^N + 1. (" + sideLength + " given)");
+		}
+		else if(!checkPatchSizeIsPowTwoPlusOne) {
+			throw new IllegalArgumentException("Patch size must be 2^N + 1. (" + patchSize + " given)");
+		}
+		this.scaleX = scaleX;
+		this.scaleY = scaleY;
+		this.scaleZ = scaleZ;
+		this.sideLength = sideLength;
+		this.patchSize = patchSize;
+		this.heightMap = heightMap.clone();
+	}
+	
+	public float getHeightAt(int idx) {
+		if(idx >= this.heightMap.length)
+		{
+			throw new IllegalArgumentException("Index exceeded height map length.");
+		}
+		return this.heightMap[idx];
 	}
 	
 	public float[] getHeightMap() {
 		return this.heightMap.clone();
 	}
 	
-	public float getPatchSize() {
-		return (this.sideLength / (pointsPerSide-1));
+	public int getPatchSize() {
+		return this.patchSize;
 	}
 	
-	public int getPointsPerSide() {
-		return this.pointsPerSide;
-	}
-	
-	public float getSideLength() {
+	public int getSideLength() {
 		return this.sideLength;
+	}
+	
+	public float getScaleX() {
+		return this.scaleX;
+	}
+	
+	public float getScaleY() {
+		return this.scaleY;
+	}
+	
+	public float getScaleZ() {
+		return this.scaleZ;
 	}
 }

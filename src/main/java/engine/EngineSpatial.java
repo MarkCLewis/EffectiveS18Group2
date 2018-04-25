@@ -3,6 +3,7 @@ package engine;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CylinderCollisionShape;
+import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
 import com.jme3.bullet.collision.shapes.MeshCollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -15,12 +16,15 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.plugins.blender.math.Vector3d;
 import com.jme3.scene.shape.Box;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.util.BufferUtils;
 
 import shapes.Cylinder;
+import shapes.HeightMapSurface;
 import shapes.Quad;
 import shapes.RectangularPrism;
 import shapes.RenderColor;
@@ -28,15 +32,15 @@ import shapes.RenderMaterial;
 import shapes.Shape;
 import shapes.Sphere;
 
-public class EngineGeometry {
+public class EngineSpatial {
 	private Shape shape;
 	private Vector3d pos;
 	private RenderMaterial mat;
 	private Material geomMat;
 	private Mesh mesh;
-	private Geometry geom;
+	private Spatial spatial;
 	
-	public EngineGeometry(Shape shape) {
+	public EngineSpatial(Shape shape) {
 		this.shape = shape;
 		this.initData();
 	}
@@ -47,7 +51,7 @@ public class EngineGeometry {
 		this.mat = null;
 		this.geomMat = null;
 		this.mesh = null;
-		this.geom = null;
+		this.spatial = null;
 		if(this.shape instanceof shapes.Cylinder) {
     		setupCylinder((shapes.Cylinder)this.shape);
     	} else if(this.shape instanceof shapes.Sphere) {
@@ -56,6 +60,8 @@ public class EngineGeometry {
     		setupRectPrism((shapes.RectangularPrism)this.shape);
     	} else if(this.shape instanceof shapes.Quad) {
     		setupQuad((shapes.Quad)this.shape);
+    	} else if(this.shape instanceof shapes.HeightMapSurface) {
+    		setupHeightMap((shapes.HeightMapSurface)this.shape);
     	} else {
     		throw new IllegalArgumentException();
     	}
@@ -65,7 +71,7 @@ public class EngineGeometry {
 		int axisSamples = (int)shape.getRadius() * 15;
     	int radialSamples = (int)shape.getRadius() * 15;
     	this.mesh = new com.jme3.scene.shape.Cylinder(axisSamples,radialSamples,shape.getRadius(),shape.getHeight(),true);
-    	this.geom = new Geometry("Cylinder"+shape.hashCode(),this.mesh);
+    	this.spatial = new Geometry("Cylinder"+shape.hashCode(),this.mesh);
     	CylinderCollisionShape scs = new CylinderCollisionShape(new Vector3f(shape.getRadius(),shape.getHeight()/2,shape.getRadius()), 2);
     	RigidBodyControl rbc = new RigidBodyControl(scs);
     	if(shape.isImmobile()) {
@@ -73,7 +79,7 @@ public class EngineGeometry {
         	rbc.setKinematicSpatial(false);
     	}
     	Quaternion rot = (new Quaternion()).fromAngles(shape.getXRot(), shape.getYRot(), shape.getZRot());
-    	this.geom.addControl(rbc);
+    	this.spatial.addControl(rbc);
     	rbc.setPhysicsRotation(rot);
     	this.mat = shape.getMaterial();
 	}
@@ -83,22 +89,22 @@ public class EngineGeometry {
 		com.jme3.scene.shape.Sphere tmpMesh = new com.jme3.scene.shape.Sphere((int)rad*15,(int)rad*15,rad);
 		tmpMesh.setTextureMode(com.jme3.scene.shape.Sphere.TextureMode.Projected);
 		this.mesh = tmpMesh;
-		this.geom = new Geometry("Sphere"+shape.hashCode(),mesh);
-    	this.geom.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
+		this.spatial = new Geometry("Sphere"+shape.hashCode(),mesh);
+    	this.spatial.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
     	SphereCollisionShape scs = new SphereCollisionShape(shape.getRadius());
     	RigidBodyControl rbc = new RigidBodyControl(scs);
     	if(shape.isImmobile()) {
     		rbc.setMass(0);
         	rbc.setKinematicSpatial(false);
     	}
-    	this.geom.addControl(rbc);
+    	this.spatial.addControl(rbc);
     	this.mat = shape.getMaterial();
 	}
 	
 	public void setupRectPrism(RectangularPrism shape) {
 		float[] dim = shape.getDimensions();
     	this.mesh = new Box(dim[0],dim[1],dim[2]);
-    	this.geom = new Geometry("RectPrism"+shape.hashCode(),this.mesh);
+    	this.spatial = new Geometry("RectPrism"+shape.hashCode(),this.mesh);
     	BoxCollisionShape bcs = new BoxCollisionShape(new Vector3f(dim[0]/2,dim[1]/2,dim[2]/2));
     	RigidBodyControl rbc = new RigidBodyControl(bcs);
     	if(shape.isImmobile()) {
@@ -106,9 +112,37 @@ public class EngineGeometry {
         	rbc.setKinematicSpatial(false);
     	}
     	Quaternion rot = (new Quaternion()).fromAngles(shape.getXRot(), shape.getYRot(), shape.getZRot());
-    	this.geom.addControl(rbc);
+    	this.spatial.addControl(rbc);
     	rbc.setPhysicsRotation(rot);
     	this.mat = shape.getMaterial();
+	}
+	
+	public void setupHeightMap(HeightMapSurface shape) {
+		/*this.mesh = new Mesh();
+		int pps = shape.getPointsPerSide();
+		int triCnt = (pps - 1) * (pps - 1) * 2;
+		Vector3f[] vertices = new Vector3f[pps * pps];
+		Vector2f[] texCoord = new Vector2f[pps * pps];
+		Vector3f[] normals = new Vector3f[pps * pps];
+		int[] indexes = new int[triCnt * 3];
+    	for(int r = 0; r < pps; r++) {
+    		float rRatio = ((float)r / (pps - 1));
+    		float z = shape.getSideLength() * (0.5f - rRatio);
+    		for(int c = 0; c < pps; c++) {
+    			float cRatio = ((float)c / (pps - 1));
+    			float x = shape.getSideLength() * (-0.5f + cRatio);
+    			int idx = c + (r * pps);
+    			vertices[idx] = new Vector3f(x,shape.getHeightAt(idx),z);
+    			texCoord[idx] = new Vector2f
+    		}
+    	}*/
+		this.spatial = new TerrainQuad(("TerrainQuad" + shape.hashCode()), shape.getPatchSize(), shape.getSideLength(), shape.getHeightMap());
+		HeightfieldCollisionShape hfcs = new HeightfieldCollisionShape(shape.getHeightMap(), spatial.getLocalScale());
+		RigidBodyControl rbc = new RigidBodyControl(hfcs,0);
+		rbc.setKinematicSpatial(false);
+    	this.spatial.addControl(rbc);
+    	this.mat = shape.getMaterial();
+    	this.spatial.setLocalScale(shape.getScaleX(), shape.getScaleY(), shape.getScaleZ());
 	}
 	
 	public void setupQuad(Quad shape) {
@@ -157,13 +191,13 @@ public class EngineGeometry {
         	rbc.setKinematicSpatial(false);
     	}
     	rbc.setCollisionShape(mcs);
-    	this.geom = new Geometry("Quad"+shape.hashCode(),mesh);
-    	this.geom.addControl(rbc);
+    	this.spatial = new Geometry("Quad"+shape.hashCode(),mesh);
+    	this.spatial.addControl(rbc);
     	this.mat = shape.getMaterial();
 	}
 	
 	public String getGeomName() {
-		return this.geom.getName();
+		return this.spatial.getName();
 	}
 	
 	/** 
@@ -190,15 +224,15 @@ public class EngineGeometry {
 		return this.mat;
 	}
 	
-	public Geometry getJME3Geometry(AssetManager assetManager) {
+	public Spatial getJME3Spatial(AssetManager assetManager) {
 		if(this.geomMat == null) {
 			this.geomMat = this.getMaterial(assetManager);
-			this.geom.setMaterial(this.geomMat);
+			this.spatial.setMaterial(this.geomMat);
 			if(this.mat.isUsingTransparency()) {
-	    		this.geom.setQueueBucket(Bucket.Transparent);  
+	    		this.spatial.setQueueBucket(Bucket.Transparent);  
 	    		}
 		}
-		return this.geom;
+		return this.spatial;
 	}
     
     public Material getMaterial(AssetManager assetManager) {

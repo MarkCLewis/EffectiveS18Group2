@@ -7,6 +7,7 @@ import engine.Engine;
 import entity.Entity;
 import javafx.geometry.Point3D;
 import shapes.Shape;
+import shapes.HeightMapSurface;
 import shapes.Quad;
 
 //Use Static Factories to set up the different types of terrain and create Root Terrain with it	
@@ -297,6 +298,25 @@ public class Terrain implements Entity {
 			}
     	
 		return quads; 
+	}
+	
+	// added by Kayla (for testing height map shape)
+	public HeightMapSurface getHeightMapSurface() {
+		if(!mapIsSet) renderBaseHeights();
+		Point topLeft = new Point(center.getX() - (length/2), center.getZ() + (length/2));
+		float[] convertedHeightMap = new float[heightMap.length * heightMap[0].length];
+		// assuming row-major, turn height map into flat array of floats
+		for(int r = 0; r < heightMap.length; r++) {
+			for(int c = 0; c < heightMap[r].length; c++) {
+				int idx = (c + (r * heightMap.length));
+				convertedHeightMap[idx] = (float)heightMap[r][c];
+			}
+		}
+		int patchSize = (int)((pointsPerSide-1) / 4) + 1;
+		float scale = (float) length / (pointsPerSide - 1);
+		Engine.logInfo("Terrain.HeightMapSurface: scale: " + scale);
+		HeightMapSurface hms = new HeightMapSurface(pointsPerSide, patchSize, convertedHeightMap, scale, 1f, scale, center.getX(), 0, center.getZ());
+		return hms;
 	}
 	
 	@Override
