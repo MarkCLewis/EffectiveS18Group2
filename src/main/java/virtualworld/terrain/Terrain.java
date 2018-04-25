@@ -203,7 +203,7 @@ public class Terrain implements Entity {
     
     public double[][] renderHeights() {
     	Point topLeft = new Point(center.getX() - (length / 2), center.getZ() +(length / 2));
-    	double increment = length / pointsPerSide;
+    	double increment = length / (pointsPerSide -1);
     	
     	for (int r = 0; r < pointsPerSide; r++) {
     		double nr = (topLeft.getZ() + (increment * r))/length - 0.5;
@@ -222,7 +222,7 @@ public class Terrain implements Entity {
     
     public double[][] renderBaseHeights() {
     	Point topLeft = new Point(center.getX() - (length / 2), center.getZ() + (length / 2));
-    	double increment = length / pointsPerSide;
+    	double increment = length / (pointsPerSide - 1);
     	
     	for (int r = 0; r < pointsPerSide; r++) {
     		double nr = (topLeft.getZ() - (increment * r))/length - 0.5;
@@ -284,7 +284,7 @@ public class Terrain implements Entity {
 		if (!mapIsSet) renderBaseHeights();
 		
 		Point topLeft = new Point(center.getX() - (length / 2), center.getZ() + (length / 2));
-    	double increment = length / pointsPerSide;
+    	double increment = length / (pointsPerSide -1);
     	List<Shape> quads = new ArrayList<Shape>();
     	
     	for (int r = 0; r < heightMap.length -1; r++) {
@@ -300,7 +300,7 @@ public class Terrain implements Entity {
 		return quads; 
 	}
 	
-	// added by Kayla (for testing height map shape)
+	// (added by Kayla (for testing height map shape)
 	public HeightMapSurface getHeightMapSurface() {
 		if(!mapIsSet) renderBaseHeights();
 		Point topLeft = new Point(center.getX() - (length/2), center.getZ() + (length/2));
