@@ -13,8 +13,8 @@ public class Game {
   
 	private Engine e;
 	
-	public Game() {
-		e = Engine.getInstance();
+	public Game(float waterHeight) {
+		e = Engine.getInstance(waterHeight);
 	}
   
 	public void addShapes(List<shapes.Shape> shapes) {
@@ -33,7 +33,7 @@ public class Game {
      * @param args
      */
 	public static void main(String[] args) {
-		Game g = new Game();
+		Game g = new Game(250f);
 		Point center = new Point(0,0);
 		
 		WorldManager world = new WorldManager(center, 5000);		

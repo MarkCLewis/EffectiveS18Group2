@@ -25,15 +25,21 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
+import com.jme3.math.Plane;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FogFilter;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.plugins.blender.math.Vector3d;
+import com.jme3.scene.shape.Dome;
+import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
 import com.jme3.terrain.geomipmap.TerrainGrid;
@@ -44,6 +50,8 @@ import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
+import com.jme3.water.SimpleWaterProcessor;
+import com.jme3.water.WaterFilter;
 
 /**
  * The game's main engine logic
@@ -60,14 +68,15 @@ public class Engine extends SimpleApplication {
 	 *
 	 */
 	private static class EngineLoader {
-		private static final Engine INSTANCE;
-		static {
+		private static Engine INSTANCE = null;
+		public static Engine getInstance(float initialWaterHeight) {
 			try {
-				INSTANCE = new Engine();
+				EngineLoader.INSTANCE = new Engine(initialWaterHeight);
 				INSTANCE.setShowSettings(false);
 				AppSettings settings = new AppSettings(true);
 				settings.setResolution(1000, 800);
 				INSTANCE.setSettings(settings);
+				return INSTANCE;
 			} catch (Exception e) {
 				throw new ExceptionInInitializerError(e);
 			}
@@ -77,12 +86,12 @@ public class Engine extends SimpleApplication {
 	/**
 	 * This constructor throws an exception if Engine has already been instantiated
 	 */
-	private Engine() {
+	private Engine(float initialWaterHeight) {
 		if(EngineLoader.INSTANCE != null) {
 			throw new IllegalStateException("Already instantiated");
 		}
 		else {
-			// do nothing here for now
+			this.initialWaterHeight = initialWaterHeight;
 		}
 	}
 	
@@ -90,8 +99,8 @@ public class Engine extends SimpleApplication {
 	 * Call this function to retrieve the application's Engine instance
 	 * @return singleton instance of Engine
 	 */
-	public static Engine getInstance() {
-		return EngineLoader.INSTANCE;
+	public static Engine getInstance(float initialWaterHeight) {
+		return EngineLoader.getInstance(initialWaterHeight);
 	}
 	
 	/**
@@ -109,7 +118,19 @@ public class Engine extends SimpleApplication {
 	private final Vector3d worldPosition = new Vector3d(0,0,0);
 	
 	private DirectionalLight sun;
+	private Geometry skyDome;
 	private Node objectNode;
+	private Node mainNode;
+	private final ColorRGBA sunColor = new ColorRGBA(0.50f, 0.40f, 0.50f, 1.0f);
+	private final ColorRGBA skyColor = new ColorRGBA(0.7f, 0.8f, 1f, 1f);
+	private final Vector3f initialCameraLoc = new Vector3f(0, 500, 0);
+	private Geometry water;
+	private FilterPostProcessor fpp;
+	private WaterFilter waterFilter;
+	private final Vector3f lightDir = (new Vector3f(1f, -0.5f, -0.1f)); 
+	private final float initialWaterHeight;
+	private float time = 0.0f;
+	private float waterHeight = 0.0f;
 	private DebugTools debugTools;
 
 	private boolean shouldUpdateShapes = false;
@@ -149,6 +170,7 @@ public class Engine extends SimpleApplication {
      */
     @Override
     public void simpleInitApp() {
+    	this.mainNode = new Node("MainNode");
     	this.flyCamera = true;
     	cam.setFrustumFar(10000);
     	debugTools = new DebugTools(assetManager);
@@ -161,22 +183,34 @@ public class Engine extends SimpleApplication {
         bulletAppState = new BulletAppState();
         bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bulletAppState);
+        
         matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWire.getAdditionalRenderState().setWireframe(true);
         matWire.setColor("Color", ColorRGBA.Green);
     	
-        this.getCamera().setLocation(new Vector3f(0, 500, 0));
+        this.getCamera().setLocation(initialCameraLoc);
 
-        this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
-
+        // set up sky dome
+        Dome dome = new Dome(this.getWorldPosition().toVector3f(), 50, 50, 2000, true);
+        Material skyMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        skyMat.setColor("Color", skyColor);
+        skyDome = new Geometry("SkyDome", dome);
+        skyDome.setMaterial(skyMat);
+        Vector3f skyDomeLoc = this.getWorldPosition().toVector3f();
+        skyDomeLoc.y = initialCameraLoc.y - 100;
+        skyDome.setLocalTranslation(skyDomeLoc);
+        mainNode.attachChild(skyDome);
+        this.viewPort.setBackgroundColor(skyColor);
+        
         /**
          * add the sun (white directional light) to the root node
          */
         sun = new DirectionalLight();
-        sun.setDirection((new Vector3f(1f, -0.5f, -0.1f)).normalizeLocal());
-        sun.setColor(new ColorRGBA(0.50f, 0.40f, 0.50f, 1.0f));
-        rootNode.addLight(sun);
+        sun.setDirection(lightDir.normalizeLocal());
+        sun.setColor(sunColor);
+        mainNode.addLight(sun);
         
+        // set up object geometries
         objectNode = new Node("ObjectNode");
 		for (int i = 0; i < spatialBuffer.size(); i++) {
         	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
@@ -187,14 +221,54 @@ public class Engine extends SimpleApplication {
             spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             objectNode.attachChild(spatial);
         }
-		rootNode.attachChild(objectNode);
+		mainNode.attachChild(objectNode);
 		bulletAppState.getPhysicsSpace().addAll(objectNode);
+
+		fpp = new FilterPostProcessor(assetManager);
+		waterFilter = new WaterFilter(rootNode, lightDir);
+		waterFilter.setWaterHeight(initialWaterHeight);
+		waterFilter.setLightColor(sunColor);
+		waterFilter.setLightDirection(lightDir);
+		waterFilter.setColorExtinction(new Vector3f(7,11,7));
+		fpp.addFilter(waterFilter);
+		viewPort.addProcessor(fpp);
+		
+		/*
+        SimpleWaterProcessor waterProc = new SimpleWaterProcessor(assetManager);
+        waterProc.setReflectionScene(mainNode);
+        waterProc.setWaterColor(skyColor);
+        // we set the water plane
+        Vector3f waterLocation = new Vector3f(0,450,0);
+        waterProc.setPlane(new Plane(Vector3f.UNIT_Y, waterLocation.dot(Vector3f.UNIT_Y)));
+        viewPort.addProcessor(waterProc);
+
+        // we set wave properties
+        waterProc.setWaterDepth(40);         // transparency of water
+        waterProc.setDistortionScale(0.05f); // strength of waves
+        waterProc.setWaveSpeed(0.02f);       // speed of waves
+
+        // we define the wave size by setting the size of the texture coordinates
+        Quad quad = new Quad(5000,5000);
+        quad.scaleTextureCoordinates(new Vector2f(8f,8f));
+
+        // we create the water geometry from the quad
+        water = new Geometry("water", quad);
+        water.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
+        water.setLocalTranslation(-2500, 450, 2500);
+        water.setShadowMode(ShadowMode.Receive);
+        water.setMaterial(waterProc.getMaterial());
+        rootNode.attachChild(water);
+		*/
+		
+		// set up player physics object
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
         player = new CharacterControl(capsuleShape, 0.5f);
         player.setJumpSpeed(50);
         player.setFallSpeed(2000);
         player.setGravity(new Vector3f(0,-80,0));
         player.setPhysicsLocation(cam.getLocation().clone());
+        
+        this.rootNode.attachChild(mainNode);
         
         this.initKeys();
     }
@@ -380,22 +454,42 @@ public class Engine extends SimpleApplication {
         this.walkDirection.set(0, 0, 0);
         if (this.left && this.moves) {
             this.walkDirection.addLocal(camLeft);
+            this.worldPosition.x = this.cam.getLocation().x;
+            this.worldPosition.z = this.cam.getLocation().z;
         }
         if (this.right && this.moves) {
             this.walkDirection.addLocal(camLeft.negate());
+            this.worldPosition.x = this.cam.getLocation().x;
+            this.worldPosition.z = this.cam.getLocation().z;
         }
         if (this.up && this.moves) {
             this.walkDirection.addLocal(camDir);
+            this.worldPosition.x = this.cam.getLocation().x;
+            this.worldPosition.z = this.cam.getLocation().z;
         }
         if (this.down && this.moves) {
             this.walkDirection.addLocal(camDir.negate());
+            this.worldPosition.x = this.cam.getLocation().x;
+            this.worldPosition.z = this.cam.getLocation().z;
         }
         if (!flyCamera) {
             this.player.setWalkDirection(this.walkDirection);
             if(moves) {
             	this.cam.setLocation(this.player.getPhysicsLocation());
+            	this.worldPosition.x = this.cam.getLocation().x;
+                this.worldPosition.z = this.cam.getLocation().z;
             }
         }
+        
+        Vector3f skyDomeLoc = this.cam.getLocation().clone();
+        skyDomeLoc.y = this.skyDome.getLocalTranslation().y;
+        this.skyDome.setLocalTranslation(skyDomeLoc);
+        
+        // make water follow camera
+        //water.setLocalTranslation((float)getWorldPosition().x - 2500, 450, (float)getWorldPosition().z + 2500);
+        time += tpf;
+        waterHeight = (float) Math.cos(((time * 0.6f) % FastMath.TWO_PI)) * 1.5f;
+        waterFilter.setWaterHeight(initialWaterHeight + waterHeight);
     }
     
     public String getCoordinates() {
