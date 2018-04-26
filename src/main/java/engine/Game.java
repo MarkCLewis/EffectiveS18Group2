@@ -38,7 +38,7 @@ public class Game {
 		
 		WorldManager world = new WorldManager(center, 5000);		
 
-		Terrain t = Terrain.forMountains(center, 16384, 501);
+		Terrain t = Terrain.forHills(center, 2048, 16);
 		Terrain[] ters = t.split();
 		List<shapes.Shape> shapes = new ArrayList<shapes.Shape>();
 		//shapes.add(t.getHeightMapSurface());

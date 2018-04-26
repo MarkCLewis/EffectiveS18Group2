@@ -128,12 +128,10 @@ public class EngineSpatial {
 			}
 		}
 		this.spatial = new TerrainQuad(("TerrainQuad" + shape.hashCode()), shape.getPatchSize(), shape.getSideLength(), heightMapTransformed);
-		HeightfieldCollisionShape hfcs = new HeightfieldCollisionShape(shape.getHeightMap(), spatial.getLocalScale());
-		RigidBodyControl rbc = new RigidBodyControl(hfcs,0);
-		rbc.setKinematicSpatial(false);
+		this.spatial.setLocalScale(shape.getScaleX(), shape.getScaleY(), shape.getScaleZ());
+		RigidBodyControl rbc = new RigidBodyControl(0);
     	this.spatial.addControl(rbc);
     	this.mat = shape.getMaterial();
-    	this.spatial.setLocalScale(shape.getScaleX(), shape.getScaleY(), shape.getScaleZ());
 	}
 	
 	public void setupQuad(Quad shape) {

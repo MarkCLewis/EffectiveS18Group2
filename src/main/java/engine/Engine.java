@@ -120,20 +120,14 @@ public class Engine extends SimpleApplication {
 	private static final Random random = new Random(System.currentTimeMillis());
 	
 	public static final float fogDistance = 400;
-	
-	private TerrainGrid terrainGrid;
-    private Material mat_terrain;
-    private float grassScale = 64;
-    private float dirtScale = 16;
-    private float rockScale = 128;
+
     private Material matWire;
     private boolean wireframe = false;
-    private final static boolean renderKaylaTerrain = false; // set this to false to turn off kayla's terrain rendering
     protected BitmapText hintText;
     private Geometry collisionMarker;
     private BulletAppState bulletAppState;
 
-    private final static boolean usePhysics = false;
+    private boolean flyCamera;
     
     private CharacterControl player;
     
@@ -155,12 +149,12 @@ public class Engine extends SimpleApplication {
      */
     @Override
     public void simpleInitApp() {
-    	//logger.info("simpleInitApp");
+    	this.flyCamera = true;
     	cam.setFrustumFar(10000);
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
 
-		this.flyCam.setMoveSpeed(1000f);
+		this.flyCam.setMoveSpeed(500f);
     	ScreenshotAppState state = new ScreenshotAppState();
     	this.stateManager.attach(state);
 
@@ -171,95 +165,7 @@ public class Engine extends SimpleApplication {
         matWire.getAdditionalRenderState().setWireframe(true);
         matWire.setColor("Color", ColorRGBA.Green);
     	
-        if(renderKaylaTerrain) {
-	    	this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
-	    	
-	    	// Parameters to material:
-	        // regionXColorMap: X = 1..4 the texture that should be appliad to state X
-	        // regionX: a Vector3f containing the following information:
-	        //      regionX.x: the start height of the region
-	        //      regionX.y: the end height of the region
-	        //      regionX.z: the texture scale for the region
-	        //  it might not be the most elegant way for storing these 3 values, but it packs the data nicely :)
-	        // slopeColorMap: the texture to be used for cliffs, and steep mountain sites
-	        // slopeTileFactor: the texture scale for slopes
-	        // terrainSize: the total size of the terrain (used for scaling the texture)
-	        // GRASS texture
-	        Texture grass = this.assetManager.loadTexture("Textures/Terrain/splat/grass.jpg");
-	        grass.setWrap(WrapMode.Repeat);
-	        this.mat_terrain.setTexture("region1ColorMap", grass);
-	        this.mat_terrain.setVector3("region1", new Vector3f(-125, 30, this.grassScale));
-	
-	        // DIRT texture
-	        Texture dirt = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
-	        dirt.setWrap(WrapMode.Repeat);
-	        this.mat_terrain.setTexture("region2ColorMap", dirt);
-	        this.mat_terrain.setVector3("region2", new Vector3f(-200, -120, this.dirtScale));
-	
-	        // ROCK texture
-	        Texture rock = this.assetManager.loadTexture("Textures/Terrain/Rock2/rock.jpg");
-	        rock.setWrap(WrapMode.Repeat);
-	        this.mat_terrain.setTexture("region3ColorMap", rock);
-	        this.mat_terrain.setVector3("region3", new Vector3f(28, 260, this.rockScale));
-	
-	        this.mat_terrain.setTexture("region4ColorMap", rock);
-	        this.mat_terrain.setVector3("region4", new Vector3f(28, 260, this.rockScale));
-	
-	        this.mat_terrain.setTexture("slopeColorMap", rock);
-	        this.mat_terrain.setFloat("slopeTileFactor", 32);
-	
-	        this.mat_terrain.setFloat("terrainSize", 1025);
-	        
-	        EngineTerrainLoader loader = new EngineTerrainLoader(1.0f, Engine.getRandomFloat(15, 20));
-	        int patchSize = 129;
-	        int maxTerrainVisible = 1025;
-	        this.terrainGrid = new TerrainGrid("terrain", patchSize, maxTerrainVisible, loader);
-	
-	        this.terrainGrid.setMaterial(this.mat_terrain);
-	        this.terrainGrid.setLocalTranslation(0, 0, 0);
-	        this.terrainGrid.setLocalScale(2f, 1f, 2f);
-	        this.terrainGrid.setLocked(false); // unlock it so we can edit the height
-	        this.rootNode.attachChild(this.terrainGrid);
-	        
-	        TerrainLodControl control = new TerrainGridLodControl(this.terrainGrid, this.getCamera());
-	        control.setLodCalculator(new DistanceLodCalculator(patchSize, 2.7f)); // patch size, and a multiplier
-	        this.terrainGrid.addControl(control);
-	        
-	        /**
-	         * Create PhysicsRigidBodyControl for collision
-	         */
-	        List<Spatial> terrainGridChildren = terrainGrid.getChildren();
-	        for(Spatial sp : terrainGridChildren) {
-	        	if(sp.getClass() == TerrainQuad.class) {
-	        		((TerrainQuad)sp).addControl(new RigidBodyControl(new HeightfieldCollisionShape(((TerrainQuad)sp).getHeightMap(), terrainGrid.getLocalScale()), 0));
-	        	}
-	        }
-	        bulletAppState.getPhysicsSpace().addAll(terrainGrid);
-	        
-	        terrainGrid.addListener(new TerrainGridListener() {
-
-	            public void gridMoved(Vector3f newCenter) {
-	            }
-
-	            public void tileAttached(Vector3f cell, TerrainQuad quad) {
-	                while(quad.getControl(RigidBodyControl.class)!=null){
-	                    quad.removeControl(RigidBodyControl.class);
-	                }
-	                quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrainGrid.getLocalScale()), 0));
-	                bulletAppState.getPhysicsSpace().add(quad);
-	            }
-
-	            public void tileDetached(Vector3f cell, TerrainQuad quad) {
-	                if (quad.getControl(RigidBodyControl.class) != null) {
-	                    bulletAppState.getPhysicsSpace().remove(quad);
-	                    quad.removeControl(RigidBodyControl.class);
-	                }
-	            }
-
-	        });
-        }
-        
-        this.getCamera().setLocation(new Vector3f(0, 6000, 0));
+        this.getCamera().setLocation(new Vector3f(0, 500, 0));
 
         this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
 
@@ -275,7 +181,7 @@ public class Engine extends SimpleApplication {
 		for (int i = 0; i < spatialBuffer.size(); i++) {
         	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
             EngineSpatial engSpatial = spatialBuffer.get(i);
-			Vector3f localPos = (engSpatial.getJME3Position().subtract(getWorldPosition())).toVector3f();
+			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
             //Engine.logInfo("mesh origin is " + localPos.toString());
             Spatial spatial = engSpatial.getJME3Spatial(this.assetManager);
             spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
@@ -283,18 +189,12 @@ public class Engine extends SimpleApplication {
         }
 		rootNode.attachChild(objectNode);
 		bulletAppState.getPhysicsSpace().addAll(objectNode);
-
-        if (usePhysics) {
-            CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
-            player = new CharacterControl(capsuleShape, 0.5f);
-            player.setJumpSpeed(50);
-            player.setFallSpeed(50);
-            player.setGravity(new Vector3f(0,-80,0));
-
-            player.setPhysicsLocation(cam.getLocation().clone());
-
-            bulletAppState.getPhysicsSpace().add(player);
-        }
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
+        player = new CharacterControl(capsuleShape, 0.5f);
+        player.setJumpSpeed(50);
+        player.setFallSpeed(2000);
+        player.setGravity(new Vector3f(0,-80,0));
+        player.setPhysicsLocation(cam.getLocation().clone());
         
         this.initKeys();
     }
@@ -317,11 +217,13 @@ public class Engine extends SimpleApplication {
         inputManager.addMapping("Ups", new KeyTrigger(KeyInput.KEY_W));
         inputManager.addMapping("Downs", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("Jumps", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping("Fly", new KeyTrigger(KeyInput.KEY_LCONTROL));
         inputManager.addListener(actionListener, "Lefts");
         inputManager.addListener(actionListener, "Rights");
         inputManager.addListener(actionListener, "Ups");
         inputManager.addListener(actionListener, "Downs");
         inputManager.addListener(actionListener, "Jumps");
+        inputManager.addListener(actionListener, "Fly");
     }
     
     private boolean left = false;
@@ -335,14 +237,8 @@ public class Engine extends SimpleApplication {
         	if (name.equals("wireframe") && !keyPressed) {
                 wireframe = !wireframe;
                 if (!wireframe) {
-                	if(renderKaylaTerrain) {
-                		terrainGrid.setMaterial(matWire);
-                	}
                 	objectNode.setMaterial(matWire);
                 } else {
-                	if(renderKaylaTerrain) {
-                		terrainGrid.setMaterial(mat_terrain);
-                	}
                 	shouldResetObjectMaterials = true;
                 }
             } else if (name.equals("shoot") && !keyPressed) {
@@ -352,12 +248,7 @@ public class Engine extends SimpleApplication {
 
                 Ray ray = new Ray(origin, direction);
                 CollisionResults results = new CollisionResults();
-                int numCollisions = 0;
-                if(renderKaylaTerrain) {
-                	numCollisions = terrainGrid.collideWith(ray, results);
-                } else {
-                	numCollisions = objectNode.collideWith(ray, results);
-                }
+                int numCollisions = objectNode.collideWith(ray, results);
                 if (numCollisions > 0) {
                     CollisionResult hit = results.getClosestCollision();
                     if (collisionMarker == null) {
@@ -399,8 +290,25 @@ public class Engine extends SimpleApplication {
                 } else {
                     Engine.this.down = false;
                 }
-            } else if (name.equals("Jumps") && usePhysics) {
+            } else if (name.equals("Jumps") && !Engine.this.flyCamera) {
             	Engine.this.player.jump(new Vector3f(0,30,0));;
+            } else if(name.equals("Fly") && !keyPressed) {
+            	if(Engine.this.flyCamera) {
+            		player.setJumpSpeed(50);
+                    player.setFallSpeed(2000);
+                    player.setGravity(new Vector3f(0,-80,0));
+                    player.setPhysicsLocation(cam.getLocation().clone());
+            		bulletAppState.getPhysicsSpace().add(player);
+            		Engine.this.flyCamera = false;
+            	} else {
+            		player.setJumpSpeed(0);
+                    player.setFallSpeed(0);
+                    player.setGravity(new Vector3f(0,0,0));
+                    player.setPhysicsLocation(cam.getLocation().clone());
+            		bulletAppState.getPhysicsSpace().remove(player);
+            		Engine.this.flyCam.setMoveSpeed(500f);
+            		Engine.this.flyCamera = true;
+            	}
             }
         }
     };
@@ -409,7 +317,7 @@ public class Engine extends SimpleApplication {
         hintText = new BitmapText(guiFont, false);
         hintText.setSize(guiFont.getCharSet().getRenderedSize());
         hintText.setLocalTranslation(0, getCamera().getHeight(), 0);
-        hintText.setText("Hit T to switch to wireframe");
+        hintText.setText("Hit T to switch to wireframe\nHit Left Ctrl to toggle gravity");
         guiNode.attachChild(hintText);
     }
 
@@ -452,8 +360,7 @@ public class Engine extends SimpleApplication {
     		for (int i = 0; i < spatialBuffer.size(); i++) {
             	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
                 EngineSpatial engSpatial = spatialBuffer.get(i);
-    			Vector3f localPos = (engSpatial.getJME3Position().subtract(getWorldPosition())).toVector3f();
-                //Engine.logInfo("mesh origin is " + localPos.toString());
+    			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
                 Spatial spatial = engSpatial.getJME3Spatial(this.assetManager);
                 spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
                 objectNode.attachChild(spatial);
@@ -483,7 +390,7 @@ public class Engine extends SimpleApplication {
         if (this.down && this.moves) {
             this.walkDirection.addLocal(camDir.negate());
         }
-        if (usePhysics) {
+        if (!flyCamera) {
             this.player.setWalkDirection(this.walkDirection);
             if(moves) {
             	this.cam.setLocation(this.player.getPhysicsLocation());
@@ -496,7 +403,7 @@ public class Engine extends SimpleApplication {
     }
     
     public Vector3d getWorldPosition() {
-    	return new Vector3d(this.worldPosition.x,this.worldPosition.y,this.worldPosition.z);
+    	return new Vector3d(this.worldPosition.x,0,this.worldPosition.z);
     }
 
     public void changeShapes(List<shapes.Shape> shapes) {
