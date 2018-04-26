@@ -35,7 +35,7 @@ public class ManagerTest {
 		
 		double length = 5000;
 		int seed = 500;
-	    int points = 61;
+		int points = 61;
 		double[][] heightMap = {{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
@@ -46,7 +46,7 @@ public class ManagerTest {
 		//world.addEntity(t);
 		//Terrain t = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap);
 		Terrain terr = Terrain.forHills(new Point(0.0,0.0), length, 100);
-		world.addEntity(terr);
+		//world.addEntity(terr);
 		
 		System.out.println("Starting test:");
 		
