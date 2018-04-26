@@ -138,6 +138,10 @@ public class Shape {
 		return this.mat;
 	}
 	
+	public boolean isImmobile() {
+		return this.isImmobile;
+	}
+	
 	/**
 	 * Set the Shape's rotation. <br>
 	 * If you change the shape's rotation after adding the shape to the game, 

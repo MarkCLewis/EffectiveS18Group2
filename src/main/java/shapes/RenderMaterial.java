@@ -7,13 +7,6 @@ public class RenderMaterial {
 	private float shininess;
 	
 	/**
-	 * If true, then material uses vertex-centered colors.
-	 * If false, then colors are rendered per-pixel.
-	 * Vertex colors are less expensive for renderer.
-	 */
-	private boolean useVertexColor;
-	
-	/**
 	 * If true, then the material does per-vertex lighting.
 	 * If false, then lighting is calculated per-pixel.
 	 * Per-vertex lighting is more efficient.
@@ -39,7 +32,6 @@ public class RenderMaterial {
 		this.diffuse = RenderColor.VeryDarkGrey;
 		this.ambient = RenderColor.Black;
 		this.shininess = 0.01f;
-		this.useVertexColor = true;
 		this.useVertexLighting = true;
 		this.useTransparency = false;
 	}
@@ -58,7 +50,6 @@ public class RenderMaterial {
 		this.ambient = ambient;
 		// defaults
 		this.shininess = 0.01f;
-		this.useVertexColor = true;
 		this.useVertexLighting = true;
 		this.useTransparency = false;
 	}
@@ -90,7 +81,6 @@ public class RenderMaterial {
 		this.diffuse = diffuse;
 		this.ambient = ambient;
 		this.shininess = shininess;
-		this.useVertexColor = vertexColor;
 		this.useVertexLighting = vertexLighting;
 		this.useTransparency = transparency;
 	}
@@ -100,7 +90,6 @@ public class RenderMaterial {
 		this.diffuse = that.getDiffuseColor();
 		this.ambient = that.getAmbientColor();
 		this.shininess = that.getShininess();
-		this.useVertexColor = that.isUsingVertexColor();
 		this.useVertexLighting = that.isUsingVertexLighting();
 		this.useTransparency = that.isUsingTransparency();
 	}
@@ -139,11 +128,7 @@ public class RenderMaterial {
 		}
 		this.shininess = shininess;
 	}
-	
-	public boolean isUsingVertexColor() {
-		return useVertexColor;
-	}
-	
+
 	public boolean isUsingVertexLighting() {
 		return useVertexLighting;
 	}
@@ -151,11 +136,7 @@ public class RenderMaterial {
 	public boolean isUsingTransparency() {
 		return useTransparency;
 	}
-	
-	public void setUseVertexColor(boolean useVertexColor) {
-		this.useVertexColor = useVertexColor;
-	}
-	
+
 	public void setUseVertexLighting(boolean useVertexLighting) {
 		this.useVertexLighting = useVertexLighting;
 	}
