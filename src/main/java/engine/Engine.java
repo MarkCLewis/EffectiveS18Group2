@@ -33,6 +33,7 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FogFilter;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -171,7 +172,7 @@ public class Engine extends SimpleApplication {
     public void simpleInitApp() {
     	this.mainNode = new Node("MainNode");
     	this.flyCamera = true;
-    	cam.setFrustumFar(10000);
+    	cam.setFrustumFar(50000);
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
 
@@ -198,6 +199,8 @@ public class Engine extends SimpleApplication {
         Vector3f skyDomeLoc = this.getWorldPosition().toVector3f();
         skyDomeLoc.y = initialCameraLoc.y - 100;
         skyDome.setLocalTranslation(skyDomeLoc);
+        skyDome.setQueueBucket(Bucket.Sky);
+        skyDome.setCullHint(Spatial.CullHint.Never);
         mainNode.attachChild(skyDome);
         this.viewPort.setBackgroundColor(skyColor);
         
