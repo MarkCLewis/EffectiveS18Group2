@@ -124,7 +124,6 @@ public class Engine extends SimpleApplication {
 	private final ColorRGBA sunColor = new ColorRGBA(0.50f, 0.40f, 0.50f, 1.0f);
 	private final ColorRGBA skyColor = new ColorRGBA(0.7f, 0.8f, 1f, 1f);
 	private final Vector3f initialCameraLoc = new Vector3f(0, 500, 0);
-	private Geometry water;
 	private FilterPostProcessor fpp;
 	private WaterFilter waterFilter;
 	private final Vector3f lightDir = (new Vector3f(1f, -0.5f, -0.1f)); 
