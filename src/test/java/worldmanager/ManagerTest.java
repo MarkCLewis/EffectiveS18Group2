@@ -8,8 +8,10 @@ import java.util.Random;
 import org.junit.Test;
 import entity.Entity;
 import shapes.Shape;
+import virtualworld.terrain.NormalHeightAlgorithm;
 import virtualworld.terrain.Point;
 import virtualworld.terrain.Terrain;
+import virtualworld.terrain.TerrainHeightAlgorithm;
 
 public class ManagerTest {
 	
@@ -39,16 +41,11 @@ public class ManagerTest {
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0}};
-	
-<<<<<<< HEAD
-		Terrain t = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap);
 		
 		//world.addEntity(t);
-=======
 		//Terrain t = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap);
-		Terrain t = Terrain.forHills(new Point(0.0,0.0), length, 100);
-		world.addEntity(t);
->>>>>>> 93d6f1f59f48b6f42c449eb7223c67a4771bde31
+		Terrain terr = Terrain.forHills(new Point(0.0,0.0), length, 100);
+		world.addEntity(terr);
 		
 		System.out.println("Starting test:");
 		
