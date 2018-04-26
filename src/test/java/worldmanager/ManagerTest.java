@@ -42,14 +42,14 @@ public class ManagerTest {
 	
 		Terrain t = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap);
 		
-		world.addEntity(t);
+		//world.addEntity(t);
 		
 		System.out.println("Starting test:");
 		
 		Node node = world.rootNode;
 		world.updateMaxView(2000);
 		
-		Random rand = new Random();
+		/*Random rand = new Random();
 		for(int i = 0; i < 25; i++) {
 			double x = rand.nextDouble() + rand.nextInt(4999) - 2500;
 			double y = rand.nextDouble() + rand.nextInt(4999) - 2500;
@@ -61,19 +61,58 @@ public class ManagerTest {
 			System.out.println(node.findDist(p, p1));
 			entlist.add(tester);
 			world.addEntity(tester);
-		}
-		
-		List<Shape> allShapes = world.getGeometry(new Point(0.0,0.0));
+		}*/
 		/*for(Shape s : allShapes) {
 			System.out.println(s);
 			System.out.println(s.getCenter()[0]);
 			System.out.println(s.getCenter()[1]);
 			System.out.println(s.getCenter()[2]);
 		}*/
-				
-		boolean b = entlist.size() == 25;
+		
+		Point p1 = new Point(0,1999);
+		Point p2 = new Point(100,0);
+		Point p3 = new Point(0,-100);
+		Point p4 = new Point(-100,0);
+		Point p5 = new Point(0,4000);
+		Point p6 = new Point(4000,0);
+		Point p7 = new Point(0,-4000);
+		Point p8 = new Point(-4000,0);
+		
+		entlist.add(new TestEntity(p1,2.4,5)); //world.getHeight(p1)));
+		entlist.add(new TestEntity(p2,2.4,5)); //world.getHeight(p2)));
+		entlist.add(new TestEntity(p3,2.4,5)); //world.getHeight(p3)));
+		entlist.add(new TestEntity(p4,2.4,5)); //world.getHeight(p4)));
+		entlist.add(new TestEntity(p5,2.4,5)); //world.getHeight(p5)));
+		entlist.add(new TestEntity(p6,2.4,5)); //world.getHeight(p6)));
+		entlist.add(new TestEntity(p7,2.4,5)); //world.getHeight(p7)));
+		entlist.add(new TestEntity(p8,2.4,5)); //world.getHeight(p8)));
+		
+		for(Entity e: entlist) {
+			world.addEntity(e);
+		}
+		
+		List<Shape> allShapes = world.getGeometry(new Point(0.0,0.0));	
+		
+		boolean b = entlist.size() == 8;
+		
 		System.out.println(getMax(node));
 		System.out.println(allShapes.size());
+		System.out.println(world.cameraLoc.getX() + " " + world.cameraLoc.getZ());
+		
 		assertTrue(b);
+		assertTrue(allShapes.size() == 4);
+		
+		System.out.println("Moving small step:");
+		allShapes = world.getGeometry(new Point(0.0,-5.0));
+		System.out.println(allShapes.size());
+		System.out.println(world.cameraLoc.getX() + " " + world.cameraLoc.getZ());
+		
+		assertTrue(allShapes.size() == 4);
+		
+		System.out.println("Moving big step:");
+		allShapes = world.getGeometry(new Point(0.0, 3000));
+		System.out.println(allShapes.size());
+		System.out.println(world.cameraLoc.getX() + " " + world.cameraLoc.getZ());
+		assertTrue(allShapes.size() == 1);
 	}
 }

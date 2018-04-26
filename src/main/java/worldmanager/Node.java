@@ -155,7 +155,7 @@ public class Node {
 	
 	//Gives all entities distance from camera
 	public void cameraDist(Point target) {
-		while(children.length > 0) {
+		if(children.length > 0) {
 			for(Entity e: entities) {
 				Point start = e.getCenter();
 				double dist = findDist(target,start);

@@ -24,7 +24,7 @@ public class WorldManager {
 	Point cameraLoc;
 	
 	//This value is how far you can walk before the WorldManager loads more objects
-	double cameraStep = 1;
+	double cameraStep = 10;
 	
 	//this value is the absolute farthest you can see.
 	double maxView = 10;
@@ -97,11 +97,13 @@ public class WorldManager {
 		if (node.findDist(node.center, cameraLoc) < max) {
 			for(Entity e: ents) {
 				if(e.isActive()) {
-					if (nodeShapes == null || nodeShapes.isEmpty()) {
-						nodeShapes = e.getShapes();
-					}
-					else {
-						nodeShapes.addAll(e.getShapes());
+					if(node.findDist(e.getCenter(), cameraLoc) < max) {
+						if (nodeShapes == null || nodeShapes.isEmpty()) {
+							nodeShapes = e.getShapes();
+						}
+						else {
+							nodeShapes.addAll(e.getShapes());
+						}
 					}
 				}
 			}
