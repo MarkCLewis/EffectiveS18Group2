@@ -15,11 +15,11 @@ public class test {
 		//Sphere s = new Sphere((float)0.5, 0 ,3, 3);
 		
 		//distinct pattern
-		Cloud t = new Cloud (5,6000,0,75,20,100);
+		//Cloud t = new Cloud (5,6000,0,75,20,100);
 		
 		//t.setOffSets(.75, 1, 3, 2, 8);
-		t.setFilters(0.65, 0.75);
-		t.setOffSets(3,5,2,2,4); //working cloud too
+		//t.setFilters(0.65, 0.75);
+		//t.setOffSets(3,5,2,2,4); //working cloud too
 		//may need to make a new class since it might need to reduce the isolated sphere 
 		
 		//cluster
@@ -39,7 +39,7 @@ public class test {
 		/*t.setOffSets(2, 1, 1, 2, 4); //blocky cloud, good for big cloud can use a bit polish. Works with both (50,15,35) and (30,10,20)
 		t.setFilters(0.45, 0.65);*/
 		
-		t.getInverse();
+		//t.getInverse();
 		//Cloud t = new Cloud (5,300,0,100,30,100);
 		//ArrayList<Shape> spheres = t.makeShape3d();
 		
