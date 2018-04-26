@@ -1,10 +1,9 @@
 package cloud;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import engine.Game;
 import shapes.Shape;
-import shapes.Sphere;
 
 public class test {
 
@@ -45,7 +44,7 @@ public class test {
 		//ArrayList<Shape> spheres = t.makeShape3d();
 		
 		Cloud b = cFactory.getCloud(5,6000,0);
-		ArrayList<Shape> spheres = b.makeShape3d();
+		List<Shape> spheres = b.getShapes();
 		
 		/*Cloud z = new Cloud(5,400, 50, 40,10,60);
 		z.setOffSets(.75, 1, 3, 2, 8);

@@ -34,7 +34,6 @@ public class Cloud implements Entity {
 	Perlin func;
 	private double[][] dimArr; //actual representation of the cloud, might have to change later , for now, only 2d represenetation
 	private double[][][] cloudArr;
-	private ArrayList<Shape> cloud;
 	private int neighborCount = 0;		
 
 	private double xInc = 0;
@@ -45,6 +44,8 @@ public class Cloud implements Entity {
 	private boolean inverse = false;
 	private double f1 = 0;
 	private double f2 = 0;
+	
+	List<Shape> bestSpheres = new ArrayList<Shape>();
 	
 	public void getInverse()
 	{
@@ -152,11 +153,10 @@ public class Cloud implements Entity {
 		reduceCluster();
 	}
 	
-	public ArrayList<Shape> makeShape3d()
+	public void makeShape3d()
 	{
 		processing();
 		//cirrocumulus();
-		ArrayList<Shape> cSphere = new ArrayList<Shape>();
 		//calculate midpoint to get the right center
 		int midX = length/2;
 		int midY = height/2;
@@ -182,14 +182,13 @@ public class Cloud implements Entity {
 						posX = originX - midX/sF + x/sF; //xcoord
 						posY = originY + midY/sF - y/sF; //yCoord
 						posZ = originZ - midZ/sF + z/sF;
-						cSphere.add(new Sphere((float) (cloudArr[x][z][y] - 0.1) * 3 ,posX, posY, posZ));
+						bestSpheres.add(new Sphere((float) (cloudArr[x][z][y] - 0.1) * 3 ,posX, posY, posZ));
 						//cSphere.add(new Sphere((float) (0.35),posX, posY, posZ));
 						//radius 2 is arbitrary for testing purposes
 					}
 				}
 			}
 		}
-		return cSphere;
 	}
 	
 	
@@ -220,12 +219,7 @@ public class Cloud implements Entity {
 	
 	@Override public List<Shape> getShapes()
 	{
-		return cloud;
-	}
-	
-	public List<Shape> getCloud()
-	{
-		return cloud;
+		return bestSpheres;
 	}
 	
 	

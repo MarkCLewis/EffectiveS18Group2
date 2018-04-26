@@ -35,6 +35,7 @@ public class CloudFactory {
 			temp.setOffSets(6.5, 3, 3, 2, 8);
 			temp.setFilters(0.55, 0.75);
 			temp.getInverse();
+			temp.makeShape3d();
 			return temp;
 		}
 		
@@ -48,6 +49,7 @@ public class CloudFactory {
 			temp.setOffSets(2, 1, 1, 2, 4);
 			temp.setFilters(0.45, 0.65);
 			temp.getInverse();
+			temp.makeShape3d();
 			return temp;
 		}
 		
@@ -60,6 +62,7 @@ public class CloudFactory {
 			temp.setOffSets(3,5,2,2,4);
 			temp.setFilters(0.65, 0.75);
 			temp.getInverse();
+			temp.makeShape3d();
 			return temp;			
 		}
 		return null;
