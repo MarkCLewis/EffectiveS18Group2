@@ -42,14 +42,14 @@ public class Game {
 		Terrain[] ters = t.split();
 		List<shapes.Shape> shapes = new ArrayList<shapes.Shape>();
 		//shapes.add(t.getHeightMapSurface());
-		shapes.addAll(ters[0].getShapes());
-		shapes.addAll(ters[1].getShapes());
-		shapes.addAll(ters[2].getShapes());
-		shapes.addAll(ters[3].getShapes());
-		/*shapes.add(ters[0].getHeightMapSurface());
+		//shapes.addAll(ters[0].getShapes());
+		//shapes.addAll(ters[1].getShapes());
+		//shapes.addAll(ters[2].getShapes());
+		//shapes.addAll(ters[3].getShapes());
+		shapes.add(ters[0].getHeightMapSurface());
 		shapes.add(ters[1].getHeightMapSurface());
 		shapes.add(ters[2].getHeightMapSurface());
-		shapes.add(ters[3].getHeightMapSurface());*/
+		shapes.add(ters[3].getHeightMapSurface());
 		//world.addEntity(t);
 		//List<shapes.Shape> shapes = t.getShapes();
 		//List<shapes.Shape> shapes2 = world.getGeometry(center);
