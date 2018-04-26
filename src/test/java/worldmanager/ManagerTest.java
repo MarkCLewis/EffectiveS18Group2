@@ -41,15 +41,12 @@ public class ManagerTest {
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0},
 								{0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0, 0.0}};
-	
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(4, 3, 2, 150, 400);
-		
-		Terrain t = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap, ta);
+
 		
 		//world.addEntity(t);
 		//Terrain t = new Terrain(new Point(0.0,0.0), length, seed, points, heightMap);
-		Terrain t = Terrain.forHills(new Point(0.0,0.0), length, 100);
-		world.addEntity(t);
+		Terrain terr = Terrain.forHills(new Point(0.0,0.0), length, 100);
+		world.addEntity(terr);
 		
 		System.out.println("Starting test:");
 		
