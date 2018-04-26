@@ -287,16 +287,23 @@ public class Cloud implements Entity {
 	private boolean validLoc (int x, int z, int y)
 	{
 		if (x > 0 && x < length)
+		{
 			if (z > 0 && z < width)
+			{
 				if (y > 0 && y < height)
+				{
 					return true;
+				}
+			}
+		}
 		return false;
 	}
 	
 	//if the coordinate is non zero, that means there it is a neighbor of the coordinate passed in
 	private double checkNeighbor (int x, int z, int y)
 	{
-		if (cloudArr[x][z][y] > 0) {
+		if (cloudArr[x][z][y] > 0) 
+		{
 			neighborCount++;
 			return cloudArr[x][z][y];
 		}
@@ -328,7 +335,9 @@ public class Cloud implements Entity {
 	private void clearEdges()
 	{
 		for (int x = 0; x < length; x++)
+		{
 			for (int z = 0; z < width; z++)
+			{
 				for (int y = 0; y < height; y++)
 				{
 					if (x < 2 || x > (length - 3))
@@ -340,9 +349,12 @@ public class Cloud implements Entity {
 						cloudArr[x][z][y] = 0;
 					}
 				}
+			}
+		}
 	}
 	
     //trying to make another type of cloud, not based on perlin noise
+	/*
     private void cirrocumulus()
     {
 		double xInc = 1.0/length;
@@ -406,7 +418,7 @@ public class Cloud implements Entity {
     						if (z + 1 < width)
     							cloudArr[x][z+1][y] = val;
     					}
-    					else*/
+    					else*//*
     						cloudArr[x][z][y] = 0;
     				}
     				xOff += xInc;
@@ -415,7 +427,7 @@ public class Cloud implements Entity {
     		}
     		yOff += yInc;
     	}
-    }   
+    }*/
     
     //todo smooth the edges so it looks less square
     
