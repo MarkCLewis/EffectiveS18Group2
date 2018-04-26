@@ -20,7 +20,7 @@ public class Cloud implements Entity {
 		func = Perlin.getInstance();	
 		dimArr = new double[length][width];
 		center = new Point(x,z);
-		makeCloudArray2d();
+		//makeCloudArray2d();
 		cloudArr = new double[length][width][height];
 	}
 	//determine how big the cloud is 
@@ -43,6 +43,8 @@ public class Cloud implements Entity {
 	private int oct = 0;
 	private double res = 0;
 	private boolean inverse = false;
+	private double f1 = 0;
+	private double f2 = 0;
 	
 	public void getInverse()
 	{
@@ -51,45 +53,60 @@ public class Cloud implements Entity {
 	
 	public void setOffSets(double x, double y, double z, int octave, double resistance)
 	{
-		xInc = x/length;
-		yInc = y/height;
-		zInc = z/width;
-		oct = octave;
-		res = resistance;
+		double tempXInc = x/length;
+		double tempYInc = y/height;
+		double tempZInc = z/width;
+		
+		setXInc(tempXInc);
+		setYInc(tempYInc);
+		setZInc(tempZInc);
+		setOctave(octave);
+		setResistance(resistance);
 	}
-	private void makeCloudArray2d()
+	
+	public void setFilters(double fil1, double fil2)
 	{
-		//working code
-		//only for 2d cloud
-		//2d array to represent 2d cloud
-		//increase the increment increase the number of scattered clouds within a frame
-		double xInc = 3.0/length;
-		double yInc = 3.0/width;
-		//System.out.println(xInc +" " + yInc +"\n\n");
-		double yOff = 0;
-		for (int y = 0; y < width; y++){
-			double xOff = 0;
-			for (int x = 0; x < length; x++){
-				//get value from perlin noise function
-				double value = (((float)(func.OctavePerlin(xOff,yOff, 3, 4))));
-				//offset so it is between 0 and 1
-				double check = (value + 1) /2;
-				//if (check > 0.5)
-				//	check = 0;
-				dimArr[x][y] = check; 
-				xOff += xInc;
-			}
-			yOff += yInc;
-		}
+		setFilter1(fil1);
+		setFilter2(fil2);
+	}
+	
+	private void setXInc(double newXInc)
+	{
+		xInc = newXInc;
+	}
+	
+	private void setYInc(double newYInc)
+	{
+		yInc = newYInc;
+	}
+	
+	private void setZInc(double newZInc)
+	{
+		zInc = newZInc;
+	}
+	
+	private void setOctave(int newOct)
+	{
+		oct = newOct;
+	}
+	
+	private void setResistance(double resist)
+	{
+		res = resist;
+	}
+	
+	private void setFilter1(double fil1)
+	{
+		f1 = fil1;
+	}
+	
+	private void setFilter2(double fil2)
+	{
+		f2 = fil2;
 	}
 	
 	private void makeCloudArray3d() 
 	{
-		//semi working ish
-		//double xInc = 0.75/length;
-		//double yInc = 1.0/height;
-		//double zInc = 3.0/width; // have to change later
-		//System.out.println(xInc +" " + yInc +"\n\n");
 		double yOff = 0;
 		
 		for (int y = 0; y < height; y++) {
@@ -105,12 +122,12 @@ public class Cloud implements Entity {
 					double check = (value + 1) /2;
 					if (inverse) 
 					{
-						if(check < 0.45)
+						if(check < f1)
 							check = 0;
 					}
 					else
 					{
-						if (check > 0.45 )//|| check < 0.20)
+						if (check > f1 )//|| check < 0.20)
 							check = 0;
 					}
 					cloudArr[x][z][y] = check; 
@@ -120,19 +137,24 @@ public class Cloud implements Entity {
 			}
 			yOff += yInc;
 		}
-		//testing
-		//clearEdges();
+		//testin
+		clearEdges();
 	}
 	
 	
 	//Given a particular array, create a sphere for each location where cloudArr[x][z][y] is non - zero
 	//The radius of the sphere is dependent on the value hold by cloudArr[x][z][y]
 	
-	public ArrayList<Shape> makeShape3d()
+	public void processing()
 	{
 		makeCloudArray3d();
+		filterIsolated();
 		reduceCluster();
-		//offTheTop();
+	}
+	
+	public ArrayList<Shape> makeShape3d()
+	{
+		processing();
 		//cirrocumulus();
 		ArrayList<Shape> cSphere = new ArrayList<Shape>();
 		//calculate midpoint to get the right center
@@ -155,7 +177,7 @@ public class Cloud implements Entity {
 			{
 				for (int z = 0; z < width; z++)
 				{
-					if (cloudArr[x][z][y] > 0)
+					if (cloudArr[x][z][y] > f2)
 					{
 						posX = originX - midX/sF + x/sF; //xcoord
 						posY = originY + midY/sF - y/sF; //yCoord
@@ -211,11 +233,15 @@ public class Cloud implements Entity {
 	private void reduceCluster ()
 	{
 		for (int x = 0; x < length; x++)
+		{
 			for (int z = 0; z < width; z++)
+			{
 				for(int y = 0; y < height; y++)
 				{
 					neighborTest(x,z,y);
 				}
+			}
+		}
 	}
 	
 	//Perform a neighbors check, if at least 4 neighbors are present, condense them into one sphere by
@@ -395,25 +421,144 @@ public class Cloud implements Entity {
     		}
     		yOff += yInc;
     	}
-    }
-    
-    private void offTheTop()
-    {
-    	for (int x = 0; x < length; x++)
-    		for (int z = 0; z < width; z++)
-    			cloudArr[x][z][height-1] = 0;
-    }
+    }   
     
     //todo smooth the edges so it looks less square
     
-    private void smoothEdges()
-    {
-    	
-    }
     
     public boolean isActive() 
     {
     	return true;
+    }
+    
+    
+    //miscellaneous function for debugging
+    public void printYLevel(int i )
+    {
+    	for (int x = 0; x < length; x++)
+    	{
+    		for (int z = 0; z < width; z++)
+    		{
+    			System.out.printf("%-10.2f", cloudArr[x][z][i]);
+    		}
+    		System.out.println();
+    	}
+    }
+    
+    public boolean isEmpty(int x, int z, int y)
+    {
+    	if (validLoc (x,z,y))
+    	{
+    		if (cloudArr[x][z][y] > 0)
+    		{
+    			return false;
+    		}
+    	}
+    	return true;
+    }
+    
+    private void filterIsolated()
+    {
+    	for (int y = 0; y < height; y++)
+    	{
+	    	for (int x = 0; x < length; x++)
+	    	{
+	    		for (int z = 0; z < width; z++)
+	    		{
+	    			clearIsolatedSphere(x,z,y);
+	    		}
+	    	}
+    	}
+    }
+    
+    private void clearIsolatedSphere(int x, int z, int y)
+    {
+    	int count = 0;
+    	//combinations of y
+    	if (!isEmpty(x,z,y-1))
+    		count++;
+    	
+    	if (!isEmpty(x,z,y+1))
+    		count++;
+    	
+    	//combinations of z
+    	if (!isEmpty(x,z-1, y))
+    		count++;
+    	
+    	if (!isEmpty(x,z-1,y+1))
+    		count++;
+    	
+    	if (!isEmpty(x,z-1,y-1))
+    		count++;
+    	
+    	if (!isEmpty(x,z+1,y))
+    		count++;
+    	
+    	if (!isEmpty(x,z+1,y+1))
+    		count++;
+    	
+    	if (!isEmpty(x,z+1,y-1))
+    		count++;
+    	
+    	//combinations of x+1
+    	if (!isEmpty(x+1,z,y))
+    		count++;
+    	
+    	if (!isEmpty(x+1,z,y+1))
+    		count++;
+    	
+    	if (!isEmpty(x+1,z,y-1))
+    		count++;
+    	
+    	if (!isEmpty(x+1,z+1,y))
+    		count++;
+    	
+    	if (!isEmpty(x+1,z+1,y+1))
+    		count++;
+    	
+    	if (!isEmpty(x+1,z+1,y-1))
+    		count++;
+    	
+    	if (!isEmpty(x+1,z-1,y))
+    		count++;
+    	
+    	if (!isEmpty(x+1,z-1,y+1))
+    		count++;
+    	
+    	if (!isEmpty(x+1,z-1,y-1))
+    		count++;
+    	
+    	//combinations of x-1
+    	
+    	if (!isEmpty(x-1,z,y))
+    		count++;
+    	
+    	if (!isEmpty(x-1,z,y+1))
+    		count++;
+    	
+    	if (!isEmpty(x-1,z,y-1))
+    		count++;
+    	
+    	if (!isEmpty(x-1,z+1,y))
+    		count++;
+    	
+    	if (!isEmpty(x-1,z+1,y+1))
+    		count++;
+    	
+    	if (!isEmpty(x-1,z+1,y-1))
+    		count++;
+    	
+    	if (!isEmpty(x-1,z-1,y))
+    		count++;
+    	
+    	if (!isEmpty(x-1,z-1,y+1))
+    		count++;
+    	
+    	if (!isEmpty(x-1,z-1,y-1))
+    		count++;
+    	
+    	if (count == 0)
+    		cloudArr[x][z][y] = 0;
     }
     
 }
