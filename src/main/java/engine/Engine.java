@@ -112,6 +112,11 @@ public class Engine extends SimpleApplication {
 	 * position data at index i inside of "meshPositions"
 	 */
 	private final ArrayList<EngineSpatial> spatialBuffer = new ArrayList<EngineSpatial>();
+	/**
+	 * This buffer holds new shapes that should be added on next update.
+	 * The buffer is cleared when the shapes are added to the render state.
+	 */
+	private final ArrayList<EngineSpatial> spatialsToAdd = new ArrayList<EngineSpatial>();
 	
 	/**
 	 * The position of the camera/player in world coordinates
@@ -312,7 +317,7 @@ public class Engine extends SimpleApplication {
         public void onAction(final String name, final boolean keyPressed, final float tpf) {
         	if (name.equals("wireframe") && !keyPressed) {
                 wireframe = !wireframe;
-                if (!wireframe) {
+                if (wireframe) {
                 	objectNode.setMaterial(matWire);
                 } else {
                 	shouldResetObjectMaterials = true;
@@ -441,15 +446,34 @@ public class Engine extends SimpleApplication {
                 spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
                 objectNode.attachChild(spatial);
             }
+    		if(wireframe) {
+    			objectNode.setMaterial(matWire);
+    		}
         	bulletAppState.getPhysicsSpace().addAll(objectNode);
         	shouldUpdateShapes = false;
     	} else if(shouldResetObjectMaterials) {
     		for (int i = 0; i < spatialBuffer.size(); i++) {
-    			EngineSpatial eg = spatialBuffer.get(i);
-    			Spatial s = objectNode.getChild(eg.getGeomName());
-    			s.setMaterial(eg.getMaterial(assetManager));
+    			EngineSpatial es = spatialBuffer.get(i);
+    			Spatial s = objectNode.getChild(es.getGeomName());
+    			s.setMaterial(es.getMaterial(assetManager));
     		}
     		shouldResetObjectMaterials = false;
+    	}
+    	if(!spatialsToAdd.isEmpty()) {
+    		for (int i = 0; i < spatialsToAdd.size(); i++) {
+            	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
+                EngineSpatial engSpatial = spatialsToAdd.get(i);
+    			spatialBuffer.add(engSpatial);
+    			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
+                Spatial spatial = engSpatial.getJME3Spatial(this.assetManager);
+                spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
+                if(wireframe) {
+                	spatial.setMaterial(matWire);
+                }
+                objectNode.attachChild(spatial);
+                bulletAppState.getPhysicsSpace().add(spatial);
+            }
+    		spatialsToAdd.clear();
     	}
     	Vector3f camDir = this.cam.getDirection().clone().multLocal(0.6f);
         Vector3f camLeft = this.cam.getLeft().clone().multLocal(0.4f);
@@ -503,12 +527,36 @@ public class Engine extends SimpleApplication {
     }
 
     public void changeShapes(List<shapes.Shape> shapes) {
-    	spatialBuffer.clear();
-    	for (shapes.Shape shape : shapes) {
-            EngineSpatial eg = new EngineSpatial(shape);
-            spatialBuffer.add(eg);
-    	}
-    	shouldUpdateShapes = true;
+    	this.enqueue(new Runnable() {
+    		public void run() {
+    			spatialBuffer.clear();
+    	    	for (shapes.Shape shape : shapes) {
+    	            EngineSpatial es = new EngineSpatial(shape);
+    	            spatialBuffer.add(es);
+    	    	}
+    	    	shouldUpdateShapes = true;
+    		}
+    	});
+    }
+    
+    public void addShapes(List<shapes.Shape> shapes) {
+    	this.enqueue(new Runnable() {
+    		public void run() {
+	    		for(shapes.Shape shape : shapes) {
+	        		EngineSpatial es = new EngineSpatial(shape);
+	        		spatialsToAdd.add(es);
+	        	}
+    		}
+    	});
+    }
+    
+    public void addShape(shapes.Shape shape) {
+    	this.enqueue(new Runnable() {
+    		public void run() {
+    			EngineSpatial es = new EngineSpatial(shape);
+    			spatialsToAdd.add(es);
+    		}
+    	});
     }
     
     /**
