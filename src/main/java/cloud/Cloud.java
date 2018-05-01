@@ -12,12 +12,5 @@ public interface Cloud extends Entity {
 	
 	public Point getCenter();
 
-	public double getSize();
-
-	public void distFromCamera(double dist);
-
-	public List<Shape> getShapes();
-	
-	public boolean isActive();
 	
 }

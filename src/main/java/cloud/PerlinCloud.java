@@ -96,9 +96,6 @@ public class PerlinCloud implements Cloud{
 	
 	@Override public List<Shape> getShapes()
 	{
-		System.out.printf("length = %d\n",length);
-		System.out.printf("width = %d\n",width);
-		System.out.printf("height = %d\n",height);
 		return bestSpheres;
 	}
 	

@@ -18,11 +18,11 @@ public class CloudFactory {
 		int width;
 		
 		ThreadLocalRandom ran = ThreadLocalRandom.current();
-		rand = ran.nextInt(0,2);
-		rand = 2;
+		rand = ran.nextInt(0,3);
+		//rand = 3;
 		
 		int newY;
-		int skyLevel = 1000;
+		int skyLevel = 2000;
 		if (y < skyLevel) 
 		{
 			newY = skyLevel;
@@ -94,6 +94,13 @@ public class CloudFactory {
 			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.75);
 			temp.makeShape3d();
 			return temp;			
+		}
+		else if (rand == 3)
+		{
+			int sizeOfSpiral = ran.nextInt(5,50);
+			SquareSpiralCloud temp = new SquareSpiralCloud(x, newY, z, sizeOfSpiral * 10);
+			temp.makeShape3d();
+			return temp;
 		}
 		return null;
 	}
