@@ -27,13 +27,13 @@ public class JFXNodeTest extends Application {
 	
 	private void populate() {
 		Random rand = new Random();
-		for(int i = 0; i < 100; i++) {
+		for(int i = 0; i < 300; i++) {
 			double x = rand.nextDouble() + rand.nextInt(799);
 			double y = rand.nextDouble() + rand.nextInt(799);
 			Point p = new Point(x,y);
 			TestEntity tester = new TestEntity(p,rand.nextInt(30)+5, 0);
 			entlist.add(tester);
-			world.addEntity(tester);
+			TestEntity.fillTest(tester);;
 		}
 	}
 	
@@ -136,3 +136,48 @@ public class JFXNodeTest extends Application {
 	}
 
 }
+
+/*
+ * 	public Road[] split() {
+ * 		(north1,north2) = splitLine(tl,tr,North)
+ * 		(south1,south2) = splitLine(bl,br,South)
+ * 		(west1,west2) = splitLine(tl,bl,West)
+ * 		(east1,east2) = splitLine(tr,br,East)
+ *
+ * 		return Road[] {
+ * 			new Road() {
+ * 				north = north1
+ * 				west = west1
+ * 				east = findNumber(west1,east1)
+ * 				south = findNumber(south1,north1)
+ * 				tl = tl
+ * 				tr = average of tl and tr
+ * 				bl = average of tl and bl
+ * 				br = center
+ * 			}
+ * 				new Road() {
+ * 				north = north1
+ * 				west = west1
+ * 				east = findNumber(west1,east1)
+ * 				south = findNumber(south1,north1)
+ * 				tl = tl
+ * 				tr = average of tl and tr
+ * 				bl = average of tl and bl
+ * 				br = center
+ * 			}
+ * 			...
+ * 		}
+ * 	}
+ * 
+ */
+
+
+
+
+
+
+
+
+
+
+

@@ -121,7 +121,6 @@ public class ManagerTest {
 		System.out.println(world2.cameraLoc.getX() + " " + world2.cameraLoc.getZ());
 		assertTrue(allShapes.size() == 1);
 		
-		TestEntity.fillTest();
 		System.out.println("Testing singleton-ness:");
 		allShapes = world.getGeometry(new Point(3000, 4000));
 		System.out.println(allShapes.size());
