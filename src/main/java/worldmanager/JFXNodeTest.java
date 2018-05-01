@@ -6,11 +6,8 @@ import java.util.Random;
 
 import entity.Entity;
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -25,7 +22,7 @@ public class JFXNodeTest extends Application {
 	private double x = 400;
 	private double z = 400;
 	private Point p = new Point(x,z);
-	private WorldManager world = new WorldManager(p,800);
+	private WorldManager world = WorldManager.getInstance();
 	private List<Entity> entlist = new ArrayList<>();
 	
 	private void populate() {

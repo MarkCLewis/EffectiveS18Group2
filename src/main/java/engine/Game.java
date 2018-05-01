@@ -36,8 +36,9 @@ public class Game {
 		Game g = new Game();
 		Point center = new Point(0,0);
 		
-		WorldManager world = new WorldManager(center, 5000);		
-
+		//WorldManager world = new WorldManager(center, 5000);		
+		WorldManager world = WorldManager.getInstance();
+		
 		Terrain t = Terrain.forMountains(center, 16384, 501);
 		Terrain[] ters = t.split();
 		List<shapes.Shape> shapes = new ArrayList<shapes.Shape>();

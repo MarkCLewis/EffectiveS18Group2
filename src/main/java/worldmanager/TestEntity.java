@@ -21,6 +21,12 @@ public class TestEntity implements Entity {
 		shapes.add(shape);
 	}
 	
+	public static void fillTest(WorldManager world) {
+		Point p1 = new Point(4000,4000);
+		TestEntity ent = new TestEntity(p1,2.4,5);
+		world.addEntity(ent);
+	}
+	
 	public Point getCenter() {
 		return cent;
 	}
