@@ -43,7 +43,7 @@ public class test {
 		//Cloud t = new Cloud (5,300,0,100,30,100);
 		//ArrayList<Shape> spheres = t.makeShape3d();
 		
-		Cloud b = cFactory.getCloud(5,6000,0);
+		Cloud b = cFactory.getCloud(5,0000,0);
 		List<Shape> spheres = b.getShapes();
 		
 		/*Cloud z = new Cloud(5,400, 50, 40,10,60);
