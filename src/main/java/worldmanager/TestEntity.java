@@ -21,9 +21,7 @@ public class TestEntity implements Entity {
 		shapes.add(shape);
 	}
 	
-	public static void fillTest() {
-		Point p1 = new Point(0,100);
-		TestEntity ent = new TestEntity(p1,2.4,5);
+	public static void fillTest(Entity ent) {
 		WorldManager.getInstance().addEntity(ent);
 	}
 	
