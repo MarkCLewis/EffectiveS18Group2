@@ -39,7 +39,7 @@ public class WorldManager {
 		cameraLoc = cent;
 	}
 	
-	public static WorldManager getInstance() {
+	public static synchronized WorldManager getInstance() {
 		if (world == null) {
 			world = new WorldManager(new Point(0,0), 5000);
 		}
