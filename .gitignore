@@ -102,12 +102,4 @@ project/plugins/project/
 .lib/
 *.so
 
-### Scala ###
-
-### jMonkeyEngine ###
-jMonkeyEngine3_2/*
-src/main/resources/Common/*
-
-
-
 # End of https://www.gitignore.io/api/sbt,java,scala,eclipse
