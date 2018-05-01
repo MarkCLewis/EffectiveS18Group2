@@ -15,6 +15,7 @@ public class CloudFactory {
 		
 		ThreadLocalRandom ran = ThreadLocalRandom.current();
 		rand = ran.nextInt(0,2);
+		rand = 0;
 		
 		int newY;
 		if (y < 6000) 
@@ -25,13 +26,13 @@ public class CloudFactory {
 		{
 			newY = y;
 		}
-			//Create a single uniform cloud
+		//Create a single uniform cloud
 		if (rand == 0)
 		{
-			length = 30;
-			height = 10;
-			width = 20;
-			Cloud temp = new Cloud(x, newY, z, length, height, width);
+			length = 60;//30 original;
+			height = 20;//10 original;
+			width = 40;//20 original;
+			PerlinCloud temp = new PerlinCloud(x, newY, z, length, height, width);
 			temp.setOffSets(6.5, 3, 3, 2, 8);
 			temp.setFilters(0.55, 0.75);
 			temp.getInverse();
@@ -45,7 +46,7 @@ public class CloudFactory {
 			length = 50;
 			height = 15;
 			width = 35;
-			Cloud temp = new Cloud(x, newY, z, length, height, width);
+			PerlinCloud temp = new PerlinCloud(x, newY, z, length, height, width);
 			temp.setOffSets(2, 1, 1, 2, 4);
 			temp.setFilters(0.45, 0.65);
 			temp.getInverse();
@@ -58,7 +59,7 @@ public class CloudFactory {
 			length = 75;
 			height = 20;
 			width = 100;
-			Cloud temp = new Cloud(x, newY, z, length, height, width);
+			PerlinCloud temp = new PerlinCloud(x, newY, z, length, height, width);
 			temp.setOffSets(3,5,2,2,4);
 			temp.setFilters(0.65, 0.75);
 			temp.getInverse();

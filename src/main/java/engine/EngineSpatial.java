@@ -118,31 +118,20 @@ public class EngineSpatial {
 	}
 	
 	public void setupHeightMap(HeightMapSurface shape) {
-		/*this.mesh = new Mesh();
-		int pps = shape.getPointsPerSide();
-		int triCnt = (pps - 1) * (pps - 1) * 2;
-		Vector3f[] vertices = new Vector3f[pps * pps];
-		Vector2f[] texCoord = new Vector2f[pps * pps];
-		Vector3f[] normals = new Vector3f[pps * pps];
-		int[] indexes = new int[triCnt * 3];
-    	for(int r = 0; r < pps; r++) {
-    		float rRatio = ((float)r / (pps - 1));
-    		float z = shape.getSideLength() * (0.5f - rRatio);
-    		for(int c = 0; c < pps; c++) {
-    			float cRatio = ((float)c / (pps - 1));
-    			float x = shape.getSideLength() * (-0.5f + cRatio);
-    			int idx = c + (r * pps);
-    			vertices[idx] = new Vector3f(x,shape.getHeightAt(idx),z);
-    			texCoord[idx] = new Vector2f
-    		}
-    	}*/
-		this.spatial = new TerrainQuad(("TerrainQuad" + shape.hashCode()), shape.getPatchSize(), shape.getSideLength(), shape.getHeightMap());
-		HeightfieldCollisionShape hfcs = new HeightfieldCollisionShape(shape.getHeightMap(), spatial.getLocalScale());
-		RigidBodyControl rbc = new RigidBodyControl(hfcs,0);
-		rbc.setKinematicSpatial(false);
+		float[] heightMapTransformed = new float[shape.getSideLength() * shape.getSideLength()];
+		for(int r=0; r < shape.getSideLength(); r++) {
+			for(int c=0; c < shape.getSideLength(); c++) {
+				int idx = (c + (r * shape.getSideLength()));
+				int rT = (shape.getSideLength() - 1) - r;
+				int idxT = (c + (rT * shape.getSideLength()));
+				heightMapTransformed[idxT] = shape.getHeightAt(idx);
+			}
+		}
+		this.spatial = new TerrainQuad(("TerrainQuad" + shape.hashCode()), shape.getPatchSize(), shape.getSideLength(), heightMapTransformed);
+		this.spatial.setLocalScale(shape.getScaleX(), shape.getScaleY(), shape.getScaleZ());
+		RigidBodyControl rbc = new RigidBodyControl(0);
     	this.spatial.addControl(rbc);
     	this.mat = shape.getMaterial();
-    	this.spatial.setLocalScale(shape.getScaleX(), shape.getScaleY(), shape.getScaleZ());
 	}
 	
 	public void setupQuad(Quad shape) {

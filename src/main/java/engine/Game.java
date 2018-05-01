@@ -13,11 +13,19 @@ public class Game {
   
 	private Engine e;
 	
-	public Game() {
-		e = Engine.getInstance();
+	public Game(float waterHeight) {
+		e = Engine.getInstance(waterHeight);
 	}
   
 	public void addShapes(List<shapes.Shape> shapes) {
+		e.addShapes(shapes);
+	}
+	
+	public void addShape(shapes.Shape shape) {
+		e.addShape(shape);
+	}
+	
+	public void replaceShapes(List<shapes.Shape> shapes) {
 		e.changeShapes(shapes);
 	}
 	
@@ -33,40 +41,24 @@ public class Game {
      * @param args
      */
 	public static void main(String[] args) {
-		Game g = new Game();
+		Game g = new Game(400f);
+		g.start();
 		Point center = new Point(0,0);
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
 		
-		Terrain t = Terrain.forMountains(center, 16384, 501);
+		Terrain t = Terrain.forFeilds(center, 2048, 16);
+
 		Terrain[] ters = t.split();
 		List<shapes.Shape> shapes = new ArrayList<shapes.Shape>();
-		//shapes.add(t.getHeightMapSurface());
-		shapes.addAll(ters[0].getShapes());
-		shapes.addAll(ters[1].getShapes());
-		shapes.addAll(ters[2].getShapes());
-		shapes.addAll(ters[3].getShapes());
-		/*shapes.add(ters[0].getHeightMapSurface());
-		shapes.add(ters[1].getHeightMapSurface());
-		shapes.add(ters[2].getHeightMapSurface());
-		shapes.add(ters[3].getHeightMapSurface());*/
-		//world.addEntity(t);
-		//List<shapes.Shape> shapes = t.getShapes();
-		//List<shapes.Shape> shapes2 = world.getGeometry(center);
-		//List<shapes.Shape> shapes2 = ters[0].getShapes();
-		//shapes2.addAll(ters[1].getShapes());
-		//shapes2.addAll(ters[2].getShapes());
-		//shapes2.addAll(ters[3].getShapes());
-		g.start();
-		g.addShapes(shapes);
-		//g.addShapes(shapes2);
-		//g.addShapes(ters[0].getShapes());
-		//g.addShapes(ters[1].getShapes());
-		//g.addShapes(ters[2].getShapes());
-		//g.addShapes(ters[3].getShapes());
-		
-		//g.addShapes(shapes);
+		for(int i = 0; i < ters.length; i++) {
+			Terrain[] tmpters = ters[i].split();
+			g.addShape(tmpters[0].getHeightMapSurface());
+			g.addShape(tmpters[1].getHeightMapSurface());
+			g.addShape(tmpters[2].getHeightMapSurface());
+			g.addShape(tmpters[3].getHeightMapSurface());
+		}
 	}
   
 }

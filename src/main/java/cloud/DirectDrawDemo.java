@@ -12,7 +12,8 @@ import javax.swing.JPanel;
 import virtualworld.terrain.Perlin;
 
 public class DirectDrawDemo extends JPanel {
-
+}
+/*
     private BufferedImage canvas;
     private Perlin func;
     private double width;
@@ -159,4 +160,4 @@ public class DirectDrawDemo extends JPanel {
 
 
 
-}
+}*/
