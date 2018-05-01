@@ -8,7 +8,7 @@ import shapes.Shape;
 public class test {
 
 	public static void main(String[] args) {
-		Game g = new Game();
+		Game g = new Game(400f);
 		CloudFactory cFactory = new CloudFactory();
 		//RectangularPrism rP = new RectangularPrism(3, 3, 1, 5, 5, 0);
 		//RectangularPrism rP2 = new RectangularPrism(3, 3, 1, 5, 5, 5);
