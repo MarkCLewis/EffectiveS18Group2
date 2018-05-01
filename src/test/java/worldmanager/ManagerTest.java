@@ -16,7 +16,8 @@ import virtualworld.terrain.TerrainHeightAlgorithm;
 public class ManagerTest {
 	
 	Point p1 = new Point(0,0);	
-	WorldManager world = new WorldManager(p1, 5000);
+	WorldManager world = WorldManager.getInstance();
+	WorldManager world2 = WorldManager.getInstance();
 	List<Entity> entlist = new ArrayList<>();
 	
 	public int getMax(Node nod) {
@@ -117,6 +118,15 @@ public class ManagerTest {
 		allShapes = world.getGeometry(new Point(0.0, 3000));
 		System.out.println(allShapes.size());
 		System.out.println(world.cameraLoc.getX() + " " + world.cameraLoc.getZ());
+		System.out.println(world2.cameraLoc.getX() + " " + world2.cameraLoc.getZ());
 		assertTrue(allShapes.size() == 1);
+		
+		TestEntity.fillTest();
+		System.out.println("Testing singleton-ness:");
+		allShapes = world.getGeometry(new Point(3000, 4000));
+		System.out.println(allShapes.size());
+		System.out.println(world.cameraLoc.getX() + " " + world.cameraLoc.getZ());
+		allShapes = world.getGeometry(new Point(0, 0));
+		System.out.println(allShapes.size());
 	}
 }

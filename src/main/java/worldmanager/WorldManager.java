@@ -20,6 +20,7 @@ public class WorldManager {
 	//		2. create a function in Entity that will allow me to turn their active state on/off
 	
 	//data
+	private static WorldManager world = null;
 	Node rootNode;
 	Point cameraLoc;
 	
@@ -30,12 +31,19 @@ public class WorldManager {
 	double maxView = 10;
 	
 	//constructor
-	public WorldManager(Point cent, double sz) {
+	private WorldManager(Point cent, double sz) {
 		rootNode = new Node();
 		rootNode.updateCenter(cent);
 		rootNode.updateSize(sz);
 		rootNode.updateDepth(0);
 		cameraLoc = cent;
+	}
+	
+	public static synchronized WorldManager getInstance() {
+		if (world == null) {
+			world = new WorldManager(new Point(0,0), 5000);
+		}
+		return world;
 	}
 	
 	//Don't know how the much the point size scales to actual length in game.

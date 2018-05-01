@@ -45,9 +45,11 @@ public class Game {
 		g.start();
 		Point center = new Point(0,0);
 		
-		WorldManager world = new WorldManager(center, 5000);		
-
+		//WorldManager world = new WorldManager(center, 5000);		
+		WorldManager world = WorldManager.getInstance();
+		
 		Terrain t = Terrain.forFeilds(center, 2048, 16);
+
 		Terrain[] ters = t.split();
 		List<shapes.Shape> shapes = new ArrayList<shapes.Shape>();
 		for(int i = 0; i < ters.length; i++) {
