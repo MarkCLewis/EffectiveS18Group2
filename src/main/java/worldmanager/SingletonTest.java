@@ -24,7 +24,7 @@ public class SingletonTest {
 		List<Shape> allShapes = WorldManager.getInstance().getGeometry(p);
 		System.out.println(allShapes.size());
 		
-		TestEntity.fillTest();
+		TestEntity.fillTest(new TestEntity(p,2.4,5));
 		allShapes = WorldManager.getInstance().getGeometry(p);
 		System.out.println(allShapes.size());
 
