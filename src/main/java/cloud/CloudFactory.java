@@ -1,7 +1,8 @@
 package cloud;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+
+import engine.Engine;
 public class CloudFactory {
 	public CloudFactory()
 	{
@@ -17,8 +18,7 @@ public class CloudFactory {
 		int height;
 		int width;
 		
-		ThreadLocalRandom ran = ThreadLocalRandom.current();
-		rand = ran.nextInt(0,3);
+		rand = Engine.getRandomInt(0, 3);
 		//rand = 3;
 		
 		int newY;
@@ -97,7 +97,7 @@ public class CloudFactory {
 		}
 		else if (rand == 3)
 		{
-			int sizeOfSpiral = ran.nextInt(5,50);
+			int sizeOfSpiral = Engine.getRandomInt(5,50);
 			SquareSpiralCloud temp = new SquareSpiralCloud(x, newY, z, sizeOfSpiral * 10);
 			temp.makeShape3d();
 			return temp;
