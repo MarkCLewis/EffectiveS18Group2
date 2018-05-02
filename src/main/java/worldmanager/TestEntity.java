@@ -45,4 +45,8 @@ public class TestEntity implements Entity {
 		return true;
 	}
 
+	public double mySize() {
+		return WorldManager.getInstance().rootNode.getSize();
+	}
+	
 }
