@@ -35,15 +35,6 @@ public class RectangularPrism extends Shape {
 		this.dimensions = new float[] {xSize, ySize, zSize};
 	}
 	
-	public RectangularPrism(
-			float xSize, float ySize, float zSize, 
-			double xPos, double yPos, double zPos,
-			float xRot, float yRot, float zRot,
-			boolean isImmobile, PivotLocation pivot) {
-		super(xPos, yPos, zPos, xRot, yRot, zRot, isImmobile, pivot);
-		this.dimensions = new float[] {xSize, ySize, zSize};
-	}
-	
 	public float[] getDimensions() {
 		return dimensions.clone();
 	}

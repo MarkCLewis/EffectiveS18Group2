@@ -31,12 +31,7 @@ public class Shape {
 	 * True by default.
 	 */
 	private boolean isImmobile;
-	
-	private PivotLocation pivot;
-	
-	public enum PivotLocation {Center, Bottom, Top};
-	
-	
+
 	/**
 	 * Shape is an abstract class representing an in-game object.
 	 * @param xPos x-coordinate of object's center
@@ -48,7 +43,6 @@ public class Shape {
 		this.rotation = new float[] {0,0,0};
 		this.isImmobile = true;
 		this.mat = new RenderMaterial();
-		this.pivot = PivotLocation.Center;
 	}
 	
 	/**
@@ -66,7 +60,6 @@ public class Shape {
 		this.rotation = new float[] {0,0,0};
 		this.isImmobile = isImmobile;
 		this.mat = new RenderMaterial();
-		this.pivot = PivotLocation.Center;
 	}
 	
 	/**
@@ -85,7 +78,6 @@ public class Shape {
 		this.rotation = new float[] {xRot, yRot, zRot};
 		this.isImmobile = true;
 		this.mat = new RenderMaterial();
-		this.pivot = PivotLocation.Center;
 	}
 	
 	/**
@@ -107,34 +99,8 @@ public class Shape {
 		this.rotation = new float[] {xRot, yRot, zRot};
 		this.isImmobile = isImmobile;
 		this.mat = new RenderMaterial();
-		this.pivot = PivotLocation.Center;
 	}
-	
-	/**
-	 * Shape is an abstract class representing an in-game object.
-	 * @param xPos x-coordinate of object's center
-	 * @param yPos y-coordinate of object's center
-	 * @param zPos z-coordinate of object's center
-	 * @param xRot Rotation about the x-axis in radians
-	 * @param yRot Rotation about the y-axis in radians
-	 * @param zRot Rotation about the z-axis in radians
-	 * @param isImmobile if true, object will not move but mobile objects will collide with it. 
-	 * (For example, a tree in GTA is immobile)
-	 * @param pivot The pivot location of the shape. The rotation will be applied about this point
-	 * in the shape. For example, "PivotLocation.Top" will make the shape rotate about its top.
-	 * 
-	 */
-	public Shape(
-			double xPos, double yPos, double zPos, 
-			float xRot, float yRot, float zRot, 
-			boolean isImmobile, PivotLocation pivot) {
-		this.center = new double[] {xPos, yPos, zPos};
-		this.rotation = new float[] {xRot, yRot, zRot};
-		this.isImmobile = isImmobile;
-		this.mat = new RenderMaterial();
-		this.pivot = pivot;
-	}
-	
+
 	public double[] getCenter() {
 		return new double[]  {center[0],center[1],center[2]};
 	}
@@ -165,10 +131,6 @@ public class Shape {
 	
 	public float getZRot() {
 		return this.rotation[2];
-	}
-	
-	public PivotLocation getPivot() {
-		return this.pivot;
 	}
 	
 	public RenderMaterial getMaterial() {
@@ -219,8 +181,5 @@ public class Shape {
 	public void setMaterial(RenderMaterial mat) {
 		this.mat = mat;
 	}
-	
-	public void setPivot(PivotLocation pivot) {
-		this.pivot = pivot;
-	}
+
 }

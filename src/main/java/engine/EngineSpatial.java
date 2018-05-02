@@ -77,16 +77,8 @@ public class EngineSpatial {
     	spatial.rotateUpTo(new Vector3f(0,0,1));
     	
     	if(shape.getXRot() != 0 || shape.getYRot() != 0 || shape.getZRot() != 0) {
-    		if(shape.getPivot() == Shape.PivotLocation.Bottom) {
-    			spatial.move(0, shape.getHeight() / 2f, 0);
-    		} else if(shape.getPivot() == Shape.PivotLocation.Top) {
-    			spatial.move(0, -shape.getHeight() / 2f, 0);
-    		}
     		Quaternion rot = (new Quaternion()).fromAngles(shape.getXRot(), shape.getYRot(), shape.getZRot());
     		spatial.rotate(rot);
-        	if(shape.getPivot() == Shape.PivotLocation.Bottom || shape.getPivot() == Shape.PivotLocation.Top) {
-        		spatial.move(0, 0, 0);
-        	}
     	}
     	
     	CylinderCollisionShape scs = new CylinderCollisionShape(new Vector3f(shape.getRadius(),shape.getHeight()/2,shape.getRadius()), 2);
@@ -122,15 +114,7 @@ public class EngineSpatial {
     	this.spatial = new Geometry("RectPrism"+shape.hashCode(),this.mesh);
     	
     	if(shape.getXRot() != 0 || shape.getYRot() != 0 || shape.getZRot() != 0) {
-    		if(shape.getPivot() == Shape.PivotLocation.Bottom) {
-    			spatial.setLocalTranslation(0, dim[1] / 2f, 0);
-    		} else if(shape.getPivot() == Shape.PivotLocation.Top) {
-    			spatial.setLocalTranslation(0, -dim[1] / 2f, 0);
-    		}
     		spatial.rotate(shape.getXRot(), shape.getYRot(), shape.getZRot());
-        	if(shape.getPivot() == Shape.PivotLocation.Bottom || shape.getPivot() == Shape.PivotLocation.Top) {
-        		spatial.center();
-        	}
     	}
     	
     	BoxCollisionShape bcs = new BoxCollisionShape(new Vector3f(dim[0]/2,dim[1]/2,dim[2]/2));
