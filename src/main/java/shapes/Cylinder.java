@@ -40,6 +40,16 @@ public class Cylinder extends Shape {
 		this.radius = radius;
 	}
 	
+	public Cylinder(
+			float height, float radius, 
+			double xPos, double yPos, double zPos,
+			float xRot, float yRot, float zRot, 
+			boolean isImmobile, PivotLocation pivot) {
+		super(xPos, yPos, zPos, xRot, yRot, zRot, isImmobile, pivot);
+		this.height = height;
+		this.radius = radius;
+	}
+	
 	public float getHeight() {
 		float hcopy = height;
 		return hcopy;

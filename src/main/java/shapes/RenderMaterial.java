@@ -21,6 +21,10 @@ public class RenderMaterial {
 	 */
 	private boolean useTransparency;
 	
+	private boolean useTexture;
+	private String texDiffusePath;
+	private String texNormalPath;
+	
 	/**
 	 * Material holds all the important color and texture 
 	 * information for the shape it is attached to.
@@ -34,6 +38,9 @@ public class RenderMaterial {
 		this.shininess = 0.01f;
 		this.useVertexLighting = true;
 		this.useTransparency = false;
+		this.useTexture = false;
+		this.texDiffusePath = "";
+		this.texNormalPath = "";
 	}
 	
 	/**
@@ -52,6 +59,9 @@ public class RenderMaterial {
 		this.shininess = 0.01f;
 		this.useVertexLighting = true;
 		this.useTransparency = false;
+		this.useTexture = false;
+		this.texDiffusePath = "";
+		this.texNormalPath = "";
 	}
 	
 	/**
@@ -83,6 +93,9 @@ public class RenderMaterial {
 		this.shininess = shininess;
 		this.useVertexLighting = vertexLighting;
 		this.useTransparency = transparency;
+		this.useTexture = false;
+		this.texDiffusePath = "";
+		this.texNormalPath = "";
 	}
 	
 	public RenderMaterial(RenderMaterial that) {
@@ -92,6 +105,9 @@ public class RenderMaterial {
 		this.shininess = that.getShininess();
 		this.useVertexLighting = that.isUsingVertexLighting();
 		this.useTransparency = that.isUsingTransparency();
+		this.useTexture = that.useTexture;
+		this.texDiffusePath = that.texDiffusePath;
+		this.texNormalPath = that.texNormalPath;
 	}
 	
 	public RenderColor getAmbientColor() {
@@ -105,9 +121,17 @@ public class RenderMaterial {
 	public RenderColor getSpecularColor() {
 		return new RenderColor(this.specular);
 	}
-	
+
 	public float getShininess() {
 		return this.shininess;
+	}
+	
+	public String getTextureDiffusePath() {
+		return this.texDiffusePath;
+	}
+	
+	public String getTextureNormalPath() {
+		return this.texNormalPath;
 	}
 	
 	public void setAmbientColor(RenderColor ambient) {
@@ -128,6 +152,14 @@ public class RenderMaterial {
 		}
 		this.shininess = shininess;
 	}
+	
+	public void setTextureDiffusePath(String texDiffusePath) {
+		this.texDiffusePath = texDiffusePath;
+	}
+	
+	public void setTextureNormalPath(String texNormalPath) {
+		this.texNormalPath = texNormalPath;
+	}
 
 	public boolean isUsingVertexLighting() {
 		return useVertexLighting;
@@ -136,6 +168,10 @@ public class RenderMaterial {
 	public boolean isUsingTransparency() {
 		return useTransparency;
 	}
+	
+	public boolean isUsingTexture() {
+		return useTexture;
+	}
 
 	public void setUseVertexLighting(boolean useVertexLighting) {
 		this.useVertexLighting = useVertexLighting;
@@ -143,5 +179,9 @@ public class RenderMaterial {
 	
 	public void setUseTransparency(boolean useTransparency) {
 		this.useTransparency = useTransparency;
+	}
+	
+	public void setUseTexture(boolean useTexture) {
+		this.useTexture = useTexture;
 	}
 }
