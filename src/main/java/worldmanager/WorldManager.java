@@ -22,7 +22,7 @@ public class WorldManager {
 	//data
 	private static WorldManager world = null;
 	Node rootNode;
-	Point cameraLoc;
+	Point cameraLoc = new Point(0,0);
 	
 	//This value is how far you can walk before the WorldManager loads more objects
 	double cameraStep = 10;
