@@ -6,9 +6,9 @@ import java.util.List;
 import engine.Engine;
 import entity.Entity;
 import javafx.geometry.Point3D;
-import shapes.Shape;
 import shapes.HeightMapSurface;
-import shapes.Quad;
+import shapes.Shape;
+import worldmanager.WorldManager;
 
 //Use Static Factories to set up the different types of terrain and create Root Terrain with it	
 
@@ -48,7 +48,9 @@ public class Terrain implements Entity {
 	private TerrainHeightAlgorithm noise;
 	private final int pointsPerSide;
 	private boolean mapIsSet;
-
+	private boolean active = true;
+	private double size = WorldManager.getInstance().getSize();
+	
     // length the area that the terrain covers and the height seed between each point.
     private final double length;
     
@@ -107,7 +109,9 @@ public class Terrain implements Entity {
 
     // splits the terrain object into four separate terrain objects
     public Terrain[] split() {
-    	
+
+    	  active = false;
+
         return new Terrain[] {
         	
         		//0 Top-left
@@ -201,7 +205,7 @@ public class Terrain implements Entity {
 		
 	}
 
-	@Override
+	/*@Override
 	public List<Shape> getShapes() {
 		
 		if (!mapIsSet) renderBaseHeights();
@@ -221,7 +225,7 @@ public class Terrain implements Entity {
 			}
     	
 		return quads; 
-	}
+	}*/
 	
 	// (added by Kayla (for testing height map shape)
 	public HeightMapSurface getHeightMapSurface() {
@@ -243,8 +247,15 @@ public class Terrain implements Entity {
 	}
 	
 	@Override
+	public List<Shape> getShapes() {
+		List<Shape> shapes = new ArrayList<Shape>();
+		shapes.add(getHeightMapSurface());
+		return shapes;
+	}
+	
+	@Override
 	public boolean isActive() {
-		return true;
+		return active;
 	}
 
 }
