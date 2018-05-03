@@ -16,15 +16,7 @@ public class Terrain implements Entity {
 	
 	public static void main(String[] args) {
 	   
-		double length = 5000;
-		int seed = 500;
-	    int points = 61;
-		double[][] heightMap = {{0.0}};
-		
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(4, 3, 2, 150, 400); 
-		
-		Terrain t = new Terrain(new Point(0.0,0.0), length, points, heightMap, ta);
-		//Terrain t = Terrain.forMountainValley(new Point(0.0,0.0), length, 100);
+		Terrain t = Terrain.forWorld(new Point(0.0,0.0), 500, 100);
 		double[][] render = t.renderBaseHeights();
 		
 		System.out.println("rendered top level terrain");
@@ -35,7 +27,7 @@ public class Terrain implements Entity {
 			System.out.print("\n");
 		}
 		
-		List<Point3D> trees = t.getTrees();
+		/*List<Point3D> trees = t.getTrees();
 		
 		if (trees.isEmpty()) {
 			System.out.println("No trees");
@@ -45,7 +37,7 @@ public class Terrain implements Entity {
 		
 		for (Point3D tree: trees) {
 			System.out.print(tree.toString() + " ");
-		}
+		}*/
 		
 	}
 	
@@ -64,39 +56,40 @@ public class Terrain implements Entity {
     
     
 	
-	public Terrain(Point c, double len, int points, double[][] constructionArray, TerrainHeightAlgorithm noiseAlgorithm) {
+	public Terrain(Point c, double len, int points, TerrainHeightAlgorithm noiseAlgorithm) {
 		center = c;
         length = len;
 		pointsPerSide = points;
-        heightMap = expandArray(constructionArray);
+        heightMap = new double[points][points];
         noise = noiseAlgorithm;
         mapIsSet = false;
 	}
 	
 	//Static Constructors. LOD stand for game units covered per Quad
+
+	public static Terrain forWorld(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = new WorldHeightAlgorithm(c, length);
+		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
+	}
 	
 	public static Terrain forFeilds(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(.75, 3, 3, 150, 300);
-		double [][] placeholderArray = {{0.0}};
-		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forFeilds();
+		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
 	public static Terrain forHills(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(2, 3, 6, 150, 500);
-		double [][] placeholderArray = {{0.0}};
-		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forHills();
+		return new Terrain(c, length, pointsFromLOD(length, lod) ,  ta);
 	}
 	
 	public static Terrain forMountains(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(2, 3, 10, 150, 1000);
-		double [][] placeholderArray = {{0.0}};
-		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forMountains();
+		return new Terrain(c, length, pointsFromLOD(length, lod), ta);
 	}
 	
 	public static Terrain forMountainValley(Point c, double length, int lod) {
 		TerrainHeightAlgorithm ta = new ValleyHeightAlgorithm(8, 3, 3, 150, 600, 1.5);
-		double [][] placeholderArray = {{0.0}};
-		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
 	private static int pointsFromLOD(double length, int lod) {
@@ -116,9 +109,9 @@ public class Terrain implements Entity {
 
     // splits the terrain object into four separate terrain objects
     public Terrain[] split() {
-    	
-    	active = false;
-        double[][][] subTerrains = splitArray();
+
+    	  active = false;
+
         return new Terrain[] {
         	
         		//0 Top-left
@@ -128,7 +121,6 @@ public class Terrain implements Entity {
                 		center.getZ() + (length/4)),
                 length/2,
                 pointsPerSide,
-                subTerrains[0],
                 noise),
             //1  Top-right
             new Terrain(
@@ -137,7 +129,6 @@ public class Terrain implements Entity {
                 		center.getZ() + (length/4)),
                 length/2,
                 pointsPerSide,
-                subTerrains[1],
                 noise),
             //2 bottom-left
             new Terrain(
@@ -146,7 +137,6 @@ public class Terrain implements Entity {
                 		center.getZ() - (length/4)),
                 length/2,
                 pointsPerSide,
-                subTerrains[2],
                 noise),
             //3 bottom-right
             new Terrain(
@@ -155,72 +145,8 @@ public class Terrain implements Entity {
                 		center.getZ() - (length/4)),
                 length/2,
                 pointsPerSide,
-                subTerrains[3],
                 noise),
         };   
-    }
-    
-    private double[][] expandArray(double[][] init) {
-    	
-    	double[][] ans = new double[pointsPerSide][pointsPerSide];
-    	
-    	for (double[] row: ans)
-    	    Arrays.fill(row, -1.0);
-    	
-    	for (int r = 0; r < init.length; r++) {
-			for (int c = 0; c < init.length; c++) {
-				ans[r*2][c*2] = init[r][c];
-			}
-    	}
-    	
-    	return ans;
-    }
-    
-    //function takes in a 0,1,2,3 for the 4 different parts of the terrain
-    private double[][][] splitArray() {
-    	
-    	if(!mapIsSet) renderBaseHeights();
-    	//Integer division so will always round down
-    	int splitSize = (pointsPerSide + 1)/2;
-    	
-    	double[][][] split = new double[4][splitSize][splitSize];
-    	
-    	for(int r = 0; r < heightMap.length; r++) {
-    		if (r < splitSize -1) {
-    			split[0][r] = Arrays.copyOfRange(heightMap[r], 0, splitSize); 
-    			split[1][r] = Arrays.copyOfRange(heightMap[r], splitSize -1, heightMap[r].length); 
-    		} else if (r > splitSize -1) {
-    			split[2][r % splitSize] = Arrays.copyOfRange(heightMap[r], 0, splitSize); 
-    			split[3][r % splitSize] = Arrays.copyOfRange(heightMap[r], splitSize -1, heightMap[r].length); 
-    		} else {
-    			split[0][r] = Arrays.copyOfRange(heightMap[r], 0, splitSize); 
-    			split[1][r] = Arrays.copyOfRange(heightMap[r], splitSize -1, heightMap[r].length); 
-    			split[2][r] = Arrays.copyOfRange(heightMap[r], 0, splitSize); 
-    			split[3][r] = Arrays.copyOfRange(heightMap[r], splitSize -1, heightMap[r].length); 
-    		}
-    	}
-    	
-    	return split;
-    	
-    }
-    
-    public double[][] renderHeights() {
-    	Point topLeft = new Point(center.getX() - (length / 2), center.getZ() +(length / 2));
-    	double increment = length / (pointsPerSide -1);
-    	
-    	for (int r = 0; r < pointsPerSide; r++) {
-    		double nr = (topLeft.getZ() + (increment * r))/length - 0.5;
-			for (int c = 0; c < pointsPerSide; c++) {
-				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
-				if (heightMap[r][c] == -1.0) {
-					//heightMap[r][c] = 150 + perlNoise.noise2D(nc, nr) * heightSeed;
-					heightMap[r][c] =  noise.generateHeight(nc, nr);
-				}
-				
-			}
-    	}
-    	
-    	return heightMap;
     }
     
     public double[][] renderBaseHeights() {
@@ -231,7 +157,6 @@ public class Terrain implements Entity {
     		double nr = (topLeft.getZ() - (increment * r))/length - 0.5;
 			for (int c = 0; c < pointsPerSide; c++) {
 				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
-					//heightMap[r][c] = 150 + perlNoise.noise2D(7 * nc, 7 * nr) * heightSeed;
 					heightMap[r][c] = noise.generateHeight(nc, nr);
 			}
     	}
@@ -244,7 +169,6 @@ public class Terrain implements Entity {
     	double worldZ = spot.getZ()/length - 0.5;
 		double worldX = spot.getX()/length - 0.5;
 		
-		//return perlNoise.noise2D(worldX, worldZ) * heightSeed;
 		return noise.generateHeight(worldX, worldZ);
 		
     }

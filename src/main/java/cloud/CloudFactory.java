@@ -18,8 +18,8 @@ public class CloudFactory {
 		int height;
 		int width;
 		
-		rand = Engine.getRandomInt(0, 3);
-		//rand = 3;
+		rand = Engine.getRandomInt(0, 4);
+		rand = 4;
 		
 		int newY;
 		int skyLevel = 2000;
@@ -101,6 +101,16 @@ public class CloudFactory {
 			SquareSpiralCloud temp = new SquareSpiralCloud(x, newY, z, sizeOfSpiral * 10);
 			temp.makeShape3d();
 			return temp;
+		}
+		
+		else if (rand == 4)
+		{
+			//testing
+			double gap = 0.5;
+			SpiralCloud temp = new SpiralCloud(x, newY, z, gap);
+			temp.makeShape3d();
+			return temp;
+			
 		}
 		return null;
 	}

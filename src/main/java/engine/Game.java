@@ -44,7 +44,8 @@ public class Game {
      * @param args
      */
 	public static void main(String[] args) {
-		Game g = new Game(150f);
+
+		Game g = new Game(250f);
 		g.start();
 		Point center = new Point(0,0);
 		
@@ -53,9 +54,9 @@ public class Game {
 		world.updateMaxView(10000);
 		
 		
-		Terrain t = Terrain.forFeilds(center, 2048, 16);
-				
-		world.addEntity(t);
+
+		Terrain t = Terrain.forWorld(center, 2048, 16);
+
 
 		RenderMaterial hmsMat = new RenderMaterial();
 		hmsMat.setUseTexture(true);
@@ -68,6 +69,7 @@ public class Game {
 			Terrain[] tmpters = ters[i].split();
 			
 			HeightMapSurface hms0 = tmpters[0].getHeightMapSurface();
+
 			hms0.setMaterial(hmsMat);
 			world.addEntity(tmpters[0]);
 			HeightMapSurface hms1 = tmpters[1].getHeightMapSurface();
