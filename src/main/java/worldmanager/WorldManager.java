@@ -46,6 +46,10 @@ public class WorldManager {
 		return world;
 	}
 	
+	public double getSize() {
+		return rootNode.getSize();
+	}
+	
 	//Don't know how the much the point size scales to actual length in game.
 	//Initial values are purposefully super low so there's less of a chance of overworking the engine
 	//updateMaxView() lets you change the view distance quickly so the sweet spot can be found.
