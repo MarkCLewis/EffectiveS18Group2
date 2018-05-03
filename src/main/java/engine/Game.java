@@ -44,14 +44,14 @@ public class Game {
      * @param args
      */
 	public static void main(String[] args) {
-		Game g = new Game(400f);
+		Game g = new Game(250f);
 		g.start();
 		Point center = new Point(0,0);
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
 		
-		Terrain t = Terrain.forFeilds(center, 2048, 16);
+		Terrain t = Terrain.forWorld(center, 2048, 16);
 
 		RenderMaterial hmsMat = new RenderMaterial();
 		hmsMat.setUseTexture(true);
@@ -62,7 +62,7 @@ public class Game {
 			Terrain[] tmpters = ters[i].split();
 			
 			HeightMapSurface hms0 = tmpters[0].getHeightMapSurface();
-			hms0.setMaterial(hmsMat);
+		//	hms0.setMaterial(hmsMat);
 			HeightMapSurface hms1 = tmpters[1].getHeightMapSurface();
 			hms1.setMaterial(hmsMat);
 			HeightMapSurface hms2 = tmpters[2].getHeightMapSurface();
