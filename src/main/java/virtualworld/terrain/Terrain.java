@@ -49,7 +49,7 @@ public class Terrain implements Entity {
 	private final int pointsPerSide;
 	private boolean mapIsSet;
 	private boolean active = true;
-	private double size = WorldManager.getInstance().getSize();
+	private double worldSize;
 	
     // length the area that the terrain covers and the height seed between each point.
     private final double length;
@@ -63,6 +63,7 @@ public class Terrain implements Entity {
         heightMap = new double[points][points];
         noise = noiseAlgorithm;
         mapIsSet = false;
+        worldSize = WorldManager.getInstance().getSize();
 	}
 	
 	//Static Constructors. LOD stand for game units covered per Quad
@@ -154,9 +155,9 @@ public class Terrain implements Entity {
     	double increment = length / (pointsPerSide - 1);
     	
     	for (int r = 0; r < pointsPerSide; r++) {
-    		double nr = (topLeft.getZ() - (increment * r))/length - 0.5;
+    		double nr = (topLeft.getZ() - (increment * r))/worldSize - 0.5;
 			for (int c = 0; c < pointsPerSide; c++) {
-				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
+				double nc = (topLeft.getX() + (increment * c))/worldSize - 0.5;
 					heightMap[r][c] = noise.generateHeight(nc, nr);
 			}
     	}
@@ -166,8 +167,8 @@ public class Terrain implements Entity {
     
     public double getHeightAt(Point spot) {
     	
-    	double worldZ = spot.getZ()/length - 0.5;
-		double worldX = spot.getX()/length - 0.5;
+    	double worldZ = spot.getZ()/worldSize - 0.5;
+		double worldX = spot.getX()/worldSize - 0.5;
 		
 		return noise.generateHeight(worldX, worldZ);
 		
