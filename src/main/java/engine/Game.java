@@ -74,6 +74,11 @@ public class Game {
 			g.addShape(hms2);
 			g.addShape(hms3);
 		}
+		
+		for(int i = 0; i < 10; i++) {
+			Cylinder c = new Cylinder(10,10,0,450+(i*20),0,0,0,0);
+			g.addShape(c);
+		}
 	}
   
 }

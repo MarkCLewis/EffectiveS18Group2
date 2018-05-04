@@ -149,6 +149,7 @@ public class Engine extends SimpleApplication {
 
     private Material matWire;
     private boolean wireframe = false;
+    private boolean showAxes = false;
     protected BitmapText hintText;
     private Geometry collisionMarker;
     private BulletAppState bulletAppState;
@@ -224,9 +225,9 @@ public class Engine extends SimpleApplication {
             EngineSpatial engSpatial = spatialBuffer.get(i);
 			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
             //Engine.logInfo("mesh origin is " + localPos.toString());
-            Spatial spatial = engSpatial.getJME3Spatial(this.assetManager);
-            spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
-            objectNode.attachChild(spatial);
+            Node node = engSpatial.getJME3Node(this.assetManager, this.showAxes);
+            node.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
+            objectNode.attachChild(node);
         }
 		mainNode.attachChild(objectNode);
 		bulletAppState.getPhysicsSpace().addAll(objectNode);
@@ -286,12 +287,14 @@ public class Engine extends SimpleApplication {
      */
     private void initKeys() {
         // You can map one or several inputs to one named action
+    	inputManager.addListener(actionListener, "shoot");
 	    inputManager.addMapping("shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-	    inputManager.addListener(actionListener, "shoot");
     	inputManager.addListener(actionListener, "wireframe");
     	inputManager.addMapping("wireframe", new KeyTrigger(KeyInput.KEY_T));
+    	inputManager.addListener(actionListener, "showAxes");
+    	inputManager.addMapping("showAxes", new KeyTrigger(KeyInput.KEY_X));
+    	inputManager.addListener(actionListener, "cameraDown");
         inputManager.addMapping("cameraDown", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
-        inputManager.addListener(actionListener, "cameraDown");
         
         inputManager.addMapping("Lefts", new KeyTrigger(KeyInput.KEY_A));
         inputManager.addMapping("Rights", new KeyTrigger(KeyInput.KEY_D));
@@ -322,6 +325,14 @@ public class Engine extends SimpleApplication {
                 } else {
                 	shouldResetObjectMaterials = true;
                 }
+        	} else if(name.equals("showAxes") && !keyPressed) {
+        		Engine.logInfo("showAxes toggled");
+        		showAxes = !showAxes;
+        		if(showAxes && !shouldUpdateShapes) {
+        			addAxes(objectNode);
+        		} else if (!shouldUpdateShapes) {
+        			removeAxes(objectNode);
+        		}
             } else if (name.equals("shoot") && !keyPressed) {
                 Vector3f origin = cam.getWorldCoordinates(new Vector2f(settings.getWidth() / 2, settings.getHeight() / 2), 0.0f);
                 Vector3f direction = cam.getWorldCoordinates(new Vector2f(settings.getWidth() / 2, settings.getHeight() / 2), 0.3f);
@@ -398,7 +409,7 @@ public class Engine extends SimpleApplication {
         hintText = new BitmapText(guiFont, false);
         hintText.setSize(guiFont.getCharSet().getRenderedSize());
         hintText.setLocalTranslation(0, getCamera().getHeight(), 0);
-        hintText.setText("Hit T to switch to wireframe\nHit Left Ctrl to toggle gravity");
+        hintText.setText("Hit T to switch to wireframe\nHit Left Ctrl to toggle gravity\nHit X to toggle showing local axes of objects");
         guiNode.attachChild(hintText);
     }
 
@@ -435,87 +446,170 @@ public class Engine extends SimpleApplication {
      */
     @Override
     public void simpleUpdate(final float tpf) {
+    	// update Engine time
+        time += tpf;
+        
     	if(shouldUpdateShapes) {
-    		bulletAppState.getPhysicsSpace().removeAll(objectNode);
-    		objectNode.detachAllChildren();
-    		for (int i = 0; i < spatialBuffer.size(); i++) {
-            	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
-                EngineSpatial engSpatial = spatialBuffer.get(i);
-    			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
-                Spatial spatial = engSpatial.getJME3Spatial(this.assetManager);
-                spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
-                objectNode.attachChild(spatial);
-            }
-    		if(wireframe) {
-    			objectNode.setMaterial(matWire);
-    		}
-        	bulletAppState.getPhysicsSpace().addAll(objectNode);
-        	shouldUpdateShapes = false;
+    		updateSpatialsInNode(objectNode);
     	} else if(shouldResetObjectMaterials) {
-    		for (int i = 0; i < spatialBuffer.size(); i++) {
-    			EngineSpatial es = spatialBuffer.get(i);
-    			Spatial s = objectNode.getChild(es.getGeomName());
-    			s.setMaterial(es.getMaterial(assetManager));
-    		}
-    		shouldResetObjectMaterials = false;
+    		resetSpatialMaterialsInNode(objectNode);
     	}
     	if(!spatialsToAdd.isEmpty()) {
-    		for (int i = 0; i < spatialsToAdd.size(); i++) {
-            	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
-                EngineSpatial engSpatial = spatialsToAdd.get(i);
-    			spatialBuffer.add(engSpatial);
-    			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
-                Spatial spatial = engSpatial.getJME3Spatial(this.assetManager);
-                spatial.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
-                if(wireframe) {
-                	spatial.setMaterial(matWire);
-                }
-                objectNode.attachChild(spatial);
-                bulletAppState.getPhysicsSpace().add(spatial);
-            }
-    		spatialsToAdd.clear();
+    		addSpatialsToNode(objectNode);
     	}
+    	updatePlayerLocation();
+    	updateSkyDomeLocation(this.cam.getLocation());
+
+        updateWater();
+    }
+    
+    private void resetSpatialMaterialsInNode(Node node) {
+    	for (int i = 0; i < spatialBuffer.size(); i++) {
+			EngineSpatial es = spatialBuffer.get(i);
+			Node n = (Node)node.getChild(es.getNodeName());
+			n.getChildren().forEach(c -> {
+				if(c instanceof Node) {
+					if(!((Node)c).getName().startsWith(EngineSpatial.getAxesNodeNamePrefix())) {
+						c.setMaterial(es.getMaterial(assetManager));
+					}
+				}
+			});
+		}
+		shouldResetObjectMaterials = false;
+    }
+    
+    private void updateSpatialsInNode(Node node) {
+    	bulletAppState.getPhysicsSpace().removeAll(node);
+		node.detachAllChildren();
+		for (int i = 0; i < spatialBuffer.size(); i++) {
+        	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
+            EngineSpatial engSpatial = spatialBuffer.get(i);
+			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
+            Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
+            tmpNode.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
+            if(wireframe) {
+            	tmpNode.getChildren().forEach(c -> {
+            		if(c instanceof Node) {
+            			if(!((Node)c).getName().startsWith(EngineSpatial.getAxesNodeNamePrefix())) {
+            				c.setMaterial(matWire);
+            			}
+            		}
+            	});
+            }
+            node.attachChild(tmpNode);
+        }
+    	bulletAppState.getPhysicsSpace().addAll(node);
+    	shouldUpdateShapes = false;
+    }
+    
+    private void addSpatialsToNode(Node node) {
+    	for (int i = 0; i < spatialsToAdd.size(); i++) {
+        	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
+            EngineSpatial engSpatial = spatialsToAdd.get(i);
+			spatialBuffer.add(engSpatial);
+			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
+            Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
+            tmpNode.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
+            if(wireframe) {
+            	tmpNode.getChildren().forEach(c -> {
+            		if(c instanceof Node) {
+            			if(!((Node)c).getName().startsWith(EngineSpatial.getAxesNodeNamePrefix())) {
+            				c.setMaterial(matWire);
+            			}
+            		}
+            	});
+            }
+            node.attachChild(tmpNode);
+            bulletAppState.getPhysicsSpace().add(tmpNode);
+        }
+		spatialsToAdd.clear();
+    }
+    
+    private void updateWorldLocation() {
+    	this.worldPosition.x = this.cam.getLocation().x;
+        this.worldPosition.z = this.cam.getLocation().z;
+    }
+    
+    private void updatePlayerLocation() {
     	Vector3f camDir = this.cam.getDirection().clone().multLocal(0.6f);
         Vector3f camLeft = this.cam.getLeft().clone().multLocal(0.4f);
         this.walkDirection.set(0, 0, 0);
         if (this.left && this.moves) {
             this.walkDirection.addLocal(camLeft);
-            this.worldPosition.x = this.cam.getLocation().x;
-            this.worldPosition.z = this.cam.getLocation().z;
         }
         if (this.right && this.moves) {
             this.walkDirection.addLocal(camLeft.negate());
-            this.worldPosition.x = this.cam.getLocation().x;
-            this.worldPosition.z = this.cam.getLocation().z;
         }
         if (this.up && this.moves) {
             this.walkDirection.addLocal(camDir);
-            this.worldPosition.x = this.cam.getLocation().x;
-            this.worldPosition.z = this.cam.getLocation().z;
         }
         if (this.down && this.moves) {
             this.walkDirection.addLocal(camDir.negate());
-            this.worldPosition.x = this.cam.getLocation().x;
-            this.worldPosition.z = this.cam.getLocation().z;
         }
         if (!flyCamera) {
             this.player.setWalkDirection(this.walkDirection);
-            if(moves) {
+            if(this.moves) {
             	this.cam.setLocation(this.player.getPhysicsLocation());
-            	this.worldPosition.x = this.cam.getLocation().x;
-                this.worldPosition.z = this.cam.getLocation().z;
             }
         }
-        
-        Vector3f skyDomeLoc = this.cam.getLocation().clone();
-        skyDomeLoc.y = this.skyDome.getLocalTranslation().y;
-        this.skyDome.setLocalTranslation(skyDomeLoc);
-        
-        // make water follow camera
-        //water.setLocalTranslation((float)getWorldPosition().x - 2500, 450, (float)getWorldPosition().z + 2500);
-        time += tpf;
-        waterHeight = (float) Math.cos(((time * 0.6f) % FastMath.TWO_PI)) * 1.5f;
-        waterFilter.setWaterHeight(initialWaterHeight + waterHeight);
+        if(this.moves) {
+        	updateWorldLocation();
+        }
+    }
+    
+    private void updateSkyDomeLocation(final Vector3f camLoc) {
+    	 Vector3f skyDomeLoc = camLoc.clone();
+         skyDomeLoc.y = this.skyDome.getLocalTranslation().y;
+         this.skyDome.setLocalTranslation(skyDomeLoc);
+    }
+    
+    private void updateWater() {
+    	this.waterHeight = (float) Math.cos(((this.time * 0.6f) % FastMath.TWO_PI)) * 1.5f;
+        this.waterFilter.setWaterHeight(this.initialWaterHeight + this.waterHeight);
+    }
+
+    private void addAxes(Node node) {
+    	this.enqueue(new Runnable() {
+	    	public void run() {
+	    		Engine.logInfo("addAxes top");
+	    		for(int i = 0; i < spatialBuffer.size(); i++) {
+		    		EngineSpatial es = spatialBuffer.get(i);
+		    		Spatial s = node.getChild(es.getNodeName());
+		    		if(s != null && s instanceof Node) {
+		    			Engine.logInfo("spatial is not null and is a Node");
+		    			Node n = (Node)s;
+		    			if(n.getChild(es.getAxesNodeName()) == null) {
+		    				Engine.logInfo("spatial did not contain an axes object already");
+		        			n.attachChild(es.getXYZAxes(Engine.this.assetManager));
+		        		}
+		    		}
+	    		}
+	    		Engine.logInfo("addAxes bottom");
+	    	}
+    	});
+    }
+    
+    private void removeAxes(Node node) {
+    	this.enqueue(new Runnable() {
+	    	public void run() {
+	    		Engine.logInfo("removeAxes top...");
+		    	node.getChildren().forEach(c -> {
+		    		if(c instanceof Node) {
+		    			Engine.logInfo("c is a Node");
+		    			((Node)c).getChildren().forEach(c2 -> {
+		    				if(c2 instanceof Node) {
+		    					Engine.logInfo("c2 is a Node");
+		    					if(((Node)c2).getName().startsWith(EngineSpatial.getAxesNodeNamePrefix())) {
+		    						Engine.logInfo("c2 is the Axes");
+		    						((Node) c).detachChild(c2);
+		    					}
+		    				}
+		    			});
+		    		}
+		    	});
+		    	Engine.logInfo("removeAxes bottom");
+	    	}
+    	});
     }
     
     public String getCoordinates() {
