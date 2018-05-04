@@ -13,15 +13,23 @@ public class SpiralCloud implements Cloud{
 		this.y = y;
 		center = new Point(x,z);
 		this.gap = gap;
+		
+		makeShapeBest();
+		makeShapeSecondBest();
 	}
 	
 	private double gap;
 	private double radius = 200;
 	private double y;
 	private final Point center;
-	private List<Shape> bestSpheres = new ArrayList<Shape>();
 	
-	@Override public void makeShape3d()
+	private List<Shape> best = new ArrayList<Shape>();
+	private List<Shape> secondBest = new ArrayList<Shape>();
+	private List<Shape> tooFar = new ArrayList<Shape>();
+	
+	private List<Shape> currentLevel = new ArrayList<Shape>();
+	
+	private void makeShapeBest()
 	{ 
 		//float size = (float)gap;
 		float size = (float)(gap * 20);
@@ -31,9 +39,30 @@ public class SpiralCloud implements Cloud{
 		    double x = Math.cos(theta)*radius;
 		    double z = Math.sin(theta)*radius;
 		    y += 0.01;
-		    bestSpheres.add(new Sphere(size + (float)(i/300.0) * size, x , y + 0.01 * i, z ));
+		    best.add(new Sphere(size + (float)(i/300.0) * size, x , y + 0.01 * i, z ));
 		    radius+= gap + (i/100) * gap;
 		    theta += thetaInc;
+		}
+	}
+	
+	private void makeShapeSecondBest()
+	{ 
+		//float size = (float)gap;
+		float size = (float)(gap * 20);
+		double theta = 0.0;
+		double thetaInc = 2*Math.PI/100.0;
+		int count = 0;
+		for (int i = 0; i < 350; i++) {
+			if (count % 4 == 0)
+			{
+			    double x = Math.cos(theta)*radius;
+			    double z = Math.sin(theta)*radius;
+			    y += 0.01;
+			    best.add(new Sphere(2 * (size + (float)(i/300.0) * size), x , y + 0.01 * i, z ));
+			    radius+= gap + (i/100) * gap;
+			    theta += thetaInc;
+			}
+			count ++;
 		}
 	}
 	
@@ -49,13 +78,21 @@ public class SpiralCloud implements Cloud{
 
 	@Override public void distFromCamera(double dist)
 	{
+		double firstLevel = 500;
+		double secondLevel = 1000;
 		
+		if (dist <= firstLevel)
+			currentLevel = best;
+		if (dist > firstLevel && dist <= secondLevel)
+			currentLevel = secondBest;
+		if (dist > secondLevel)
+			currentLevel = tooFar;
 	}
 
 	@Override public List<Shape> getShapes()
 	{
 		//todo
-		return bestSpheres;
+		return currentLevel;
 	}
 	
 	@Override public boolean isActive()

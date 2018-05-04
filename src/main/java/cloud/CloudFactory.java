@@ -49,7 +49,6 @@ public class CloudFactory {
 			}
 
 			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.75);
-			temp.makeShape3d();
 			return temp;
 		}
 		
@@ -71,7 +70,6 @@ public class CloudFactory {
 			}
 
 			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.65);
-			temp.makeShape3d();
 			return temp;
 		}
 		
@@ -92,14 +90,13 @@ public class CloudFactory {
 			}
 
 			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.75);
-			temp.makeShape3d();
 			return temp;			
 		}
 		else if (rand == 3)
 		{
 			int sizeOfSpiral = Engine.getRandomInt(5,50);
+			sizeOfSpiral = 10;
 			SquareSpiralCloud temp = new SquareSpiralCloud(x, newY, z, sizeOfSpiral * 10);
-			temp.makeShape3d();
 			return temp;
 		}
 		
@@ -108,7 +105,6 @@ public class CloudFactory {
 			//testing
 			double gap = 0.5;
 			SpiralCloud temp = new SpiralCloud(x, newY, z, gap);
-			temp.makeShape3d();
 			return temp;
 			
 		}

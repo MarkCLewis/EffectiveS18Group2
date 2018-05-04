@@ -9,7 +9,6 @@ import virtualworld.terrain.Point;
 
 public interface Cloud extends Entity {
 	
-	public void makeShape3d();
 	
 	@Override public Point getCenter();
 
