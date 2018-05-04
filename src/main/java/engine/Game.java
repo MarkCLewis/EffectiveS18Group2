@@ -2,10 +2,10 @@ package engine;
 
 import java.util.List;
 
-import org.joml.Vector3d;
-
-import roads.Road;
-import shapes.Cylinder
+import shapes.RenderColor;
+import shapes.RenderMaterial;
+import shapes.Sphere;
+import shapes.VectorCylinder;
 import virtualworld.terrain.Point;
 import worldmanager.WorldManager;
 
@@ -59,7 +59,7 @@ public class Game {
 			System.out.println(r.isActive());
 		}*/
 		WorldManager.initializeWorld();
-		List<shapes.Shape> allShapes = world.getGeometry(g.getLocation());
+		List<shapes.Shape> allShapes = world.getGeometry(center);
 		g.addShapes(allShapes);
 		
 		System.out.println("allShapes size: " + allShapes.size());
