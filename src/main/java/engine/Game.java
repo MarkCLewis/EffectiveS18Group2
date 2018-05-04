@@ -8,7 +8,9 @@ import com.sun.javafx.geom.Shape;
 import shapes.Cylinder;
 import shapes.HeightMapSurface;
 import shapes.RectangularPrism;
+import shapes.RenderColor;
 import shapes.RenderMaterial;
+import shapes.Sphere;
 import shapes.VectorCylinder;
 import virtualworld.terrain.Point;
 import virtualworld.terrain.Terrain;
@@ -53,7 +55,7 @@ public class Game {
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
-		world.updateMaxView(100000);
+		world.updateMaxView(10000);
 		
 		WorldManager.initializeWorld();
 		List<shapes.Shape> allShapes = world.getGeometry(center);
@@ -106,6 +108,16 @@ public class Game {
 			g.addShapes(allShapes);
 		}*/
 		
+		RenderMaterial cloudMat = new RenderMaterial();
+		cloudMat.setSpecularColor(RenderColor.MediumGrey);
+		cloudMat.setDiffuseColor(RenderColor.MediumGrey);
+		cloudMat.setDiffuseColor(RenderColor.MediumGrey);
+		cloudMat.setUseTexture(true);
+		cloudMat.setShininess(0.001f);
+		cloudMat.setTextureDiffusePath("Textures/Terrain/splat/clouddiffuse.jpg");
+		cloudMat.setTextureAlphaPath("Textures/Terrain/splat/cloudalpha.jpg");
+		cloudMat.setUseTransparency(true);
+		cloudMat.setColorAlphas(0.8f);
 		float iX = 0;
 		float iY = 450;
 		float iZ = 0;
@@ -122,6 +134,10 @@ public class Game {
 					y + 10, 
 					z + 10);
 			g.addShape(c);
+			
+			Sphere s = new Sphere(10,x,(y+50),z);
+			s.setMaterial(cloudMat);
+			g.addShape(s);
 		}
 		
 		/*WorldManager.initializeWorld();

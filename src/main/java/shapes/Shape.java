@@ -185,5 +185,17 @@ public class Shape {
 	public void setMaterialColor(RenderColor col) {
 		this.mat.setDiffuseColor(col);
 	}
+	
+	public void setMaterialTransparency(float alpha) {
+		if(alpha <= 1 && alpha >= 0) {
+			this.mat.setColorAlphas(alpha);
+			if(alpha < 1) {
+				this.mat.setUseTransparency(true);
+			}
+		}
+		else {
+			throw new IllegalArgumentException("Alpha must be between 0.0 and 1.0");
+		}
+	}
 
 }

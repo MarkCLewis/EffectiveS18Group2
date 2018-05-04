@@ -8,6 +8,7 @@ import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
+import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
@@ -294,11 +295,12 @@ public class EngineShape {
 	public Node getJME3Node(AssetManager assetManager, boolean attachAxes) {
 		if(this.geomMat == null) {
 			this.geomMat = this.getMaterial(assetManager);
-			this.node.getChildren().forEach(c -> {
-				c.setMaterial(this.geomMat);
+			this.node.getChild(getShapeNodeName()).setMaterial(this.geomMat);
+			((Node)this.node.getChild(getShapeNodeName())).getChildren().forEach(c -> {
 				if(this.shape.getMaterial().isUsingTransparency()) {
-					c.setQueueBucket(Bucket.Transparent);
-				}});
+					c.setQueueBucket(Bucket.Translucent);
+				}
+			});
 		}
 		if(attachAxes) {
 			Spatial axes = getXYZAxes(assetManager);
@@ -321,11 +323,23 @@ public class EngineShape {
     	ret.setFloat("Shininess", mat.getShininess());
     	ret.setBoolean("VertexLighting",mat.isUsingVertexLighting());
     	if(mat.isUsingTexture()) {
-    		ret.setTexture("DiffuseMap", assetManager.loadTexture(mat.getTextureDiffusePath()));
-    		ret.setTexture("NormalMap", assetManager.loadTexture(mat.getTextureNormalPath()));
+    		if(mat.getTextureDiffusePath() != null) {
+    			ret.setTexture("DiffuseMap", assetManager.loadTexture(mat.getTextureDiffusePath()));
+    		}
+    		if(mat.getTextureNormalPath() != null) {
+    			ret.setTexture("NormalMap", assetManager.loadTexture(mat.getTextureNormalPath()));
+    		}
+    		if(mat.getTextureAlphaPath() != null) {
+    			ret.setTexture("AlphaMap", assetManager.loadTexture(mat.getTextureAlphaPath()));
+    		}
     	}
     	if(mat.isUsingTransparency()) {
+    		ret.setBoolean("UseMaterialColors", false);
     		ret.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+    		ret.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+    		ret.getAdditionalRenderState().setDepthWrite(false);
+    		ret.setTransparent(true);
+    		ret.setFloat("AlphaDiscardThreshold", 0.5f);
     	}
     	return ret;
     }
