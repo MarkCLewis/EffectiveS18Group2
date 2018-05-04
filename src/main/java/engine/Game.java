@@ -1,16 +1,12 @@
 package engine;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.javafx.geom.Shape;
+import org.joml.Vector3d;
 
+import roads.Road;
 import shapes.Cylinder;
-import shapes.HeightMapSurface;
-import shapes.RectangularPrism;
-import shapes.RenderMaterial;
 import virtualworld.terrain.Point;
-import virtualworld.terrain.Terrain;
 import worldmanager.WorldManager;
 
 public class Game {
@@ -33,6 +29,13 @@ public class Game {
 		e.changeShapes(shapes);
 	}
 	
+	public Point getLocation() {
+		com.jme3.scene.plugins.blender.math.Vector3d loc = e.getWorldPosition();
+		double x = loc.x;
+		double z = loc.z;
+		return new Point(x,z);
+	}
+	
 	public void start() {
 		e.start();
 	}
@@ -52,10 +55,17 @@ public class Game {
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
-		world.updateMaxView(100000);
+		world.updateMaxView(400000);
 		
+		/*Road road = new Road(center,200000);
+		System.out.println(road.isActive());
+		Road[] roadarray = road.split();
+		for(Road r: roadarray) {
+			g.addShapes(r.getShapes());
+			System.out.println(r.isActive());
+		}*/
 		WorldManager.initializeWorld();
-		List<shapes.Shape> allShapes = world.getGeometry(center);
+		List<shapes.Shape> allShapes = world.getGeometry(g.getLocation());
 		g.addShapes(allShapes);
 		
 		System.out.println("allShapes size: " + allShapes.size());
