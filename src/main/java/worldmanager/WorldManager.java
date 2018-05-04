@@ -3,6 +3,8 @@ package worldmanager;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.Cloud;
+import cloud.CloudFactory;
 import entity.Entity;
 import roads.Road;
 import shapes.Shape;
@@ -145,6 +147,12 @@ public class WorldManager {
 		if(Node.findDist(t.getCenter(),cent) < t.getSize()*2 && t.getSize() > 2000) {
 			Terrain[] ters = t.split();
 			for(Terrain ter: ters) {
+				if(ter.getSize() < 16000 && ter.getSize() > 8000) {
+					List<Cloud> clouds = CloudFactory.getInstance().getClouds(ter.getCenter(), ter.getSize());
+					for (Cloud c: clouds) {
+						WorldManager.getInstance().addEntity(c);
+					}
+				}
 				WorldManager.getInstance().addEntity(ter);
 				defineWorld(ter,cent);
 			}
