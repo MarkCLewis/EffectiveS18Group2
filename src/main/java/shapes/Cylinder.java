@@ -41,12 +41,18 @@ public class Cylinder extends Shape {
 	}
 
 	public float getHeight() {
-		float hcopy = height;
-		return hcopy;
+		return height;
 	}
 	
 	public float getRadius() {
-		float rcopy = radius;
-		return rcopy;
+		return radius;
+	}
+	
+	public void setHeight(float height) {
+		this.height = height;
+	}
+	
+	public void setRadius(float radius) {
+		this.radius = radius;
 	}
 }

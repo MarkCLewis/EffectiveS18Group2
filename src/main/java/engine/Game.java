@@ -9,6 +9,7 @@ import shapes.Cylinder;
 import shapes.HeightMapSurface;
 import shapes.RectangularPrism;
 import shapes.RenderMaterial;
+import shapes.VectorCylinder;
 import virtualworld.terrain.Point;
 import virtualworld.terrain.Terrain;
 import worldmanager.WorldManager;
@@ -105,8 +106,21 @@ public class Game {
 			g.addShapes(allShapes);
 		}*/
 		
+		float iX = 0;
+		float iY = 450;
+		float iZ = 0;
 		for(int i = 0; i < 10; i++) {
-			Cylinder c = new Cylinder(10,10,0,450+(i*20),0,(float)Math.PI / 10f,(float)Math.PI / 10f,(float)Math.PI / 10f);
+			float x = iX + (i * 20);
+			float y = iY + (i * 20);
+			float z = iZ + (i * 20);
+			VectorCylinder c = new VectorCylinder(
+					10, 
+					x, 
+					y, 
+					z, 
+					x + 10, 
+					y + 10, 
+					z + 10);
 			g.addShape(c);
 		}
 		
