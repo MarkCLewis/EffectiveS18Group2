@@ -7,6 +7,7 @@ import engine.Engine;
 import entity.Entity;
 import javafx.geometry.Point3D;
 import shapes.HeightMapSurface;
+import shapes.RenderMaterial;
 import shapes.Shape;
 import worldmanager.WorldManager;
 
@@ -249,8 +250,14 @@ public class Terrain implements Entity {
 	
 	@Override
 	public List<Shape> getShapes() {
+		RenderMaterial hmsMat = new RenderMaterial();
+		hmsMat.setUseTexture(true);
+		hmsMat.setTextureDiffusePath("Textures/Terrain/splat/grass.jpg");
+		hmsMat.setTextureNormalPath("Textures/Terrain/splat/grass_normal.jpg");
 		List<Shape> shapes = new ArrayList<Shape>();
-		shapes.add(getHeightMapSurface());
+		HeightMapSurface hms = getHeightMapSurface();
+		hms.setMaterial(hmsMat);
+		shapes.add(hms);
 		return shapes;
 	}
 	

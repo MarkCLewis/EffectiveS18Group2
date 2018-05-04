@@ -21,7 +21,7 @@ public class NormalHeightAlgorithm extends TerrainHeightAlgorithm {
 	}
 	
 	public static TerrainHeightAlgorithm forMountains() {
-		return new NormalHeightAlgorithm(1.5, 3, 10, 150, 400);
+		return new NormalHeightAlgorithm(360000, 3, 10, 150, 400);
 	}
 	
 
