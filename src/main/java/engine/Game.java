@@ -46,7 +46,7 @@ public class Game {
      */
 	public static void main(String[] args) {
 
-		Game g = new Game(250f);
+		Game g = new Game(100f);
 		g.start();
 		Point center = new Point(0,0);
 		
@@ -56,9 +56,14 @@ public class Game {
 		
 		
 
-		/*Terrain t = Terrain.forMountains(center, 2048, 16);
+		Terrain t = Terrain.forIsland(center, 2048, 6);
 		world.addEntity(t);
-
+		RectangularPrism r = new RectangularPrism(50, 50, 50, 1026, 250,-1026); 
+		RectangularPrism r1 = new RectangularPrism(50, 50, 50, 1026, 250, 1026);
+		RectangularPrism r2 = new RectangularPrism(50, 50, 50, -1026, 250, -1026);
+		RectangularPrism r3 = new RectangularPrism(50, 50, 50, -1026, 250, 1026);
+		RectangularPrism r4 = new RectangularPrism(50, 50, 50, 0, 250, 0);
+		
 
 		RenderMaterial hmsMat = new RenderMaterial();
 		hmsMat.setUseTexture(true);
@@ -66,6 +71,11 @@ public class Game {
 		hmsMat.setTextureNormalPath("Textures/Terrain/splat/grass_normal.jpg");
 		Terrain[] ters = t.split();
 		System.out.println("Initial Height: " + ters[3].getHeightAt(new Point(200,-200)));
+		g.addShape(r);
+		g.addShape(r1);
+		g.addShape(r2);
+		g.addShape(r3);
+		g.addShape(r4);
 		for(int i = 0; i < ters.length; i++) {
 			world.addEntity(ters[i]);
 			Terrain[] tmpters = ters[i].split();
@@ -84,16 +94,16 @@ public class Game {
 			hms3.setMaterial(hmsMat);
 			world.addEntity(tmpters[3]);
 			List<shapes.Shape> allShapes = world.getGeometry(center);
-			//g.addShape(hms0);
-			//g.addShape(hms1);
-			//g.addShape(hms2);
-			//g.addShape(hms3);
+			g.addShape(hms0);
+			g.addShape(hms1);
+			g.addShape(hms2);
+			g.addShape(hms3);
 			g.addShapes(allShapes);
-		}*/
-		WorldManager.initializeWorld();
+		}
+		/*WorldManager.initializeWorld();
 		List<shapes.Shape> allShapes = world.getGeometry(center);
-		g.addShapes(allShapes);
-		
+		g.addShapes(allShapes);*/
 	}
+
   
 }

@@ -12,16 +12,20 @@ public class NormalHeightAlgorithm extends TerrainHeightAlgorithm {
 		noise = Perlin.getInstance();
 	}
 	
-	public static TerrainHeightAlgorithm forFeilds() {
-		return new NormalHeightAlgorithm(.25, 3, 4, 200, 200);
+	
+	public static TerrainHeightAlgorithm forFields(double size) {
+		double freq = size/1200;
+		return new NormalHeightAlgorithm(freq, 3, 4, 200, 1);
 	}
 	
-	public static TerrainHeightAlgorithm forHills() {
-		return new NormalHeightAlgorithm(.75, 3, 6, 200, 300);
+	public static TerrainHeightAlgorithm forHills(double size) {
+		double freq = size / 800;
+		return new NormalHeightAlgorithm(freq, 3, 4, 350, 1);
 	}
 	
-	public static TerrainHeightAlgorithm forMountains() {
-		return new NormalHeightAlgorithm(360000, 3, 10, 150, 400);
+	public static TerrainHeightAlgorithm forMountains(double size) {
+		double freq = size / 400;
+		return new NormalHeightAlgorithm(freq, 3, 3, 500, 1);
 	}
 	
 

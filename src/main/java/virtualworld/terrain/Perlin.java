@@ -2,6 +2,20 @@ package virtualworld.terrain;
 
 public class Perlin { //singleton class for noise function
 	
+	public static void main(String[] args) {
+		   
+		Perlin noise = Perlin.getInstance();
+		
+		double n1 = noise.noise2D(-400.55, 0.71);
+		double n2 = noise.noise2D(-1.55, 1.71);
+		double n3 = noise.noise2D(0.25, 0.91);
+		
+		System.out.println(noise.scaleAnswer(n1));
+		System.out.println(noise.scaleAnswer(n2));
+		System.out.println(noise.scaleAnswer(n3));
+		
+	}
+	
 	// Hash lookup table base. 
 	//This is a randomly arranged array of all numbers from 0-255 inclusive.
 	//Will be used to create the p[] hash table that will be used for finding gradient vectors
@@ -38,6 +52,10 @@ public class Perlin { //singleton class for noise function
 		return instance;
 	}
 	
+	public double scaleAnswer(double t) {
+		return (0.5)*(t + 1);
+	}
+	
 	public double noise2D(double x, double y) {
 		
 		int X = (int)Math.floor(x) & 255;
@@ -52,8 +70,10 @@ public class Perlin { //singleton class for noise function
 		int A = (p[X] + Y) & 255;
 		int B = (p[X+1] + Y) & 255;
 		
-		return lerp(v, lerp(u, grad(p[A  ], x, y), grad(p[B  ], x-1, y  )),
+		double lerped=  lerp(v, lerp(u, grad(p[A  ], x, y), grad(p[B  ], x-1, y  )),
                 	   lerp(u, grad(p[A+1], x, y-1), grad(p[B+1], x-1, y-1)));
+		
+		return scaleAnswer(lerped);
 		
 	}
 	

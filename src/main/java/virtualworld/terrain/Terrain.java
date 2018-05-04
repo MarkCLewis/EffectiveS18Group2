@@ -74,33 +74,33 @@ public class Terrain implements Entity {
 		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
-	public static Terrain forFeilds(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forFeilds();
+	public static Terrain forIsland(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = new IslandHeightAlgorithm(c, length, NormalHeightAlgorithm.forMountains(length));
+		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
+	}
+	
+	public static Terrain forFields(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forFields(length);
 		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
 	public static Terrain forHills(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forHills();
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forHills(length);
 		return new Terrain(c, length, pointsFromLOD(length, lod) ,  ta);
 	}
 	
 	public static Terrain forMountains(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forMountains();
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forMountains(length);
 		return new Terrain(c, length, pointsFromLOD(length, lod), ta);
 	}
 	
 	public static Terrain forMountainValley(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new ValleyHeightAlgorithm(8, 3, 3, 150, 600, 1.5);
+		TerrainHeightAlgorithm ta = ValleyHeightAlgorithm.forNormalValley(length);
 		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
 	private static int pointsFromLOD(double length, int lod) {
-		int possiblePoints = (int)(length/lod);
-		if (possiblePoints % 2 ==0) {
-			return possiblePoints + 1;
-		} else {
-			return possiblePoints;
-		}
+		return (int) (Math.pow(2, lod) + 1);
 		
 	}
 

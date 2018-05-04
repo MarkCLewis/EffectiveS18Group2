@@ -42,7 +42,7 @@ public class WorldManager {
 	
 	public static synchronized WorldManager getInstance() {
 		if (world == null) {
-			world = new WorldManager(new Point(0,0), 500000000);
+			world = new WorldManager(new Point(0,0),2048);
 		}
 		return world;
 	}

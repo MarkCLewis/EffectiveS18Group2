@@ -24,9 +24,9 @@ public class WorldHeightAlgorithm extends TerrainHeightAlgorithm {
 	}
 	
 	private void splitWorld() {
-		TerrainHeightAlgorithm fieldHeight = NormalHeightAlgorithm.forFeilds();
-		TerrainHeightAlgorithm mountainHeight = NormalHeightAlgorithm.forMountains();
-		TerrainHeightAlgorithm hillHeight = NormalHeightAlgorithm.forHills();
+		TerrainHeightAlgorithm fieldHeight = NormalHeightAlgorithm.forFields(size);
+		TerrainHeightAlgorithm mountainHeight = NormalHeightAlgorithm.forMountains(size);
+		TerrainHeightAlgorithm hillHeight = NormalHeightAlgorithm.forHills(size);
 		
 		Point topLeft = new Point (center.getX() - size/2, center.getZ() + size/2);
 		System.out.println("Top Left: " + topLeft.getX() + " " + topLeft.getZ());
