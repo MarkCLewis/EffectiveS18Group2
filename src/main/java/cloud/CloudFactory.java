@@ -4,12 +4,24 @@ import java.util.Map;
 
 import engine.Engine;
 public class CloudFactory {
-	public CloudFactory()
+	private CloudFactory()
 	{
 		
 	}
 	
+	
+	private static CloudFactory CF = null;
+	
 	public Map<String, CloudArr> arrMap = new HashMap<String, CloudArr>();
+	
+	public static CloudFactory getInstance()
+	{
+		if (CF == null)
+			return new CloudFactory();
+		else
+			return CF;
+	}
+	
 	
 	public Cloud getCloud(int x, int y, int z)
 	{
@@ -18,8 +30,8 @@ public class CloudFactory {
 		int height;
 		int width;
 		
-		rand = Engine.getRandomInt(0, 3);
-		//rand = 3;
+		rand = Engine.getRandomInt(0, 4);
+		rand = 4;
 		
 		int newY;
 		int skyLevel = 2000;
@@ -31,6 +43,8 @@ public class CloudFactory {
 		{
 			newY = y;
 		}
+		
+		
 		//Create a single uniform cloud
 		if (rand == 0)
 		{
@@ -47,9 +61,8 @@ public class CloudFactory {
 				arr.processing();
 				arrMap.put("single", arr);
 			}
-
-			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.75);
-			temp.makeShape3d();
+			double sf = getRandomSize("single");
+			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.75, sf);
 			return temp;
 		}
 		
@@ -69,9 +82,8 @@ public class CloudFactory {
 				arr.processing();
 				arrMap.put("scatter", arr);
 			}
-
-			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.65);
-			temp.makeShape3d();
+			double sf = getRandomSize("scatter");
+			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.65, sf);
 			return temp;
 		}
 		
@@ -90,18 +102,41 @@ public class CloudFactory {
 				arr.processing();
 				arrMap.put("sky", arr);
 			}
-
-			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.75);
-			temp.makeShape3d();
+			double sf = getRandomSize("sky");
+			PerlinCloud temp = new PerlinCloud(x, newY, z, arr, 0.75, sf);
 			return temp;			
 		}
 		else if (rand == 3)
 		{
-			int sizeOfSpiral = Engine.getRandomInt(5,50);
+			int sizeOfSpiral = (int) getRandomSize("squareSpiral");
 			SquareSpiralCloud temp = new SquareSpiralCloud(x, newY, z, sizeOfSpiral * 10);
-			temp.makeShape3d();
 			return temp;
 		}
+		
+		else if (rand == 4)
+		{
+			//testing
+			double gap = getRandomSize("regularSpiral");
+			SpiralCloud temp = new SpiralCloud(x, newY, z, gap);
+			return temp;
+			
+		}
 		return null;
+	}
+	
+	private double getRandomSize(String type)
+	{
+		if (type.equals("single"))
+			return Engine.getRandomDouble(1, 7.5);	
+		if (type.equals("scatter"))
+			return Engine.getRandomDouble(3, 9);
+		if (type.equals("sky"))
+			return Engine.getRandomDouble(5, 10); //kinda laggy at 10
+		if (type.equals("squareSpiral"))
+			return Engine.getRandomInt(5, 50);
+		if (type.equals("regularSpiral"))
+			return Engine.getRandomDouble(0.3, 0.5);
+		return 0;
+			
 	}
 }

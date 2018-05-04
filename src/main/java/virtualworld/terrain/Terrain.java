@@ -6,9 +6,10 @@ import java.util.List;
 import engine.Engine;
 import entity.Entity;
 import javafx.geometry.Point3D;
-import shapes.Shape;
 import shapes.HeightMapSurface;
-import shapes.Quad;
+import shapes.RenderMaterial;
+import shapes.Shape;
+import worldmanager.WorldManager;
 
 //Use Static Factories to set up the different types of terrain and create Root Terrain with it	
 
@@ -16,15 +17,7 @@ public class Terrain implements Entity {
 	
 	public static void main(String[] args) {
 	   
-		double length = 5000;
-		int seed = 500;
-	    int points = 61;
-		double[][] heightMap = {{0.0}};
-		
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(4, 3, 2, 150, 400); 
-		
-		Terrain t = new Terrain(new Point(0.0,0.0), length, points, heightMap, ta);
-		//Terrain t = Terrain.forMountainValley(new Point(0.0,0.0), length, 100);
+		Terrain t = Terrain.forWorld(new Point(0.0,0.0), 500, 100);
 		double[][] render = t.renderBaseHeights();
 		
 		System.out.println("rendered top level terrain");
@@ -35,7 +28,7 @@ public class Terrain implements Entity {
 			System.out.print("\n");
 		}
 		
-		List<Point3D> trees = t.getTrees();
+		/*List<Point3D> trees = t.getTrees();
 		
 		if (trees.isEmpty()) {
 			System.out.println("No trees");
@@ -45,7 +38,7 @@ public class Terrain implements Entity {
 		
 		for (Point3D tree: trees) {
 			System.out.print(tree.toString() + " ");
-		}
+		}*/
 		
 	}
 	
@@ -56,54 +49,58 @@ public class Terrain implements Entity {
 	private TerrainHeightAlgorithm noise;
 	private final int pointsPerSide;
 	private boolean mapIsSet;
-
+	private boolean active = true;
+	private double worldSize;
+	
     // length the area that the terrain covers and the height seed between each point.
     private final double length;
     
     
 	
-	public Terrain(Point c, double len, int points, double[][] constructionArray, TerrainHeightAlgorithm noiseAlgorithm) {
+	public Terrain(Point c, double len, int points, TerrainHeightAlgorithm noiseAlgorithm) {
 		center = c;
         length = len;
 		pointsPerSide = points;
-        heightMap = expandArray(constructionArray);
+        heightMap = new double[points][points];
         noise = noiseAlgorithm;
         mapIsSet = false;
+        worldSize = WorldManager.getInstance().getSize();
 	}
 	
 	//Static Constructors. LOD stand for game units covered per Quad
+
+	public static Terrain forWorld(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = new WorldHeightAlgorithm(c, length);
+		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
+	}
 	
-	public static Terrain forFeilds(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(.75, 3, 3, 150, 300);
-		double [][] placeholderArray = {{0.0}};
-		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+	public static Terrain forIsland(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = new IslandHeightAlgorithm(c, length, NormalHeightAlgorithm.forMountains(length));
+		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
+	}
+	
+	public static Terrain forFields(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forFields(length);
+		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
 	public static Terrain forHills(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(2, 3, 6, 150, 500);
-		double [][] placeholderArray = {{0.0}};
-		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forHills(length);
+		return new Terrain(c, length, pointsFromLOD(length, lod) ,  ta);
 	}
 	
 	public static Terrain forMountains(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new NormalHeightAlgorithm(2, 3, 10, 150, 1000);
-		double [][] placeholderArray = {{0.0}};
-		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forMountains(length);
+		return new Terrain(c, length, pointsFromLOD(length, lod), ta);
 	}
 	
 	public static Terrain forMountainValley(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new ValleyHeightAlgorithm(8, 3, 3, 150, 600, 1.5);
-		double [][] placeholderArray = {{0.0}};
-		return new Terrain(c, length, pointsFromLOD(length, lod) , placeholderArray, ta);
+		TerrainHeightAlgorithm ta = ValleyHeightAlgorithm.forNormalValley(length);
+		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
 	private static int pointsFromLOD(double length, int lod) {
-		int possiblePoints = (int)(length/lod);
-		if (possiblePoints % 2 ==0) {
-			return possiblePoints + 1;
-		} else {
-			return possiblePoints;
-		}
+		return (int) (Math.pow(2, lod) + 1);
 		
 	}
 
@@ -114,8 +111,9 @@ public class Terrain implements Entity {
 
     // splits the terrain object into four separate terrain objects
     public Terrain[] split() {
-    	
-        double[][][] subTerrains = splitArray();
+
+    	  active = false;
+
         return new Terrain[] {
         	
         		//0 Top-left
@@ -125,7 +123,6 @@ public class Terrain implements Entity {
                 		center.getZ() + (length/4)),
                 length/2,
                 pointsPerSide,
-                subTerrains[0],
                 noise),
             //1  Top-right
             new Terrain(
@@ -134,7 +131,6 @@ public class Terrain implements Entity {
                 		center.getZ() + (length/4)),
                 length/2,
                 pointsPerSide,
-                subTerrains[1],
                 noise),
             //2 bottom-left
             new Terrain(
@@ -143,7 +139,6 @@ public class Terrain implements Entity {
                 		center.getZ() - (length/4)),
                 length/2,
                 pointsPerSide,
-                subTerrains[2],
                 noise),
             //3 bottom-right
             new Terrain(
@@ -152,72 +147,8 @@ public class Terrain implements Entity {
                 		center.getZ() - (length/4)),
                 length/2,
                 pointsPerSide,
-                subTerrains[3],
                 noise),
         };   
-    }
-    
-    private double[][] expandArray(double[][] init) {
-    	
-    	double[][] ans = new double[pointsPerSide][pointsPerSide];
-    	
-    	for (double[] row: ans)
-    	    Arrays.fill(row, -1.0);
-    	
-    	for (int r = 0; r < init.length; r++) {
-			for (int c = 0; c < init.length; c++) {
-				ans[r*2][c*2] = init[r][c];
-			}
-    	}
-    	
-    	return ans;
-    }
-    
-    //function takes in a 0,1,2,3 for the 4 different parts of the terrain
-    private double[][][] splitArray() {
-    	
-    	if(!mapIsSet) renderBaseHeights();
-    	//Integer division so will always round down
-    	int splitSize = (pointsPerSide + 1)/2;
-    	
-    	double[][][] split = new double[4][splitSize][splitSize];
-    	
-    	for(int r = 0; r < heightMap.length; r++) {
-    		if (r < splitSize -1) {
-    			split[0][r] = Arrays.copyOfRange(heightMap[r], 0, splitSize); 
-    			split[1][r] = Arrays.copyOfRange(heightMap[r], splitSize -1, heightMap[r].length); 
-    		} else if (r > splitSize -1) {
-    			split[2][r % splitSize] = Arrays.copyOfRange(heightMap[r], 0, splitSize); 
-    			split[3][r % splitSize] = Arrays.copyOfRange(heightMap[r], splitSize -1, heightMap[r].length); 
-    		} else {
-    			split[0][r] = Arrays.copyOfRange(heightMap[r], 0, splitSize); 
-    			split[1][r] = Arrays.copyOfRange(heightMap[r], splitSize -1, heightMap[r].length); 
-    			split[2][r] = Arrays.copyOfRange(heightMap[r], 0, splitSize); 
-    			split[3][r] = Arrays.copyOfRange(heightMap[r], splitSize -1, heightMap[r].length); 
-    		}
-    	}
-    	
-    	return split;
-    	
-    }
-    
-    public double[][] renderHeights() {
-    	Point topLeft = new Point(center.getX() - (length / 2), center.getZ() +(length / 2));
-    	double increment = length / (pointsPerSide -1);
-    	
-    	for (int r = 0; r < pointsPerSide; r++) {
-    		double nr = (topLeft.getZ() + (increment * r))/length - 0.5;
-			for (int c = 0; c < pointsPerSide; c++) {
-				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
-				if (heightMap[r][c] == -1.0) {
-					//heightMap[r][c] = 150 + perlNoise.noise2D(nc, nr) * heightSeed;
-					heightMap[r][c] =  noise.generateHeight(nc, nr);
-				}
-				
-			}
-    	}
-    	
-    	return heightMap;
     }
     
     public double[][] renderBaseHeights() {
@@ -225,10 +156,9 @@ public class Terrain implements Entity {
     	double increment = length / (pointsPerSide - 1);
     	
     	for (int r = 0; r < pointsPerSide; r++) {
-    		double nr = (topLeft.getZ() - (increment * r))/length - 0.5;
+    		double nr = (topLeft.getZ() - (increment * r))/worldSize - 0.5;
 			for (int c = 0; c < pointsPerSide; c++) {
-				double nc = (topLeft.getX() + (increment * c))/length - 0.5;
-					//heightMap[r][c] = 150 + perlNoise.noise2D(7 * nc, 7 * nr) * heightSeed;
+				double nc = (topLeft.getX() + (increment * c))/worldSize - 0.5;
 					heightMap[r][c] = noise.generateHeight(nc, nr);
 			}
     	}
@@ -238,10 +168,9 @@ public class Terrain implements Entity {
     
     public double getHeightAt(Point spot) {
     	
-    	double worldZ = spot.getZ()/length - 0.5;
-		double worldX = spot.getX()/length - 0.5;
+    	double worldZ = spot.getZ()/worldSize - 0.5;
+		double worldX = spot.getX()/worldSize - 0.5;
 		
-		//return perlNoise.noise2D(worldX, worldZ) * heightSeed;
 		return noise.generateHeight(worldX, worldZ);
 		
     }
@@ -278,7 +207,7 @@ public class Terrain implements Entity {
 		
 	}
 
-	@Override
+	/*@Override
 	public List<Shape> getShapes() {
 		
 		if (!mapIsSet) renderBaseHeights();
@@ -298,7 +227,7 @@ public class Terrain implements Entity {
 			}
     	
 		return quads; 
-	}
+	}*/
 	
 	// (added by Kayla (for testing height map shape)
 	public HeightMapSurface getHeightMapSurface() {
@@ -314,14 +243,27 @@ public class Terrain implements Entity {
 		}
 		int patchSize = (int)((pointsPerSide-1) / 4) + 1;
 		float scale = (float) length / (pointsPerSide - 1);
-		Engine.logInfo("Terrain.HeightMapSurface: scale: " + scale);
+		//Engine.logInfo("Terrain.HeightMapSurface: scale: " + scale);
 		HeightMapSurface hms = new HeightMapSurface(pointsPerSide, patchSize, convertedHeightMap, scale, 1f, scale, center.getX(), 0, center.getZ());
 		return hms;
 	}
 	
 	@Override
+	public List<Shape> getShapes() {
+		RenderMaterial hmsMat = new RenderMaterial();
+		hmsMat.setUseTexture(true);
+		hmsMat.setTextureDiffusePath("Textures/Terrain/splat/grass.jpg");
+		hmsMat.setTextureNormalPath("Textures/Terrain/splat/grass_normal.jpg");
+		List<Shape> shapes = new ArrayList<Shape>();
+		HeightMapSurface hms = getHeightMapSurface();
+		hms.setMaterial(hmsMat);
+		shapes.add(hms);
+		return shapes;
+	}
+	
+	@Override
 	public boolean isActive() {
-		return true;
+		return active;
 	}
 
 }

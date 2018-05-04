@@ -6,6 +6,7 @@ import java.util.List;
 import entity.Entity;
 import shapes.Shape;
 import virtualworld.terrain.Point;
+import virtualworld.terrain.Terrain;
 
 public class WorldManager {
 	//	TODO
@@ -41,9 +42,13 @@ public class WorldManager {
 	
 	public static synchronized WorldManager getInstance() {
 		if (world == null) {
-			world = new WorldManager(new Point(0,0), 1600);
+			world = new WorldManager(new Point(0,0),536870912);
 		}
 		return world;
+	}
+	
+	public double getSize() {
+		return rootNode.getSize();
 	}
 	
 	//Don't know how the much the point size scales to actual length in game.
@@ -70,7 +75,7 @@ public class WorldManager {
 	
 	//update camera location
 	public void updateCamera(Point point) {
-		if (rootNode.findDist(point, cameraLoc) > cameraStep) {
+		if (Node.findDist(point, cameraLoc) > cameraStep) {
 			rootNode.cameraDist(point);
 			cameraLoc = point;
 		}
@@ -102,10 +107,10 @@ public class WorldManager {
 	private List<Shape> nodeGeometry(Node node, double max) {
 		List<Entity> ents = node.getEntities();
 		List<Shape> nodeShapes = new ArrayList<>();
-		if (node.findDist(node.center, cameraLoc) < max) {
+		if (Node.findDist(node.center, cameraLoc) < max) {
 			for(Entity e: ents) {
 				if(e.isActive()) {
-					if(node.findDist(e.getCenter(), cameraLoc) < max) {
+					if(Node.findDist(e.getCenter(), cameraLoc) < max) {
 						if (nodeShapes == null || nodeShapes.isEmpty()) {
 							nodeShapes = e.getShapes();
 						}
@@ -117,5 +122,24 @@ public class WorldManager {
 			}
 		}
 		return nodeShapes;
+	}
+	
+	public static void initializeWorld() {
+		WorldManager world = WorldManager.getInstance();
+		Point cent = world.rootNode.center;
+		double worldSize = world.getSize();
+		Terrain t = Terrain.forIsland(cent, worldSize, 6);
+		world.addEntity(t);
+		defineWorld(t,cent);
+	}
+	
+	public static void defineWorld(Terrain t,Point cent) {
+		if(Node.findDist(t.getCenter(),cent) < t.getSize()*4 && t.getSize() > 2000) {
+			Terrain[] ters = t.split();
+			for(Terrain ter: ters) {
+				WorldManager.getInstance().addEntity(ter);
+				defineWorld(ter,cent);
+			}
+		}
 	}
 }

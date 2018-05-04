@@ -17,15 +17,26 @@ public class SquareSpiralCloud implements Cloud{
 		this.y = y;
 		dist = newDist;
 		noOfSpirals = (int)dist / 10;
+		
+		makeShapeBest();
+		secondBestShapes();
+		
 	}
 	
 	private final double y;
 	private final Point center;
 	private final double dist;
 	private final int noOfSpirals;
-	private List<Shape> bestSpheres = new ArrayList<Shape>();
 	
-	@Override public void makeShape3d()
+	private List<Shape> best = new ArrayList<Shape>();
+	private List<Shape> secondBest = new ArrayList<Shape>();
+	private List<Shape> tooFar = new ArrayList<Shape>();
+	
+	private List<Shape> currentLevel = new ArrayList<Shape>();
+	
+	
+	
+	private void makeShapeBest()
 	{
  //       int width = getSize().width;
  //       int height = getSize().height;
@@ -39,17 +50,22 @@ public class SquareSpiralCloud implements Cloud{
         {
             
         	//draw the bottom to top line
-            bestSpheres.add(new RectangularPrism(sizeOfLine, sizeOfLine , (float)Math.abs( (heightCenter - (dist * i) - (heightCenter + dist + (dist * i)) ))  , widthCenter + (dist * i + dist/2 * i), y, heightCenter + sizeOfLine));
+            best.add(new RectangularPrism(sizeOfLine, sizeOfLine , (float)Math.abs( (heightCenter - (dist * i) - (heightCenter + dist + (dist * i)) ))  , widthCenter + (dist * i + dist/2 * i), y, heightCenter + sizeOfLine));
  
             //draw the right to left line
-            bestSpheres.add(new RectangularPrism((float)(Math.abs((widthCenter + (dist * i)) - (widthCenter - dist - (dist * i)) ) - dist/4) , sizeOfLine , sizeOfLine, widthCenter - (dist * i) + (dist/2 * (i - 1)) - balanceOffset , y , heightCenter + 2 * (dist + (dist * i) - dist/2)));
+            best.add(new RectangularPrism((float)(Math.abs((widthCenter + (dist * i)) - (widthCenter - dist - (dist * i)) ) - dist/4) , sizeOfLine , sizeOfLine, widthCenter - (dist * i) + (dist/2 * (i - 1)) - balanceOffset , y , heightCenter + 2 * (dist + (dist * i) - dist/2)));
 
             //draw the top to bottom line
-            bestSpheres.add(new RectangularPrism(sizeOfLine, sizeOfLine, (float)Math.abs( (heightCenter + dist + (dist * i)) - (heightCenter - dist - (dist * i))), widthCenter - (dist * (i + 1)) - (dist * i + dist/2 * i) - (balanceOffset * 2), y , heightCenter - dist + sizeOfLine));
+            best.add(new RectangularPrism(sizeOfLine, sizeOfLine, (float)Math.abs( (heightCenter + dist + (dist * i)) - (heightCenter - dist - (dist * i))), widthCenter - (dist * (i + 1)) - (dist * i + dist/2 * i) - (balanceOffset * 2), y , heightCenter - dist + sizeOfLine));
             
             //draw the left to right line
-            bestSpheres.add(new RectangularPrism((float)(Math.abs((widthCenter - dist - (dist * i)) - (widthCenter + dist + (dist * i))) - dist/2) , sizeOfLine , sizeOfLine , widthCenter - dist - (dist/2 * (i - 1)) + dist/2 + sizeOfLine, y ,  heightCenter - 2 * (dist + (dist * i) - dist/2) - dist * 2));
+            best.add(new RectangularPrism((float)(Math.abs((widthCenter - dist - (dist * i)) - (widthCenter + dist + (dist * i))) - dist/2) , sizeOfLine , sizeOfLine , widthCenter - dist - (dist/2 * (i - 1)) + dist/2 + sizeOfLine, y ,  heightCenter - 2 * (dist + (dist * i) - dist/2) - dist * 2));
         }
+	}
+	
+	private void secondBestShapes()
+	{
+		secondBest.add(new RectangularPrism((float)dist * noOfSpirals, 5, (float)dist * noOfSpirals, center.getX(), y, center.getZ()));
 	}
 	
 	@Override public Point getCenter()
@@ -64,13 +80,21 @@ public class SquareSpiralCloud implements Cloud{
 
 	@Override public void distFromCamera(double dist)
 	{
+		double firstLevel = 500;
+		double secondLevel = 1000;
 		
+		if (dist <= firstLevel)
+			currentLevel = best;
+		if (dist > firstLevel && dist <= secondLevel)
+			currentLevel = secondBest;
+		if (dist > secondLevel)
+			currentLevel = tooFar;
 	}
 
 	@Override public List<Shape> getShapes()
 	{
 		//todo
-		return bestSpheres;
+		return currentLevel;
 	}
 	
 	@Override public boolean isActive()
