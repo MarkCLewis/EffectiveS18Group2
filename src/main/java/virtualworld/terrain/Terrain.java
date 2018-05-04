@@ -243,7 +243,7 @@ public class Terrain implements Entity {
 		}
 		int patchSize = (int)((pointsPerSide-1) / 4) + 1;
 		float scale = (float) length / (pointsPerSide - 1);
-		Engine.logInfo("Terrain.HeightMapSurface: scale: " + scale);
+		//Engine.logInfo("Terrain.HeightMapSurface: scale: " + scale);
 		HeightMapSurface hms = new HeightMapSurface(pointsPerSide, patchSize, convertedHeightMap, scale, 1f, scale, center.getX(), 0, center.getZ());
 		return hms;
 	}

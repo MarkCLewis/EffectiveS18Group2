@@ -42,7 +42,7 @@ public class WorldManager {
 	
 	public static synchronized WorldManager getInstance() {
 		if (world == null) {
-			world = new WorldManager(new Point(0,0),2048);
+			world = new WorldManager(new Point(0,0),536870912);
 		}
 		return world;
 	}
@@ -75,7 +75,7 @@ public class WorldManager {
 	
 	//update camera location
 	public void updateCamera(Point point) {
-		if (rootNode.findDist(point, cameraLoc) > cameraStep) {
+		if (Node.findDist(point, cameraLoc) > cameraStep) {
 			rootNode.cameraDist(point);
 			cameraLoc = point;
 		}
@@ -107,10 +107,10 @@ public class WorldManager {
 	private List<Shape> nodeGeometry(Node node, double max) {
 		List<Entity> ents = node.getEntities();
 		List<Shape> nodeShapes = new ArrayList<>();
-		if (node.findDist(node.center, cameraLoc) < max) {
+		if (Node.findDist(node.center, cameraLoc) < max) {
 			for(Entity e: ents) {
 				if(e.isActive()) {
-					if(node.findDist(e.getCenter(), cameraLoc) < max) {
+					if(Node.findDist(e.getCenter(), cameraLoc) < max) {
 						if (nodeShapes == null || nodeShapes.isEmpty()) {
 							nodeShapes = e.getShapes();
 						}
@@ -128,7 +128,7 @@ public class WorldManager {
 		WorldManager world = WorldManager.getInstance();
 		Point cent = world.rootNode.center;
 		double worldSize = world.getSize();
-		Terrain t = Terrain.forMountains(cent, worldSize, (int)worldSize/64);
+		Terrain t = Terrain.forIsland(cent, worldSize, 6);
 		world.addEntity(t);
 		defineWorld(t,cent);
 	}

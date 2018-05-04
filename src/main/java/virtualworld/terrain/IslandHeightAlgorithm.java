@@ -23,7 +23,7 @@ public class IslandHeightAlgorithm extends TerrainHeightAlgorithm {
 			e += ta.generateSubValue(ta.heightSeed / (ta.octaveScale*i), ta.frequency * ((ta.octaveScale*i)/2), x, z);
 		}
 		double d = euclideanDistance((x+.5), (z+.5));
-		System.out.println(d);
+		//System.out.println(d);
 		return ((e + .3) * (1 - (.85*Math.pow(d, .95)))) * ta.baseHeight;
 	}
 	

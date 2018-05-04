@@ -52,13 +52,17 @@ public class Game {
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
-		world.updateMaxView(100000);
+		world.updateMaxView(1000000);
 		
+		WorldManager.initializeWorld();
+		List<shapes.Shape> allShapes = world.getGeometry(center);
+		g.addShapes(allShapes);
 		
+		System.out.println("allShapes size: " + allShapes.size());
 
-		Terrain t = Terrain.forIsland(center, 2048, 6);
+		/*Terrain t = Terrain.forMountains(center, 2048, 6);
 		world.addEntity(t);
-		RectangularPrism r = new RectangularPrism(50, 50, 50, 1026, 250,-1026); 
+		/*RectangularPrism r = new RectangularPrism(50, 50, 50, 1026, 250,-1026); 
 		RectangularPrism r1 = new RectangularPrism(50, 50, 50, 1026, 250, 1026);
 		RectangularPrism r2 = new RectangularPrism(50, 50, 50, -1026, 250, -1026);
 		RectangularPrism r3 = new RectangularPrism(50, 50, 50, -1026, 250, 1026);
@@ -70,12 +74,12 @@ public class Game {
 		hmsMat.setTextureDiffusePath("Textures/Terrain/splat/grass.jpg");
 		hmsMat.setTextureNormalPath("Textures/Terrain/splat/grass_normal.jpg");
 		Terrain[] ters = t.split();
-		System.out.println("Initial Height: " + ters[3].getHeightAt(new Point(200,-200)));
-		g.addShape(r);
-		g.addShape(r1);
-		g.addShape(r2);
-		g.addShape(r3);
-		g.addShape(r4);
+		//System.out.println("Initial Height: " + ters[3].getHeightAt(new Point(200,-200)));
+		//g.addShape(r);
+		//g.addShape(r1);
+		//g.addShape(r2);
+		//g.addShape(r3);
+		//g.addShape(r4);
 		for(int i = 0; i < ters.length; i++) {
 			world.addEntity(ters[i]);
 			Terrain[] tmpters = ters[i].split();
@@ -94,10 +98,10 @@ public class Game {
 			hms3.setMaterial(hmsMat);
 			world.addEntity(tmpters[3]);
 			List<shapes.Shape> allShapes = world.getGeometry(center);
-			g.addShape(hms0);
-			g.addShape(hms1);
-			g.addShape(hms2);
-			g.addShape(hms3);
+			//g.addShape(hms0);
+			//g.addShape(hms1);
+			//g.addShape(hms2);
+			//g.addShape(hms3);
 			g.addShapes(allShapes);
 		}
 		/*WorldManager.initializeWorld();
