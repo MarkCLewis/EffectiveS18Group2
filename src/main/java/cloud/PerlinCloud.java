@@ -5,13 +5,16 @@ import java.util.List;
 
 import engine.Engine;
 import shapes.RectangularPrism;
+import shapes.RenderMaterial;
 import shapes.Shape;
 import shapes.Sphere;
 import virtualworld.terrain.Point;
 
 public class PerlinCloud implements Cloud{
-	public PerlinCloud (double x, double y, double z, CloudArr arr, double newF2, double newScalingFactor)
+	public PerlinCloud (double x, double y, double z, CloudArr arr, double newF2, double newScalingFactor, RenderMaterial mat)
 	{
+		
+		cloudMat = mat;
 		this.y = y;
 		center = new Point(x,z);
 		cloudArr = arr.cloudArr;
@@ -25,9 +28,11 @@ public class PerlinCloud implements Cloud{
 		makeShape3dBest();
 		secondBestShapes();
 		furthest();
+		
+
 	}
 	//determine how big the cloud is 
-	
+	RenderMaterial cloudMat;
 	private final double scalingFactor;
 	private final int width;
 	private final int length;
@@ -76,7 +81,11 @@ public class PerlinCloud implements Cloud{
 						posZ = originZ - (midZ * scalingFactor) + (z * scalingFactor);
 						double variation = Engine.getRandomDouble(-.5, 2);
 						//random offset so that not every cloud of the same kind will look exactly the same, more random
-						best.add(new Sphere((float) (Math.max(1, scalingFactor / 2) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ));
+						Sphere temp = new Sphere((float) (Math.max(1, scalingFactor / 2) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ);
+						//best.add(new Sphere((float) (Math.max(1, scalingFactor / 2) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ));
+						if (cloudMat != null)
+							temp.setMaterial(cloudMat);
+						best.add(temp);
 					}
 				}
 			}
@@ -85,6 +94,9 @@ public class PerlinCloud implements Cloud{
 	
 	private void secondBestShapes()
 	{
+		
+
+		
 		int midX = length/2;
 		int midY = height/2;
 		int midZ = width/2;
@@ -115,7 +127,11 @@ public class PerlinCloud implements Cloud{
 							posZ = originZ - (midZ * scalingFactor) + (z * scalingFactor);
 							double variation = Engine.getRandomDouble(-.5, 2);
 							//random offset so that not every cloud of the same kind will look exactly the same, more random
-							secondBest.add(new Sphere((float) (Math.max(1, scalingFactor) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ));
+							Sphere temp = new Sphere((float) (Math.max(1, scalingFactor) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ);
+							if (cloudMat != null)
+								temp.setMaterial(cloudMat);
+							//secondBest.add(new Sphere((float) (Math.max(1, scalingFactor) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ));							
+							secondBest.add(temp);
 						}
 					}
 					count++;

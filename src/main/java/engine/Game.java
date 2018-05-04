@@ -113,7 +113,7 @@ public class Game {
 		cloudMat.setDiffuseColor(RenderColor.MediumGrey);
 		cloudMat.setDiffuseColor(RenderColor.MediumGrey);
 		cloudMat.setUseTexture(true);
-		cloudMat.setShininess(0.001f);
+		cloudMat.setShininess(0.01f);
 		cloudMat.setTextureDiffusePath("Textures/Terrain/splat/clouddiffuse.jpg");
 		cloudMat.setTextureAlphaPath("Textures/Terrain/splat/cloudalpha.jpg");
 		cloudMat.setUseTransparency(true);

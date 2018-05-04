@@ -3,21 +3,25 @@ package cloud;
 import java.util.ArrayList;
 import java.util.List;
 
+import shapes.RenderMaterial;
 import shapes.Shape;
 import shapes.Sphere;
 import virtualworld.terrain.Point;
 
 public class SpiralCloud implements Cloud{
-	public SpiralCloud(double x, double y, double z, double gap)
+	public SpiralCloud(double x, double y, double z, double gap, RenderMaterial mat)
 	{
+		cloudMat = mat;
 		this.y = y;
 		center = new Point(x,z);
 		this.gap = gap;
 		
 		makeShapeBest();
 		makeShapeSecondBest();
+		currentLevel = best;
 	}
 	
+	RenderMaterial cloudMat;
 	private double gap;
 	private double radius = 200;
 	private double y;
@@ -32,14 +36,17 @@ public class SpiralCloud implements Cloud{
 	private void makeShapeBest()
 	{ 
 		//float size = (float)gap;
-		float size = (float)(gap * 20);
+		float size = (float)(gap * 40);
 		double theta = 0.0;
 		double thetaInc = 2*Math.PI/100.0;
 		for (int i = 0; i < 350; i++) {
 		    double x = Math.cos(theta)*radius;
 		    double z = Math.sin(theta)*radius;
 		    y += 0.01;
-		    best.add(new Sphere(size + (float)(i/300.0) * size, x + center.getX() , y + 0.1 * i, z + center.getZ()));
+		    Sphere temp = new Sphere(size + (float)(i/300.0) * size, x + center.getX() , y + 0.1 * i, z + center.getZ());
+		    temp.setMaterial(cloudMat);
+		    best.add(temp);
+		    //best.add(new Sphere(size + (float)(i/300.0) * size, x + center.getX() , y + 0.1 * i, z + center.getZ()));
 		    radius+= gap + (i/100) * gap;
 		    theta += thetaInc;
 		}
@@ -48,7 +55,7 @@ public class SpiralCloud implements Cloud{
 	private void makeShapeSecondBest()
 	{ 
 		//float size = (float)gap;
-		float size = (float)(gap * 20);
+		float size = (float)(gap * 40);
 		double theta = 0.0;
 		double thetaInc = 2*Math.PI/100.0;
 		for (int i = 0; i < 350; i++) {
@@ -57,12 +64,14 @@ public class SpiralCloud implements Cloud{
 			    double x = Math.cos(theta)*radius;
 			    double z = Math.sin(theta)*radius;
 			    y += 0.01;
-			    secondBest.add(new Sphere((float)(1.5 * (size + (i/300.0) * size)), x + center.getX(), y + 0.15 * i, z + center.getZ() ));
+			    Sphere temp = new Sphere((float)(1.5 * (size + (i/300.0) * size)), x + center.getX(), y + 0.15 * i, z + center.getZ());
+			    temp.setMaterial(cloudMat);
+			    secondBest.add(temp);
+			    //secondBest.add(new Sphere((float)(1.5 * (size + (i/300.0) * size)), x + center.getX(), y + 0.15 * i, z + center.getZ() ));
 			    radius+= gap + (i/100) * gap;
 			    theta += thetaInc;
 			}
 		}
-		currentLevel = secondBest;
 	}
 	
 	@Override public Point getCenter()

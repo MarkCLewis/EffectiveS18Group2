@@ -7,12 +7,14 @@ import org.joml.Math;
 
 
 import shapes.RectangularPrism;
+import shapes.RenderMaterial;
 import shapes.Shape;
 import virtualworld.terrain.Point;
 
 public class SquareSpiralCloud implements Cloud{
-	public SquareSpiralCloud(double x, double y, double z, double newDist)
+	public SquareSpiralCloud(double x, double y, double z, double newDist, RenderMaterial mat)
 	{
+		cloudMat = mat;
 		center = new Point(x, z);
 		this.y = y;
 		dist = newDist;
@@ -20,9 +22,10 @@ public class SquareSpiralCloud implements Cloud{
 		
 		makeShapeBest();
 		secondBestShapes();
+		currentLevel = best;
 		
 	}
-	
+	RenderMaterial cloudMat;
 	private final double y;
 	private final Point center;
 	private final double dist;
@@ -38,8 +41,8 @@ public class SquareSpiralCloud implements Cloud{
 	
 	private void makeShapeBest()
 	{
- //       int width = getSize().width;
- //       int height = getSize().height;
+		
+		
 		float sizeOfLine = (float)dist/5;
         double widthCenter = center.getX();
         double heightCenter = center.getZ();        
@@ -50,23 +53,38 @@ public class SquareSpiralCloud implements Cloud{
         {
             
         	//draw the bottom to top line
-            best.add(new RectangularPrism(sizeOfLine, sizeOfLine , (float)Math.abs( (heightCenter - (dist * i) - (heightCenter + dist + (dist * i)) ))  , widthCenter + (dist * i + dist/2 * i), y, heightCenter + sizeOfLine));
+        	RectangularPrism top = new RectangularPrism(sizeOfLine, sizeOfLine , (float)Math.abs( (heightCenter - (dist * i) - (heightCenter + dist + (dist * i)) ))  , widthCenter + (dist * i + dist/2 * i), y, heightCenter + sizeOfLine);
+        	top.setMaterial(cloudMat);
+        	best.add(top);
+        	//best.add(new RectangularPrism(sizeOfLine, sizeOfLine , (float)Math.abs( (heightCenter - (dist * i) - (heightCenter + dist + (dist * i)) ))  , widthCenter + (dist * i + dist/2 * i), y, heightCenter + sizeOfLine));
  
             //draw the right to left line
-            best.add(new RectangularPrism((float)(Math.abs((widthCenter + (dist * i)) - (widthCenter - dist - (dist * i)) ) - dist/4) , sizeOfLine , sizeOfLine, widthCenter - (dist * i) + (dist/2 * (i - 1)) - balanceOffset , y , heightCenter + 2 * (dist + (dist * i) - dist/2)));
+        	RectangularPrism left = new RectangularPrism((float)(Math.abs((widthCenter + (dist * i)) - (widthCenter - dist - (dist * i)) ) - dist/4) , sizeOfLine , sizeOfLine, widthCenter - (dist * i) + (dist/2 * (i - 1)) - balanceOffset , y , heightCenter + 2 * (dist + (dist * i) - dist/2));
+            left.setMaterial(cloudMat);
+            best.add(left);
+        	//best.add(new RectangularPrism((float)(Math.abs((widthCenter + (dist * i)) - (widthCenter - dist - (dist * i)) ) - dist/4) , sizeOfLine , sizeOfLine, widthCenter - (dist * i) + (dist/2 * (i - 1)) - balanceOffset , y , heightCenter + 2 * (dist + (dist * i) - dist/2)));
 
             //draw the top to bottom line
-            best.add(new RectangularPrism(sizeOfLine, sizeOfLine, (float)Math.abs( (heightCenter + dist + (dist * i)) - (heightCenter - dist - (dist * i))), widthCenter - (dist * (i + 1)) - (dist * i + dist/2 * i) - (balanceOffset * 2), y , heightCenter - dist + sizeOfLine));
+            RectangularPrism bottom = new RectangularPrism(sizeOfLine, sizeOfLine, (float)Math.abs( (heightCenter + dist + (dist * i)) - (heightCenter - dist - (dist * i))), widthCenter - (dist * (i + 1)) - (dist * i + dist/2 * i) - (balanceOffset * 2), y , heightCenter - dist + sizeOfLine);
+            bottom.setMaterial(cloudMat);
+            best.add(bottom);
+            //best.add(new RectangularPrism(sizeOfLine, sizeOfLine, (float)Math.abs( (heightCenter + dist + (dist * i)) - (heightCenter - dist - (dist * i))), widthCenter - (dist * (i + 1)) - (dist * i + dist/2 * i) - (balanceOffset * 2), y , heightCenter - dist + sizeOfLine));
             
             //draw the left to right line
-            best.add(new RectangularPrism((float)(Math.abs((widthCenter - dist - (dist * i)) - (widthCenter + dist + (dist * i))) - dist/2) , sizeOfLine , sizeOfLine , widthCenter - dist - (dist/2 * (i - 1)) + dist/2 + sizeOfLine, y ,  heightCenter - 2 * (dist + (dist * i) - dist/2) - dist * 2));
+            RectangularPrism right = new RectangularPrism((float)(Math.abs((widthCenter - dist - (dist * i)) - (widthCenter + dist + (dist * i))) - dist/2) , sizeOfLine , sizeOfLine , widthCenter - dist - (dist/2 * (i - 1)) + dist/2 + sizeOfLine, y ,  heightCenter - 2 * (dist + (dist * i) - dist/2) - dist * 2);
+            right.setMaterial(cloudMat);
+            best.add(right);
+            //best.add(new RectangularPrism((float)(Math.abs((widthCenter - dist - (dist * i)) - (widthCenter + dist + (dist * i))) - dist/2) , sizeOfLine , sizeOfLine , widthCenter - dist - (dist/2 * (i - 1)) + dist/2 + sizeOfLine, y ,  heightCenter - 2 * (dist + (dist * i) - dist/2) - dist * 2));
         }
 	}
 	
 	private void secondBestShapes()
 	{
-		secondBest.add(new RectangularPrism((float)dist * noOfSpirals, 5, (float)dist * noOfSpirals, center.getX(), y, center.getZ()));
-		currentLevel = secondBest;
+		RectangularPrism temp = new RectangularPrism((float)dist * noOfSpirals, 5, (float)dist * noOfSpirals, center.getX(), y, center.getZ());
+		temp.setMaterial(cloudMat);
+		//secondBest.add(new RectangularPrism((float)dist * noOfSpirals, 5, (float)dist * noOfSpirals, center.getX(), y, center.getZ()));
+		secondBest.add(temp);
+		
 	}
 	
 	@Override public Point getCenter()
