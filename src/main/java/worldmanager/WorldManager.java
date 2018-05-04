@@ -6,6 +6,7 @@ import java.util.List;
 import entity.Entity;
 import shapes.Shape;
 import virtualworld.terrain.Point;
+import virtualworld.terrain.Terrain;
 
 public class WorldManager {
 	//	TODO
@@ -41,7 +42,7 @@ public class WorldManager {
 	
 	public static synchronized WorldManager getInstance() {
 		if (world == null) {
-			world = new WorldManager(new Point(0,0), 1600);
+			world = new WorldManager(new Point(0,0),2048);
 		}
 		return world;
 	}
@@ -121,5 +122,24 @@ public class WorldManager {
 			}
 		}
 		return nodeShapes;
+	}
+	
+	public static void initializeWorld() {
+		WorldManager world = WorldManager.getInstance();
+		Point cent = world.rootNode.center;
+		double worldSize = world.getSize();
+		Terrain t = Terrain.forMountains(cent, worldSize, (int)worldSize/64);
+		world.addEntity(t);
+		defineWorld(t,cent);
+	}
+	
+	public static void defineWorld(Terrain t,Point cent) {
+		if(Node.findDist(t.getCenter(),cent) < t.getSize()*4 && t.getSize() > 2000) {
+			Terrain[] ters = t.split();
+			for(Terrain ter: ters) {
+				WorldManager.getInstance().addEntity(ter);
+				defineWorld(ter,cent);
+			}
+		}
 	}
 }

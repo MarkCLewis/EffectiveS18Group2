@@ -7,6 +7,7 @@ import com.sun.javafx.geom.Shape;
 
 import shapes.Cylinder;
 import shapes.HeightMapSurface;
+import shapes.RectangularPrism;
 import shapes.RenderMaterial;
 import virtualworld.terrain.Point;
 import virtualworld.terrain.Terrain;
@@ -45,18 +46,24 @@ public class Game {
      */
 	public static void main(String[] args) {
 
-		Game g = new Game(250f);
+		Game g = new Game(100f);
 		g.start();
 		Point center = new Point(0,0);
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
-		world.updateMaxView(10000);
+		world.updateMaxView(100000);
 		
 		
 
-		Terrain t = Terrain.forWorld(center, 2048, 16);
-
+		Terrain t = Terrain.forIsland(center, 2048, 6);
+		world.addEntity(t);
+		RectangularPrism r = new RectangularPrism(50, 50, 50, 1026, 250,-1026); 
+		RectangularPrism r1 = new RectangularPrism(50, 50, 50, 1026, 250, 1026);
+		RectangularPrism r2 = new RectangularPrism(50, 50, 50, -1026, 250, -1026);
+		RectangularPrism r3 = new RectangularPrism(50, 50, 50, -1026, 250, 1026);
+		RectangularPrism r4 = new RectangularPrism(50, 50, 50, 0, 250, 0);
+		
 
 		RenderMaterial hmsMat = new RenderMaterial();
 		hmsMat.setUseTexture(true);
@@ -64,7 +71,12 @@ public class Game {
 		hmsMat.setTextureNormalPath("Textures/Terrain/splat/grass_normal.jpg");
 		Terrain[] ters = t.split();
 		System.out.println("Initial Height: " + ters[3].getHeightAt(new Point(200,-200)));
-		for(int i = 0; i < ters.length-1; i++) {
+		g.addShape(r);
+		g.addShape(r1);
+		g.addShape(r2);
+		g.addShape(r3);
+		g.addShape(r4);
+		for(int i = 0; i < ters.length; i++) {
 			world.addEntity(ters[i]);
 			Terrain[] tmpters = ters[i].split();
 			
@@ -86,31 +98,12 @@ public class Game {
 			g.addShape(hms1);
 			g.addShape(hms2);
 			g.addShape(hms3);
-			//g.addShapes(allShapes);
+			g.addShapes(allShapes);
 		}
-		/*for(Terrain ter: ters) {
-			HeightMapSurface hms = ter.getHeightMapSurface();
-			hms.setMaterial(hmsMat);
-			g.addShape(hms);
-		}*/
-		Terrain[] temp = ters[3].split();
-		System.out.println("after split height: " + ters[3].getHeightAt(new Point(200,-200)));
-		System.out.println("split height: " + temp[0].getHeightAt(new Point(200,-200)));
-		HeightMapSurface hms0 = temp[0].getHeightMapSurface();
-		world.addEntity(temp[0]);
-		HeightMapSurface hms1 = temp[1].getHeightMapSurface();
-		world.addEntity(temp[1]);
-		HeightMapSurface hms2 = temp[2].getHeightMapSurface();
-		world.addEntity(temp[2]);
-		HeightMapSurface hms3 = temp[3].getHeightMapSurface();
-		world.addEntity(temp[3]);
-		g.addShape(hms0);
-		g.addShape(hms1);
-		g.addShape(hms2);
-		g.addShape(hms3);
-		HeightMapSurface hms = ters[3].getHeightMapSurface();
-		hms.setMaterial(hmsMat);
-		g.addShape(hms);
+		/*WorldManager.initializeWorld();
+		List<shapes.Shape> allShapes = world.getGeometry(center);
+		g.addShapes(allShapes);*/
 	}
+
   
 }
