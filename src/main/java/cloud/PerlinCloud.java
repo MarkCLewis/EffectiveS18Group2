@@ -122,6 +122,7 @@ public class PerlinCloud implements Cloud{
 				}
 			}
 		}
+		currentLevel = secondBest;
 	}
 	
 	private void furthest()
@@ -141,14 +142,14 @@ public class PerlinCloud implements Cloud{
 	
 	@Override public double getSize() 
 	{
-		return (scalingFactor * width * length);
+		return (scalingFactor * width * length/ 100);
 	}
 	
 	@Override public void distFromCamera(double dist)
 	{
-		double firstLevel = 150;
-		double secondLevel = 500;
-		double thirdLevel = 1000;
+		double firstLevel = 1500;
+		double secondLevel = 2500;
+		double thirdLevel = 3500;
 		
 		if (dist > firstLevel && dist <= secondLevel)
 			currentLevel = secondBest;

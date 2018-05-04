@@ -39,7 +39,7 @@ public class SpiralCloud implements Cloud{
 		    double x = Math.cos(theta)*radius;
 		    double z = Math.sin(theta)*radius;
 		    y += 0.01;
-		    best.add(new Sphere(size + (float)(i/300.0) * size, x , y + 0.01 * i, z ));
+		    best.add(new Sphere(size + (float)(i/300.0) * size, x + center.getX() , y + 0.1 * i, z + center.getZ()));
 		    radius+= gap + (i/100) * gap;
 		    theta += thetaInc;
 		}
@@ -57,11 +57,12 @@ public class SpiralCloud implements Cloud{
 			    double x = Math.cos(theta)*radius;
 			    double z = Math.sin(theta)*radius;
 			    y += 0.01;
-			    secondBest.add(new Sphere((float)(1.5 * (size + (i/300.0) * size)), x , y + 0.15 * i, z ));
+			    secondBest.add(new Sphere((float)(1.5 * (size + (i/300.0) * size)), x + center.getX(), y + 0.15 * i, z + center.getZ() ));
 			    radius+= gap + (i/100) * gap;
 			    theta += thetaInc;
 			}
 		}
+		currentLevel = secondBest;
 	}
 	
 	@Override public Point getCenter()
@@ -71,13 +72,13 @@ public class SpiralCloud implements Cloud{
 	
 	@Override public double getSize()
 	{
-		return 0;
+		return ( (gap + 1) * 20) * ((gap + 1) * 20) ;
 	}
 
 	@Override public void distFromCamera(double dist)
 	{
-		double firstLevel = 500;
-		double secondLevel = 1000;
+		double firstLevel = 2000;
+		double secondLevel = 4000;
 		
 		if (dist <= firstLevel)
 			currentLevel = best;
@@ -89,7 +90,6 @@ public class SpiralCloud implements Cloud{
 
 	@Override public List<Shape> getShapes()
 	{
-		//todo
 		return currentLevel;
 	}
 	
