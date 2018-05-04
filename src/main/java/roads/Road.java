@@ -10,33 +10,33 @@ import shapes.Shape;
 import virtualworld.terrain.Pair;
 import virtualworld.terrain.Point;
 
+
 public class Road implements Entity {
 
 	private int north;
 	private int south;
 	private int east;
 	private int west;
-	private final double len;
+	private final float len;
 	private final Point topLeft;
 	private final Point topRight;
 	private final Point bottomLeft;
 	private final Point bottomRight;
-	boolean activeness;
+	boolean activeness = true;
 	private final Point center;
 
 	// initial size should be size of world
-	public Road(Point cent, double size) {
-		north = 1;
-		south = 1;
-		east = 2;
-		west = 1;
-		len = size;
-		topLeft = new Point(cent.getX() - (size / 2), cent.getZ() - (size / 2));
-		topRight = new Point(cent.getX() + (size / 2), cent.getZ() - (size / 2));
-		bottomLeft = new Point(cent.getX() - (size / 2), cent.getZ() + (size / 2));
-		bottomRight = new Point(cent.getX() + (size / 2), cent.getZ() + (size / 2));
+	public Road(Point cent, double d) {
+		north = 100;
+		south = 100;
+		east = 100;
+		west = 100;
+		len = (float) d;
+		topLeft = new Point(cent.getX() - (d / 2), cent.getZ() - (d / 2));
+		topRight = new Point(cent.getX() + (d / 2), cent.getZ() - (d / 2));
+		bottomLeft = new Point(cent.getX() - (d / 2), cent.getZ() + (d / 2));
+		bottomRight = new Point(cent.getX() + (d / 2), cent.getZ() + (d / 2));
 		center = cent;
-		activeness = false;
 	}
 
 	// splits the road into four quads
@@ -63,21 +63,18 @@ public class Road implements Entity {
 		roadArray[0].south = findNum(northPair.getLeft(), southPair.getLeft());
 		roadArray[0].east = findNum(westPair.getRight(), eastPair.getRight());
 		roadArray[0].west = westPair.getRight();
-		roadArray[0].activeness = isActive();
 
 		/// topRight
 		roadArray[1].north = northPair.getRight();
 		roadArray[1].south = findNum(northPair.getRight(), southPair.getRight());
 		roadArray[1].east = eastPair.getRight();
 		roadArray[1].west = findNum(westPair.getRight(), eastPair.getRight());
-		roadArray[1].activeness = isActive();
 
 		// bottomLeft
 		roadArray[2].north = findNum(northPair.getLeft(), southPair.getLeft());
 		roadArray[2].south = southPair.getLeft();
 		roadArray[2].east = findNum(westPair.getLeft(), eastPair.getLeft());
 		roadArray[2].west = westPair.getLeft();
-		roadArray[2].activeness = isActive();
 
 		// bottomRight
 		roadArray[3].north = findNum(northPair.getRight(), southPair.getLeft());
@@ -149,14 +146,6 @@ public class Road implements Entity {
 		return val;
 	}
 
-	private boolean isDone(int card) {
-		if (card == 0 || card == 1) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
 	@Override
 	public Point getCenter() {
 		return center;
@@ -172,50 +161,67 @@ public class Road implements Entity {
 		dist = center.getX() - dist;
 	}
 
+	public List<Shape> buildRoads() {
+		float size = (float) len;
+		List<Shape> shapes = new ArrayList<Shape>();
+		//WorldManager world  = WorldManager.getInstance();
+		//double tHeight = world.getHeight(center);
+		if (north == 1 && south == 1) {
+			RectangularPrism road = new RectangularPrism(100, 25, size, center.getX(), 500, center.getZ());
+			shapes.add(road);
+		} else if (north == 1 && south == 0) {
+			RectangularPrism road = new RectangularPrism(100, 25, size, center.getX(), 500, center.getZ());
+			shapes.add(road);
+		} else if (north == 0 && south == 1) {
+			
+		}
+		if (west == 1 && east == 1) {
+			//RectangularPrism road = new RectangularPrism(100, 25, size/2, 100, 500, center.getZ());
+			//shapes.add(road);
+		} else if (west == 1 && east == 0) {
+			
+		} else if (west == 0 && east == 1) {
+			
+		}
+		
+		return shapes;
+	}
 	// RectangularPrism road = new RectangularPrism(xsize(width),ysize(height),
 	// zsize(length), xpos, //ypos (goes up), zpos);
 	@Override
 	public List<Shape> getShapes() {
-		float size = (float) len;
+		
 		List<Shape> shapes = new ArrayList<Shape>();
-
+		//WorldManager world  = WorldManager.getInstance();
+		//double tHeight = world.getHeight(center);
 		if (north == 1 && south == 1) {
-			RectangularPrism road = new RectangularPrism(100f, 400f, size, topRight.getX() + (size / 2), 200,
-					topRight.getZ() + size);
+			RectangularPrism road = new RectangularPrism(50, 10, len, center.getX(), 700, center.getZ());
 			shapes.add(road);
 		} else if (north == 1 && south == 0) {
-			RectangularPrism road = new RectangularPrism(100f, 400f, (size / 2), topRight.getX() + (size / 2), 200,
-					topRight.getZ() + size / 2);
+			RectangularPrism road = new RectangularPrism(50, 10, len/2, center.getX(),700, center.getZ()+len/2);
 			shapes.add(road);
 		} else if (north == 0 && south == 1) {
-			RectangularPrism road = new RectangularPrism(100f, 400f, (size / 2), topRight.getX() + (size / 2), 200,
-					topRight.getZ() + size + size / 2);
+			RectangularPrism road = new RectangularPrism(50, 10, len/2, center.getX(),700, center.getZ()-len/2);
 			shapes.add(road);
 		}
 		if (west == 1 && east == 1) {
-			RectangularPrism road = new RectangularPrism(size, 400f, 100f, topRight.getX() + size / 2, 200,
-					topRight.getZ() + (size));
+			RectangularPrism road = new RectangularPrism(len, 10, 50, center.getX(), 700, center.getZ());
 			shapes.add(road);
 		} else if (west == 1 && east == 0) {
-			RectangularPrism road = new RectangularPrism((size / 2), 400f, 100f, topRight.getX() + size, 200,
-					topRight.getZ() + size);
+			RectangularPrism road = new RectangularPrism(len/2, 10, 50, center.getX()-len/2, 700, center.getZ());
 			shapes.add(road);
 		} else if (west == 0 && east == 1) {
-			RectangularPrism road = new RectangularPrism((size / 2), 400f, 100f, topRight.getX(), 200,
-					topRight.getZ() + size);
+			RectangularPrism road = new RectangularPrism(len/2, 10, 50, center.getX()+len/2, 700, center.getZ());
 			shapes.add(road);
+			
 		}
-
 		return shapes;
+		
 	}
 
 	@Override
 	public boolean isActive() {
-		if (isDone(north) && isDone(south) && isDone(east) && isDone(west)) {
-			return true;
-		} else {
-			return false;
-		}
+		return activeness;
 	}
 
 }
