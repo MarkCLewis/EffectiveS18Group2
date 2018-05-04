@@ -9,7 +9,7 @@ public class test {
 
 	public static void main(String[] args) {
 		Game g = new Game(400f);
-		CloudFactory cFactory = new CloudFactory();
+		CloudFactory cFactory = CloudFactory.getInstance();
 
 		
 		Cloud b = cFactory.getCloud(5, 0000,0);

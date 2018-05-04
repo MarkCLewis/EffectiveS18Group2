@@ -4,12 +4,24 @@ import java.util.Map;
 
 import engine.Engine;
 public class CloudFactory {
-	public CloudFactory()
+	private CloudFactory()
 	{
 		
 	}
 	
+	
+	private static CloudFactory CF = null;
+	
 	public Map<String, CloudArr> arrMap = new HashMap<String, CloudArr>();
+	
+	public static CloudFactory getInstance()
+	{
+		if (CF == null)
+			return new CloudFactory();
+		else
+			return CF;
+	}
+	
 	
 	public Cloud getCloud(int x, int y, int z)
 	{
