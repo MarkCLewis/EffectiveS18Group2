@@ -9,6 +9,7 @@ import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
@@ -33,12 +34,12 @@ import shapes.Shape;
 import shapes.Sphere;
 import shapes.VectorCylinder;
 
-public class EngineSpatial {
+public class EngineShape {
 	private Shape shape;
 	private Vector3d pos;
 	private Node node;
 	
-	public EngineSpatial(Shape shape) {
+	public EngineShape(Shape shape) {
 		this.shape = shape;
 		this.initData();
 	}
@@ -65,6 +66,7 @@ public class EngineSpatial {
 	}
 	
 	public void setupCylinder(final Cylinder shape) {
+		Node shapeNode = new Node(getShapeNodeName());
 		int axisSamples = (int)shape.getRadius() * 8;
     	int radialSamples = (int)shape.getRadius() * 8;
     	Mesh mesh = new com.jme3.scene.shape.Cylinder(axisSamples,radialSamples,shape.getRadius(),shape.getHeight(),true);
@@ -76,11 +78,13 @@ public class EngineSpatial {
     		rbc.setMass(0);
     		rbc.setKinematic(false);
     	}
+    	shapeNode.attachChild(geom);
     	this.node.addControl(rbc);
-    	this.node.attachChild(geom);
+    	this.node.attachChild(shapeNode);
 	}
 	
 	public void setupVectorCylinder(final VectorCylinder shape) {
+		Node shapeNode = new Node(getShapeNodeName());
 		int axisSamples = (int)shape.getRadius() * 8;
     	int radialSamples = (int)shape.getRadius() * 8;
     	Mesh mesh = new com.jme3.scene.shape.Cylinder(axisSamples,radialSamples,shape.getRadius(),shape.getHeight(),true);
@@ -92,11 +96,13 @@ public class EngineSpatial {
     		rbc.setMass(0);
     		rbc.setKinematic(false);
     	}
+    	shapeNode.attachChild(geom);
     	this.node.addControl(rbc);
-    	this.node.attachChild(geom);
+    	this.node.attachChild(shapeNode);
 	}
 	
 	public void setupSphere(final Sphere shape) {
+		Node shapeNode = new Node(getShapeNodeName());
 		float rad = shape.getRadius();
 		com.jme3.scene.shape.Sphere mesh = new com.jme3.scene.shape.Sphere((int)rad*8,(int)rad*8,rad);
 		mesh.setTextureMode(com.jme3.scene.shape.Sphere.TextureMode.Projected);
@@ -107,11 +113,13 @@ public class EngineSpatial {
     		rbc.setMass(0);
     		rbc.setKinematic(false);
     	}
+    	shapeNode.attachChild(geom);
     	this.node.addControl(rbc);
-    	this.node.attachChild(geom);
+    	this.node.attachChild(shapeNode);
 	}
 	
 	public void setupRectPrism(final RectangularPrism shape) {
+		Node shapeNode = new Node(getShapeNodeName());
 		float[] dim = shape.getDimensions();
     	Mesh mesh = new Box(dim[0],dim[1],dim[2]);
     	Geometry geom = new Geometry("RectPrism"+shape.hashCode(),mesh);
@@ -121,11 +129,13 @@ public class EngineSpatial {
     		rbc.setMass(0);
     		rbc.setKinematic(false);
     	}
+    	shapeNode.attachChild(geom);
     	this.node.addControl(rbc);
-    	this.node.attachChild(geom);
+    	this.node.attachChild(shapeNode);
 	}
 	
 	public void setupHeightMap(final HeightMapSurface shape) {
+		Node shapeNode = new Node(getShapeNodeName());
 		float[] heightMapTransformed = new float[shape.getSideLength() * shape.getSideLength()];
 		for(int r=0; r < shape.getSideLength(); r++) {
 			for(int c=0; c < shape.getSideLength(); c++) {
@@ -138,11 +148,13 @@ public class EngineSpatial {
 		TerrainQuad q = new TerrainQuad(("TerrainQuad" + shape.hashCode()), shape.getPatchSize(), shape.getSideLength(), heightMapTransformed);
 		q.setLocalScale(shape.getScaleX(), shape.getScaleY(), shape.getScaleZ());
 		RigidBodyControl rbc = new RigidBodyControl(0);
+    	shapeNode.attachChild(q);
     	this.node.addControl(rbc);
-    	this.node.attachChild(q);
+    	this.node.attachChild(shapeNode);
 	}
 	
 	public void setupQuad(final Quad shape) {
+		Node shapeNode = new Node(getShapeNodeName());
 		Mesh mesh = new Mesh();
 		Geometry geom = new Geometry("Quad"+shape.hashCode(),mesh);
     	float[] cornerHeights = shape.getCornerHeights();
@@ -189,8 +201,9 @@ public class EngineSpatial {
     		rbc.setKinematic(false);
     	}
     	rbc.setCollisionShape(mcs);
+    	shapeNode.attachChild(geom);
     	this.node.addControl(rbc);
-    	this.node.attachChild(geom);
+    	this.node.attachChild(shapeNode);
 	}
 	
 	/**
@@ -202,17 +215,21 @@ public class EngineSpatial {
 	 */
 	public Spatial getXYZAxes(AssetManager assetManager) {
 		String hash = String.valueOf(this.shape.hashCode());
-		float scale = 100f;
+		float scale = 25f;
 		Engine.logInfo("XYZAxes scale: " + scale);
 		Node nodeAxes = new Node(this.getAxesNodeName());
 		Material negAxisMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 		negAxisMat.setColor("Color", ColorRGBA.Black);
+		negAxisMat.getAdditionalRenderState().setLineWidth(scale/8f);
 		Material xAxisMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 		xAxisMat.setColor("Color", ColorRGBA.Red);
+		xAxisMat.getAdditionalRenderState().setLineWidth(scale/8f);
 		Material yAxisMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 		yAxisMat.setColor("Color", ColorRGBA.Yellow);
+		yAxisMat.getAdditionalRenderState().setLineWidth(scale/8f);
 		Material zAxisMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 		zAxisMat.setColor("Color", ColorRGBA.Blue);
+		zAxisMat.getAdditionalRenderState().setLineWidth(scale/8f);
 		Geometry xAxisGeom = new Geometry("XAxis"+hash,new Arrow(new Vector3f(scale,0,0)));
 		xAxisGeom.setMaterial(xAxisMat);
 		Geometry yAxisGeom = new Geometry("YAxis"+hash,new Arrow(new Vector3f(0,scale,0)));
@@ -231,7 +248,6 @@ public class EngineSpatial {
 		nodeAxes.attachChild(negXAxisGeom);
 		nodeAxes.attachChild(negYAxisGeom);
 		nodeAxes.attachChild(negZAxisGeom);
-		nodeAxes.rotate(this.shape.getXRot(), this.shape.getYRot(), this.shape.getZRot());
 		return nodeAxes;
 	}
 	
@@ -242,9 +258,16 @@ public class EngineSpatial {
 	public String getAxesNodeName() {
 		return (getAxesNodeNamePrefix() + String.valueOf(this.shape.hashCode()));
 	}
+	public String getShapeNodeName() {
+		return (getShapeNodeNamePrefix() + String.valueOf(this.shape.hashCode()));
+	}
 	
 	public static String getAxesNodeNamePrefix() {
 		return "XYZAxes";
+	}
+	
+	public static String getShapeNodeNamePrefix() {
+		return "Shape";
 	}
 	
 	/** 
@@ -283,9 +306,12 @@ public class EngineSpatial {
 		}
 		if(attachAxes) {
 			Spatial axes = getXYZAxes(assetManager);
-			node.attachChild(axes);
+			this.node.attachChild(axes);
 		}
-		this.node.rotateUpTo((new Vector3f(this.shape.getXRot(), this.shape.getYRot(), this.shape.getZRot()).normalizeLocal()));
+		Quaternion physicsRot = new Quaternion();
+		physicsRot.fromAngles(this.shape.getXRot(), this.shape.getYRot(), this.shape.getZRot());
+		physicsRot.normalizeLocal();
+		this.node.getControl(RigidBodyControl.class).setPhysicsRotation(physicsRot);
 		return this.node;
 	}
     

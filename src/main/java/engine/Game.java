@@ -52,7 +52,7 @@ public class Game {
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
-		world.updateMaxView(1000000);
+		world.updateMaxView(10000);
 		
 		WorldManager.initializeWorld();
 		List<shapes.Shape> allShapes = world.getGeometry(center);
@@ -106,7 +106,7 @@ public class Game {
 		}*/
 		
 		for(int i = 0; i < 10; i++) {
-			Cylinder c = new Cylinder(10,10,0,450+(i*20),0,0,0,0);
+			Cylinder c = new Cylinder(10,10,0,450+(i*20),0,(float)Math.PI / 10f,(float)Math.PI / 10f,(float)Math.PI / 10f);
 			g.addShape(c);
 		}
 		

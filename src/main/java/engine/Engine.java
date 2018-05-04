@@ -111,12 +111,12 @@ public class Engine extends SimpleApplication {
 	 * "meshPositions" collection; a mesh at index i will have its
 	 * position data at index i inside of "meshPositions"
 	 */
-	private final ArrayList<EngineSpatial> spatialBuffer = new ArrayList<EngineSpatial>();
+	private final ArrayList<EngineShape> spatialBuffer = new ArrayList<EngineShape>();
 	/**
 	 * This buffer holds new shapes that should be added on next update.
 	 * The buffer is cleared when the shapes are added to the render state.
 	 */
-	private final ArrayList<EngineSpatial> spatialsToAdd = new ArrayList<EngineSpatial>();
+	private final ArrayList<EngineShape> spatialsToAdd = new ArrayList<EngineShape>();
 	
 	/**
 	 * The position of the camera/player in world coordinates
@@ -222,7 +222,7 @@ public class Engine extends SimpleApplication {
         objectNode = new Node("ObjectNode");
 		for (int i = 0; i < spatialBuffer.size(); i++) {
         	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
-            EngineSpatial engSpatial = spatialBuffer.get(i);
+            EngineShape engSpatial = spatialBuffer.get(i);
 			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
             //Engine.logInfo("mesh origin is " + localPos.toString());
             Node node = engSpatial.getJME3Node(this.assetManager, this.showAxes);
@@ -326,7 +326,6 @@ public class Engine extends SimpleApplication {
                 	shouldResetObjectMaterials = true;
                 }
         	} else if(name.equals("showAxes") && !keyPressed) {
-        		Engine.logInfo("showAxes toggled");
         		showAxes = !showAxes;
         		if(showAxes && !shouldUpdateShapes) {
         			addAxes(objectNode);
@@ -465,11 +464,11 @@ public class Engine extends SimpleApplication {
     
     private void resetSpatialMaterialsInNode(Node node) {
     	for (int i = 0; i < spatialBuffer.size(); i++) {
-			EngineSpatial es = spatialBuffer.get(i);
+			EngineShape es = spatialBuffer.get(i);
 			Node n = (Node)node.getChild(es.getNodeName());
 			n.getChildren().forEach(c -> {
 				if(c instanceof Node) {
-					if(!((Node)c).getName().startsWith(EngineSpatial.getAxesNodeNamePrefix())) {
+					if(!((Node)c).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
 						c.setMaterial(es.getMaterial(assetManager));
 					}
 				}
@@ -483,14 +482,14 @@ public class Engine extends SimpleApplication {
 		node.detachAllChildren();
 		for (int i = 0; i < spatialBuffer.size(); i++) {
         	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
-            EngineSpatial engSpatial = spatialBuffer.get(i);
+            EngineShape engSpatial = spatialBuffer.get(i);
 			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
             Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
             tmpNode.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             if(wireframe) {
             	tmpNode.getChildren().forEach(c -> {
             		if(c instanceof Node) {
-            			if(!((Node)c).getName().startsWith(EngineSpatial.getAxesNodeNamePrefix())) {
+            			if(!((Node)c).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
             				c.setMaterial(matWire);
             			}
             		}
@@ -505,7 +504,7 @@ public class Engine extends SimpleApplication {
     private void addSpatialsToNode(Node node) {
     	for (int i = 0; i < spatialsToAdd.size(); i++) {
         	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
-            EngineSpatial engSpatial = spatialsToAdd.get(i);
+            EngineShape engSpatial = spatialsToAdd.get(i);
 			spatialBuffer.add(engSpatial);
 			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
             Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
@@ -513,7 +512,7 @@ public class Engine extends SimpleApplication {
             if(wireframe) {
             	tmpNode.getChildren().forEach(c -> {
             		if(c instanceof Node) {
-            			if(!((Node)c).getName().startsWith(EngineSpatial.getAxesNodeNamePrefix())) {
+            			if(!((Node)c).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
             				c.setMaterial(matWire);
             			}
             		}
@@ -571,20 +570,16 @@ public class Engine extends SimpleApplication {
     private void addAxes(Node node) {
     	this.enqueue(new Runnable() {
 	    	public void run() {
-	    		Engine.logInfo("addAxes top");
 	    		for(int i = 0; i < spatialBuffer.size(); i++) {
-		    		EngineSpatial es = spatialBuffer.get(i);
+		    		EngineShape es = spatialBuffer.get(i);
 		    		Spatial s = node.getChild(es.getNodeName());
 		    		if(s != null && s instanceof Node) {
-		    			Engine.logInfo("spatial is not null and is a Node");
 		    			Node n = (Node)s;
 		    			if(n.getChild(es.getAxesNodeName()) == null) {
-		    				Engine.logInfo("spatial did not contain an axes object already");
 		        			n.attachChild(es.getXYZAxes(Engine.this.assetManager));
 		        		}
 		    		}
 	    		}
-	    		Engine.logInfo("addAxes bottom");
 	    	}
     	});
     }
@@ -592,22 +587,17 @@ public class Engine extends SimpleApplication {
     private void removeAxes(Node node) {
     	this.enqueue(new Runnable() {
 	    	public void run() {
-	    		Engine.logInfo("removeAxes top...");
 		    	node.getChildren().forEach(c -> {
 		    		if(c instanceof Node) {
-		    			Engine.logInfo("c is a Node");
 		    			((Node)c).getChildren().forEach(c2 -> {
 		    				if(c2 instanceof Node) {
-		    					Engine.logInfo("c2 is a Node");
-		    					if(((Node)c2).getName().startsWith(EngineSpatial.getAxesNodeNamePrefix())) {
-		    						Engine.logInfo("c2 is the Axes");
+		    					if(((Node)c2).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
 		    						((Node) c).detachChild(c2);
 		    					}
 		    				}
 		    			});
 		    		}
 		    	});
-		    	Engine.logInfo("removeAxes bottom");
 	    	}
     	});
     }
@@ -625,7 +615,7 @@ public class Engine extends SimpleApplication {
     		public void run() {
     			spatialBuffer.clear();
     	    	for (shapes.Shape shape : shapes) {
-    	            EngineSpatial es = new EngineSpatial(shape);
+    	            EngineShape es = new EngineShape(shape);
     	            spatialBuffer.add(es);
     	    	}
     	    	shouldUpdateShapes = true;
@@ -637,7 +627,7 @@ public class Engine extends SimpleApplication {
     	this.enqueue(new Runnable() {
     		public void run() {
 	    		for(shapes.Shape shape : shapes) {
-	        		EngineSpatial es = new EngineSpatial(shape);
+	        		EngineShape es = new EngineShape(shape);
 	        		spatialsToAdd.add(es);
 	        	}
     		}
@@ -647,7 +637,7 @@ public class Engine extends SimpleApplication {
     public void addShape(shapes.Shape shape) {
     	this.enqueue(new Runnable() {
     		public void run() {
-    			EngineSpatial es = new EngineSpatial(shape);
+    			EngineShape es = new EngineShape(shape);
     			spatialsToAdd.add(es);
     		}
     	});
