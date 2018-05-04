@@ -22,7 +22,7 @@ public class PerlinCloud implements Cloud{
 		height = cloudArr[0][0].length;
 		width = cloudArr[0].length;
 		f2 = newF2;
-		scalingFactor = newScalingFactor;
+		scalingFactor = newScalingFactor * 4;
 		
 		//method calls to make 3 levels of details
 		makeShape3dBest();
@@ -81,7 +81,7 @@ public class PerlinCloud implements Cloud{
 						posZ = originZ - (midZ * scalingFactor) + (z * scalingFactor);
 						double variation = Engine.getRandomDouble(-.5, 2);
 						//random offset so that not every cloud of the same kind will look exactly the same, more random
-						Sphere temp = new Sphere((float) (Math.max(1, scalingFactor / 2) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ);
+						Sphere temp = new Sphere((float) (Math.max(1, scalingFactor) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ);
 						//best.add(new Sphere((float) (Math.max(1, scalingFactor / 2) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ));
 						if (cloudMat != null)
 							temp.setMaterial(cloudMat);
@@ -127,7 +127,7 @@ public class PerlinCloud implements Cloud{
 							posZ = originZ - (midZ * scalingFactor) + (z * scalingFactor);
 							double variation = Engine.getRandomDouble(-.5, 2);
 							//random offset so that not every cloud of the same kind will look exactly the same, more random
-							Sphere temp = new Sphere((float) (Math.max(1, scalingFactor) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ);
+							Sphere temp = new Sphere((float) (Math.max(1, scalingFactor * 2) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ);
 							if (cloudMat != null)
 								temp.setMaterial(cloudMat);
 							//secondBest.add(new Sphere((float) (Math.max(1, scalingFactor) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ));							

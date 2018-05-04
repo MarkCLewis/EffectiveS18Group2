@@ -47,7 +47,7 @@ public class CloudFactory {
 		//rand = 4;
 		
 		double newY;
-		double skyLevel = 2000;
+		double skyLevel = 1750;
 		if (y < skyLevel) 
 		{
 			newY = skyLevel;
@@ -64,9 +64,9 @@ public class CloudFactory {
 			CloudArr arr = arrMap.get("single");
 			if (arr == null)
 			{
-				length = 60;//30 original;
-				height = 20;//10 original;
-				width = 40;//20 original;
+				length = 30; //original;
+				height = 10; //original;
+				width = 20; //original;
 				arr = new CloudArr(length,height,width);
 				arr.setOffSets(6.5, 3, 3, 2, 8);
 				arr.setFilters(0.55, 0.75);
@@ -84,9 +84,9 @@ public class CloudFactory {
 			CloudArr arr = arrMap.get("scatter");
 			if (arr == null)
 			{
-				length = 50;
-				height = 15;
-				width = 35;
+				length = 25;
+				height = 7;
+				width = 17;
 				arr = new CloudArr(length, height,width);
 				arr.setOffSets(2, 1, 1, 2, 4);
 				arr.setFilters(0.45, 0.65);
@@ -103,9 +103,9 @@ public class CloudFactory {
 			CloudArr arr = arrMap.get("sky");
 			if (arr == null)
 			{
-				length = 75;
-				height = 20;
-				width = 100;
+				length = 37;
+				height = 10;
+				width = 50;
 				arr = new CloudArr(length,height,width);
 				arr.setOffSets(3,5,2,2,4);
 				arr.setFilters(0.65, 0.75);
@@ -150,7 +150,13 @@ public class CloudFactory {
 	
 	public List<Cloud> getClouds(Point inCenter, double requiredSize)
 	{
+			
+		
 		List<Cloud> clouds = new ArrayList<Cloud>();
+		
+		if (requiredSize < 1024)
+			return clouds;
+		
 		
 		double dim = requiredSize;
 		Point center = inCenter;
@@ -162,7 +168,7 @@ public class CloudFactory {
 
 		random.setSeed((long)(center.getX() * center.getZ()));
 		
-		int noOfClouds = Math.min(5, getRandomInt(6, (int) dim/100 + 1));//random.nextInt((int)dim/100 + 1) - 6);
+		int noOfClouds = Math.min(2, getRandomInt(6, (int) dim/100 + 1));//random.nextInt((int)dim/100 + 1) - 6);
 		
 		//int spiral = 1;
 		int spiral = getRandomInt(0, 7);
