@@ -145,7 +145,7 @@ public class Engine extends SimpleApplication {
 	private static final Logger logger = Logger.getLogger(Engine.class.getName());
 	private static final Random random = new Random(System.currentTimeMillis());
 	
-	public static final float fogDistance = 400;
+	public static final float drawDistance = 50000;
 
     private Material matWire;
     private boolean wireframe = false;
@@ -155,6 +155,7 @@ public class Engine extends SimpleApplication {
     private BulletAppState bulletAppState;
 
     private boolean flyCamera;
+    private float flySpeed = 500f;
     
     private CharacterControl player;
     
@@ -178,11 +179,12 @@ public class Engine extends SimpleApplication {
     public void simpleInitApp() {
     	this.mainNode = new Node("MainNode");
     	this.flyCamera = true;
-    	cam.setFrustumFar(50000);
+    	cam.setFrustumFar(drawDistance);
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
 
-		this.flyCam.setMoveSpeed(10000f);
+
+		this.flyCam.setMoveSpeed(flySpeed);
     	ScreenshotAppState state = new ScreenshotAppState();
     	this.stateManager.attach(state);
 
@@ -197,13 +199,13 @@ public class Engine extends SimpleApplication {
         this.getCamera().setLocation(initialCameraLoc);
 
         // set up sky dome
-        Dome dome = new Dome(this.getWorldPosition().toVector3f(), 50, 50, 2000, true);
+        Dome dome = new Dome(this.getWorldPosition().toVector3f(), 50, 50, drawDistance/2f, true);
         Material skyMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         skyMat.setColor("Color", skyColor);
         skyDome = new Geometry("SkyDome", dome);
         skyDome.setMaterial(skyMat);
         Vector3f skyDomeLoc = this.getWorldPosition().toVector3f();
-        skyDomeLoc.y = initialCameraLoc.y - 100;
+        skyDomeLoc.y = initialCameraLoc.y - 300;
         skyDome.setLocalTranslation(skyDomeLoc);
         skyDome.setQueueBucket(Bucket.Sky);
         skyDome.setCullHint(Spatial.CullHint.Never);
@@ -237,36 +239,11 @@ public class Engine extends SimpleApplication {
 		waterFilter.setWaterHeight(initialWaterHeight);
 		waterFilter.setLightColor(sunColor);
 		waterFilter.setLightDirection(lightDir);
+		waterFilter.setRadius(drawDistance/2f);
+		waterFilter.setCenter(worldPosition.toVector3f());
 		waterFilter.setColorExtinction(new Vector3f(7,11,7));
 		fpp.addFilter(waterFilter);
 		viewPort.addProcessor(fpp);
-		
-		/*
-        SimpleWaterProcessor waterProc = new SimpleWaterProcessor(assetManager);
-        waterProc.setReflectionScene(mainNode);
-        waterProc.setWaterColor(skyColor);
-        // we set the water plane
-        Vector3f waterLocation = new Vector3f(0,450,0);
-        waterProc.setPlane(new Plane(Vector3f.UNIT_Y, waterLocation.dot(Vector3f.UNIT_Y)));
-        viewPort.addProcessor(waterProc);
-
-        // we set wave properties
-        waterProc.setWaterDepth(40);         // transparency of water
-        waterProc.setDistortionScale(0.05f); // strength of waves
-        waterProc.setWaveSpeed(0.02f);       // speed of waves
-
-        // we define the wave size by setting the size of the texture coordinates
-        Quad quad = new Quad(5000,5000);
-        quad.scaleTextureCoordinates(new Vector2f(8f,8f));
-
-        // we create the water geometry from the quad
-        water = new Geometry("water", quad);
-        water.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
-        water.setLocalTranslation(-2500, 450, 2500);
-        water.setShadowMode(ShadowMode.Receive);
-        water.setMaterial(waterProc.getMaterial());
-        rootNode.attachChild(water);
-		*/
 		
 		// set up player physics object
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
@@ -397,7 +374,7 @@ public class Engine extends SimpleApplication {
                     player.setGravity(new Vector3f(0,0,0));
                     player.setPhysicsLocation(cam.getLocation().clone());
             		bulletAppState.getPhysicsSpace().remove(player);
-            		Engine.this.flyCam.setMoveSpeed(500f);
+            		Engine.this.flyCam.setMoveSpeed(flySpeed);
             		Engine.this.flyCamera = true;
             	}
             }
@@ -465,14 +442,8 @@ public class Engine extends SimpleApplication {
     private void resetSpatialMaterialsInNode(Node node) {
     	for (int i = 0; i < spatialBuffer.size(); i++) {
 			EngineShape es = spatialBuffer.get(i);
-			Node n = (Node)node.getChild(es.getNodeName());
-			n.getChildren().forEach(c -> {
-				if(c instanceof Node) {
-					if(!((Node)c).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
-						c.setMaterial(es.getMaterial(assetManager));
-					}
-				}
-			});
+			Node n = (Node)node.getChild(es.getShapeNodeName());
+			n.setMaterial(es.getMaterial(assetManager));
 		}
 		shouldResetObjectMaterials = false;
     }
@@ -487,13 +458,7 @@ public class Engine extends SimpleApplication {
             Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
             tmpNode.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             if(wireframe) {
-            	tmpNode.getChildren().forEach(c -> {
-            		if(c instanceof Node) {
-            			if(!((Node)c).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
-            				c.setMaterial(matWire);
-            			}
-            		}
-            	});
+            	tmpNode.getChild(engSpatial.getShapeNodeName()).setMaterial(matWire);
             }
             node.attachChild(tmpNode);
         }
@@ -510,13 +475,7 @@ public class Engine extends SimpleApplication {
             Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
             tmpNode.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             if(wireframe) {
-            	tmpNode.getChildren().forEach(c -> {
-            		if(c instanceof Node) {
-            			if(!((Node)c).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
-            				c.setMaterial(matWire);
-            			}
-            		}
-            	});
+            	tmpNode.getChild(engSpatial.getShapeNodeName()).setMaterial(matWire);
             }
             node.attachChild(tmpNode);
             bulletAppState.getPhysicsSpace().add(tmpNode);
@@ -587,17 +546,14 @@ public class Engine extends SimpleApplication {
     private void removeAxes(Node node) {
     	this.enqueue(new Runnable() {
 	    	public void run() {
-		    	node.getChildren().forEach(c -> {
-		    		if(c instanceof Node) {
-		    			((Node)c).getChildren().forEach(c2 -> {
-		    				if(c2 instanceof Node) {
-		    					if(((Node)c2).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
-		    						((Node) c).detachChild(c2);
-		    					}
-		    				}
-		    			});
+		    	for(int i = 0; i < spatialBuffer.size(); i++) {
+		    		EngineShape es = spatialBuffer.get(i);
+		    		Node top = (Node)node.getChild(es.getNodeName());
+		    		Spatial axes = top.getChild(es.getAxesNodeName());
+		    		if(axes != null && axes instanceof Node) {
+		    			top.detachChild(axes);
 		    		}
-		    	});
+	    		}
 	    	}
     	});
     }

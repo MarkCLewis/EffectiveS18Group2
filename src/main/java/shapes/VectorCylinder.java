@@ -1,14 +1,12 @@
 package shapes;
 
-public class VectorCylinder extends Cylinder {
+public class VectorCylinder extends Shape{
+	private double[] startPos = new double[3];
+	private double[] endPos = new double[3];
+	private float radius;
 	/**
 	 * Cylinder that takes a start point and an end point and draws
-	 * the cylinder between those two points. If the length is less
-	 * than the distance between the points, then the cylinder is
-	 * drawn with its center at the midpoint between the start and end
-	 * points given. If the length is greater than the distance between the
-	 * two points, then the cylinder is shrunk to fit between the start and end points.
-	 * @param length the length (or height, if the cylinder is vertical) of the cylinder
+	 * the cylinder between those two points.
 	 * @param radius the radius of the cylinder
 	 * @param sX the starting location's x-coordinate (the bottom of the cylinder)
 	 * @param sY the starting location's y-coordinate (the bottom of the cylinder)
@@ -17,10 +15,29 @@ public class VectorCylinder extends Cylinder {
 	 * @param eY the ending location's y-coordinate (the top of the cylinder)
 	 * @param eZ the ending location's z-coordinate (the top of the cylinder)
 	 */
-	public VectorCylinder(float length, float radius,
+	public VectorCylinder(float radius,
 	                      double sX, double sY, double sZ,
 	                      double eX, double eY, double eZ) {
-		super(length, radius, ((sX + eX) / 2), ((sY + eY) / 2f), ((sZ + eZ) / 2f));
-		// anything else???
+		super((sX + eX)/2f,(sY + eY)/2f,(sZ + eZ)/2f);
+		this.radius = radius;
+		this.startPos[0] = sX;
+		this.startPos[1] = sY;
+		this.startPos[2] = sZ;
+		this.endPos[0] = eX;
+		this.endPos[1] = eY;
+		this.endPos[2] = eZ;
+		
+	}
+	
+	public double[] getStartPos() {
+		return this.startPos.clone();
+	}
+	
+	public double[] getEndPos() {
+		return this.endPos.clone();
+	}
+	
+	public float getRadius() {
+		return this.radius;
 	}
 }

@@ -5,7 +5,7 @@ import java.util.List;
 import org.joml.Vector3d;
 
 import roads.Road;
-import shapes.Cylinder;
+import shapes.Cylinder
 import virtualworld.terrain.Point;
 import worldmanager.WorldManager;
 
@@ -29,13 +29,6 @@ public class Game {
 		e.changeShapes(shapes);
 	}
 	
-	public Point getLocation() {
-		com.jme3.scene.plugins.blender.math.Vector3d loc = e.getWorldPosition();
-		double x = loc.x;
-		double z = loc.z;
-		return new Point(x,z);
-	}
-	
 	public void start() {
 		e.start();
 	}
@@ -55,7 +48,8 @@ public class Game {
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
-		world.updateMaxView(400000);
+
+		world.updateMaxView(10000);
 		
 		/*Road road = new Road(center,200000);
 		System.out.println(road.isActive());
@@ -115,9 +109,36 @@ public class Game {
 			g.addShapes(allShapes);
 		}*/
 		
+		RenderMaterial cloudMat = new RenderMaterial();
+		cloudMat.setSpecularColor(RenderColor.MediumGrey);
+		cloudMat.setDiffuseColor(RenderColor.MediumGrey);
+		cloudMat.setAmbientColor(RenderColor.MediumGrey);
+		cloudMat.setUseTexture(true);
+		cloudMat.setShininess(0.001f);
+		cloudMat.setTextureDiffusePath("Textures/Terrain/splat/clouddiffuse.jpg");
+		cloudMat.setTextureAlphaPath("Textures/Terrain/splat/cloudalpha.jpg");
+		cloudMat.setUseTransparency(true);
+		cloudMat.setColorAlphas(0.8f);
+		float iX = 0;
+		float iY = 450;
+		float iZ = 0;
 		for(int i = 0; i < 10; i++) {
-			Cylinder c = new Cylinder(10,10,0,450+(i*20),0,(float)Math.PI / 10f,(float)Math.PI / 10f,(float)Math.PI / 10f);
+			float x = iX + (i * 20);
+			float y = iY + (i * 20);
+			float z = iZ + (i * 20);
+			VectorCylinder c = new VectorCylinder(
+					10, 
+					x, 
+					y, 
+					z, 
+					x + 10, 
+					y + 10, 
+					z + 10);
 			g.addShape(c);
+			
+			Sphere s = new Sphere(10,x,(y+50),z);
+			s.setMaterial(cloudMat);
+			g.addShape(s);
 		}
 		
 		/*WorldManager.initializeWorld();

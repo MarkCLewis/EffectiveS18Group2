@@ -66,6 +66,7 @@ public class SquareSpiralCloud implements Cloud{
 	private void secondBestShapes()
 	{
 		secondBest.add(new RectangularPrism((float)dist * noOfSpirals, 5, (float)dist * noOfSpirals, center.getX(), y, center.getZ()));
+		currentLevel = secondBest;
 	}
 	
 	@Override public Point getCenter()
@@ -75,13 +76,14 @@ public class SquareSpiralCloud implements Cloud{
 	
 	@Override public double getSize()
 	{
-		return (double)(dist * dist * noOfSpirals * noOfSpirals);
+		return (double)(dist * noOfSpirals / 3);
+		//return (double)(dist * dist * noOfSpirals * noOfSpirals);
 	}
 
 	@Override public void distFromCamera(double dist)
 	{
-		double firstLevel = 500;
-		double secondLevel = 1000;
+		double firstLevel = 1500;
+		double secondLevel = 3000;
 		
 		if (dist <= firstLevel)
 			currentLevel = best;

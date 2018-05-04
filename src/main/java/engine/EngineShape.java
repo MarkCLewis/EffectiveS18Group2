@@ -8,6 +8,7 @@ import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
+import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
@@ -47,8 +48,10 @@ public class EngineShape {
 	public void initData() {
 		double[] tmpPos = this.shape.getCenter();
 		this.pos = new Vector3d(tmpPos[0],tmpPos[1],tmpPos[2]);
-		this.node = new Node("EngineSpatial"+this.hashCode());;
-		if(this.shape instanceof shapes.Cylinder) {
+		this.node = new Node(getNodeName());
+		if(this.shape instanceof shapes.VectorCylinder) {
+    		setupVectorCylinder((shapes.VectorCylinder)this.shape);
+		} else if(this.shape instanceof shapes.Cylinder) {
     		setupCylinder((shapes.Cylinder)this.shape);
     	} else if(this.shape instanceof shapes.Sphere) {
     		setupSphere((shapes.Sphere)this.shape);
@@ -58,8 +61,6 @@ public class EngineShape {
     		setupQuad((shapes.Quad)this.shape);
     	} else if(this.shape instanceof shapes.HeightMapSurface) {
     		setupHeightMap((shapes.HeightMapSurface)this.shape);
-    	} else if(this.shape instanceof shapes.VectorCylinder) {
-    		setupVectorCylinder((shapes.VectorCylinder)this.shape);
     	} else {
     		throw new IllegalArgumentException();
     	}
@@ -84,21 +85,18 @@ public class EngineShape {
 	}
 	
 	public void setupVectorCylinder(final VectorCylinder shape) {
-		Node shapeNode = new Node(getShapeNodeName());
-		int axisSamples = (int)shape.getRadius() * 8;
-    	int radialSamples = (int)shape.getRadius() * 8;
-    	Mesh mesh = new com.jme3.scene.shape.Cylinder(axisSamples,radialSamples,shape.getRadius(),shape.getHeight(),true);
-    	Geometry geom = new Geometry("Cylinder"+shape.hashCode(),mesh);
-    	geom.rotateUpTo(new Vector3f(0,0,1));
-    	CylinderCollisionShape scs = new CylinderCollisionShape(new Vector3f(shape.getRadius(),shape.getHeight()/2,shape.getRadius()), 2);
-    	RigidBodyControl rbc = new RigidBodyControl(scs);
-    	if(shape.isImmobile()) {
-    		rbc.setMass(0);
-    		rbc.setKinematic(false);
-    	}
-    	shapeNode.attachChild(geom);
-    	this.node.addControl(rbc);
-    	this.node.attachChild(shapeNode);
+		Vector3d startPos = Utils.getVectorFromArray(shape.getStartPos());
+		Vector3d endPos = Utils.getVectorFromArray(shape.getEndPos());
+		Vector3d midPoint = endPos.subtract((endPos.subtract(startPos).divide(2.0)));
+		Vector3f rotBaseAxis = (((endPos.subtract(startPos)).normalize()).toVector3f()).normalize();
+		float tmpRot = rotBaseAxis.angleBetween(new Vector3f(0,1,0));
+		Quaternion rot = new Quaternion();
+		rot.fromAngleNormalAxis(tmpRot, (rotBaseAxis.cross(new Vector3f(0,1,0))));
+		float[] rotArr = rot.toAngles(null);
+		shapes.Cylinder newShape = new Cylinder((float)(startPos.distance(endPos)),shape.getRadius(),midPoint.x,midPoint.y,midPoint.z,rotArr[0],rotArr[1],rotArr[2]);
+		this.shape = newShape;
+		setupCylinder(newShape);
+		// TODO
 	}
 	
 	public void setupSphere(final Sphere shape) {
@@ -216,7 +214,6 @@ public class EngineShape {
 	public Spatial getXYZAxes(AssetManager assetManager) {
 		String hash = String.valueOf(this.shape.hashCode());
 		float scale = 25f;
-		Engine.logInfo("XYZAxes scale: " + scale);
 		Node nodeAxes = new Node(this.getAxesNodeName());
 		Material negAxisMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 		negAxisMat.setColor("Color", ColorRGBA.Black);
@@ -252,7 +249,7 @@ public class EngineShape {
 	}
 	
 	public String getNodeName() {
-		return this.node.getName();
+		return ("EngineSpatial"+String.valueOf(this.hashCode()));
 	}
 	
 	public String getAxesNodeName() {
@@ -298,11 +295,12 @@ public class EngineShape {
 	public Node getJME3Node(AssetManager assetManager, boolean attachAxes) {
 		if(this.geomMat == null) {
 			this.geomMat = this.getMaterial(assetManager);
-			this.node.getChildren().forEach(c -> {
-				c.setMaterial(this.geomMat);
+			this.node.getChild(getShapeNodeName()).setMaterial(this.geomMat);
+			((Node)this.node.getChild(getShapeNodeName())).getChildren().forEach(c -> {
 				if(this.shape.getMaterial().isUsingTransparency()) {
-					c.setQueueBucket(Bucket.Transparent);
-				}});
+					c.setQueueBucket(Bucket.Translucent);
+				}
+			});
 		}
 		if(attachAxes) {
 			Spatial axes = getXYZAxes(assetManager);
@@ -325,11 +323,23 @@ public class EngineShape {
     	ret.setFloat("Shininess", mat.getShininess());
     	ret.setBoolean("VertexLighting",mat.isUsingVertexLighting());
     	if(mat.isUsingTexture()) {
-    		ret.setTexture("DiffuseMap", assetManager.loadTexture(mat.getTextureDiffusePath()));
-    		ret.setTexture("NormalMap", assetManager.loadTexture(mat.getTextureNormalPath()));
+    		if(mat.getTextureDiffusePath() != null) {
+    			ret.setTexture("DiffuseMap", assetManager.loadTexture(mat.getTextureDiffusePath()));
+    		}
+    		if(mat.getTextureNormalPath() != null) {
+    			ret.setTexture("NormalMap", assetManager.loadTexture(mat.getTextureNormalPath()));
+    		}
+    		if(mat.getTextureAlphaPath() != null) {
+    			ret.setTexture("AlphaMap", assetManager.loadTexture(mat.getTextureAlphaPath()));
+    		}
     	}
     	if(mat.isUsingTransparency()) {
+    		ret.setBoolean("UseMaterialColors", false);
     		ret.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+    		ret.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+    		ret.getAdditionalRenderState().setDepthWrite(false);
+    		ret.setTransparent(true);
+    		ret.setFloat("AlphaDiscardThreshold", 0.5f);
     	}
     	return ret;
     }

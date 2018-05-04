@@ -24,6 +24,7 @@ public class RenderMaterial {
 	private boolean useTexture;
 	private String texDiffusePath;
 	private String texNormalPath;
+	private String texAlphaPath;
 	
 	/**
 	 * Material holds all the important color and texture 
@@ -39,8 +40,9 @@ public class RenderMaterial {
 		this.useVertexLighting = true;
 		this.useTransparency = false;
 		this.useTexture = false;
-		this.texDiffusePath = "";
-		this.texNormalPath = "";
+		this.texDiffusePath = null;
+		this.texNormalPath = null;
+		this.texAlphaPath = null;
 	}
 	
 	/**
@@ -60,8 +62,9 @@ public class RenderMaterial {
 		this.useVertexLighting = true;
 		this.useTransparency = false;
 		this.useTexture = false;
-		this.texDiffusePath = "";
-		this.texNormalPath = "";
+		this.texDiffusePath = null;
+		this.texNormalPath = null;
+		this.texAlphaPath = null;
 	}
 	
 	/**
@@ -94,8 +97,9 @@ public class RenderMaterial {
 		this.useVertexLighting = vertexLighting;
 		this.useTransparency = transparency;
 		this.useTexture = false;
-		this.texDiffusePath = "";
-		this.texNormalPath = "";
+		this.texDiffusePath = null;
+		this.texNormalPath = null;
+		this.texAlphaPath = null;
 	}
 	
 	public RenderMaterial(RenderMaterial that) {
@@ -108,6 +112,7 @@ public class RenderMaterial {
 		this.useTexture = that.useTexture;
 		this.texDiffusePath = that.texDiffusePath;
 		this.texNormalPath = that.texNormalPath;
+		this.texAlphaPath = that.texAlphaPath;
 	}
 	
 	public RenderColor getAmbientColor() {
@@ -132,6 +137,17 @@ public class RenderMaterial {
 	
 	public String getTextureNormalPath() {
 		return this.texNormalPath;
+	}
+	
+	public String getTextureAlphaPath() {
+		return this.texAlphaPath;
+	}
+	
+	public void setColorAlphas(float alpha) {
+		int alphaInt = (int)(alpha * 255);
+		this.ambient.setAlpha(alphaInt);
+		this.diffuse.setAlpha(alphaInt);
+		this.specular.setAlpha(alphaInt);
 	}
 	
 	public void setAmbientColor(RenderColor ambient) {
@@ -160,6 +176,10 @@ public class RenderMaterial {
 	public void setTextureNormalPath(String texNormalPath) {
 		this.texNormalPath = texNormalPath;
 	}
+	
+	public void setTextureAlphaPath(String texAlphaPath) {
+		this.texAlphaPath = texAlphaPath;
+	}
 
 	public boolean isUsingVertexLighting() {
 		return useVertexLighting;
@@ -183,5 +203,37 @@ public class RenderMaterial {
 	
 	public void setUseTexture(boolean useTexture) {
 		this.useTexture = useTexture;
+	}
+	
+	public static RenderMaterial getRedMaterial() {
+		RenderMaterial red = new RenderMaterial();
+		red.setAmbientColor(RenderColor.Black);
+		red.setDiffuseColor(RenderColor.Red);
+		red.setSpecularColor(RenderColor.VeryDarkGrey);
+		return red;
+	}
+	
+	public static RenderMaterial getGreenMaterial() {
+		RenderMaterial green = new RenderMaterial();
+		green.setAmbientColor(RenderColor.Black);
+		green.setDiffuseColor(RenderColor.Green);
+		green.setSpecularColor(RenderColor.VeryDarkGrey);
+		return green;
+	}
+	
+	public static RenderMaterial getBlueMaterial() {
+		RenderMaterial blue = new RenderMaterial();
+		blue.setAmbientColor(RenderColor.Black);
+		blue.setDiffuseColor(RenderColor.Blue);
+		blue.setSpecularColor(RenderColor.VeryDarkGrey);
+		return blue;
+	}
+	
+	public static RenderMaterial getYellowMaterial() {
+		RenderMaterial yellow = new RenderMaterial();
+		yellow.setAmbientColor(RenderColor.Black);
+		yellow.setDiffuseColor(RenderColor.Yellow);
+		yellow.setSpecularColor(RenderColor.VeryDarkGrey);
+		return yellow;
 	}
 }
