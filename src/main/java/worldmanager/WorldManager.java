@@ -128,7 +128,7 @@ public class WorldManager {
 		WorldManager world = WorldManager.getInstance();
 		Point cent = world.rootNode.center;
 		double worldSize = world.getSize();
-		Terrain t = Terrain.forIsland(cent, worldSize, 6);
+		Terrain t = Terrain.forFields(cent, worldSize, 6);
 		world.addEntity(t);
 		defineWorld(t,cent);
 	}
@@ -142,4 +142,19 @@ public class WorldManager {
 			}
 		}
 	}
+	
+	public static void updateWorld(Point cent) {
+		WorldManager world = WorldManager.getInstance();
+		
+	}
+	
+	private List<Terrain> activeTerrains() {
+		return null;
+	}
+	
+	
+	
+	
+	
+	
 }

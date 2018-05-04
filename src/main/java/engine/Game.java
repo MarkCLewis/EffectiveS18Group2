@@ -52,7 +52,7 @@ public class Game {
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
-		world.updateMaxView(10000);
+		world.updateMaxView(100000);
 		
 		WorldManager.initializeWorld();
 		List<shapes.Shape> allShapes = world.getGeometry(center);
