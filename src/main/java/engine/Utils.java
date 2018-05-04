@@ -31,6 +31,7 @@ import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer.Type;
+import com.jme3.scene.plugins.blender.math.Vector3d;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Sphere;
@@ -159,5 +160,19 @@ public class Utils {
 			}
 		}
 		return ret;
+	}
+	
+	public static Vector3f getVectorFromArray(float[] arr) {
+		if(arr.length > 3) {
+			throw new IllegalArgumentException("Array must contain exactly 3 floats.");
+		}
+		return (new Vector3f(arr[0],arr[1],arr[2]));
+	}
+	
+	public static Vector3d getVectorFromArray(double[] arr) {
+		if(arr.length > 3) {
+			throw new IllegalArgumentException("Array must contain exactly 3 doubles.");
+		}
+		return (new Vector3d(arr[0],arr[1],arr[2]));
 	}
 }

@@ -181,5 +181,9 @@ public class Shape {
 	public void setMaterial(RenderMaterial mat) {
 		this.mat = mat;
 	}
+	
+	public void setMaterialColor(RenderColor col) {
+		this.mat.setDiffuseColor(col);
+	}
 
 }

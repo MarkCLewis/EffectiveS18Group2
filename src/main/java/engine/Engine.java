@@ -155,6 +155,7 @@ public class Engine extends SimpleApplication {
     private BulletAppState bulletAppState;
 
     private boolean flyCamera;
+    private float flySpeed = 500f;
     
     private CharacterControl player;
     
@@ -182,7 +183,7 @@ public class Engine extends SimpleApplication {
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
 
-		this.flyCam.setMoveSpeed(500f);
+		this.flyCam.setMoveSpeed(flySpeed);
     	ScreenshotAppState state = new ScreenshotAppState();
     	this.stateManager.attach(state);
 
@@ -397,7 +398,7 @@ public class Engine extends SimpleApplication {
                     player.setGravity(new Vector3f(0,0,0));
                     player.setPhysicsLocation(cam.getLocation().clone());
             		bulletAppState.getPhysicsSpace().remove(player);
-            		Engine.this.flyCam.setMoveSpeed(500f);
+            		Engine.this.flyCam.setMoveSpeed(flySpeed);
             		Engine.this.flyCamera = true;
             	}
             }
@@ -465,14 +466,8 @@ public class Engine extends SimpleApplication {
     private void resetSpatialMaterialsInNode(Node node) {
     	for (int i = 0; i < spatialBuffer.size(); i++) {
 			EngineShape es = spatialBuffer.get(i);
-			Node n = (Node)node.getChild(es.getNodeName());
-			n.getChildren().forEach(c -> {
-				if(c instanceof Node) {
-					if(!((Node)c).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
-						c.setMaterial(es.getMaterial(assetManager));
-					}
-				}
-			});
+			Node n = (Node)node.getChild(es.getShapeNodeName());
+			n.setMaterial(es.getMaterial(assetManager));
 		}
 		shouldResetObjectMaterials = false;
     }
@@ -487,13 +482,7 @@ public class Engine extends SimpleApplication {
             Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
             tmpNode.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             if(wireframe) {
-            	tmpNode.getChildren().forEach(c -> {
-            		if(c instanceof Node) {
-            			if(!((Node)c).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
-            				c.setMaterial(matWire);
-            			}
-            		}
-            	});
+            	tmpNode.getChild(engSpatial.getShapeNodeName()).setMaterial(matWire);
             }
             node.attachChild(tmpNode);
         }
@@ -510,13 +499,7 @@ public class Engine extends SimpleApplication {
             Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
             tmpNode.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             if(wireframe) {
-            	tmpNode.getChildren().forEach(c -> {
-            		if(c instanceof Node) {
-            			if(!((Node)c).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
-            				c.setMaterial(matWire);
-            			}
-            		}
-            	});
+            	tmpNode.getChild(engSpatial.getShapeNodeName()).setMaterial(matWire);
             }
             node.attachChild(tmpNode);
             bulletAppState.getPhysicsSpace().add(tmpNode);
@@ -587,17 +570,14 @@ public class Engine extends SimpleApplication {
     private void removeAxes(Node node) {
     	this.enqueue(new Runnable() {
 	    	public void run() {
-		    	node.getChildren().forEach(c -> {
-		    		if(c instanceof Node) {
-		    			((Node)c).getChildren().forEach(c2 -> {
-		    				if(c2 instanceof Node) {
-		    					if(((Node)c2).getName().startsWith(EngineShape.getAxesNodeNamePrefix())) {
-		    						((Node) c).detachChild(c2);
-		    					}
-		    				}
-		    			});
+		    	for(int i = 0; i < spatialBuffer.size(); i++) {
+		    		EngineShape es = spatialBuffer.get(i);
+		    		Node top = (Node)node.getChild(es.getNodeName());
+		    		Spatial axes = top.getChild(es.getAxesNodeName());
+		    		if(axes != null && axes instanceof Node) {
+		    			top.detachChild(axes);
 		    		}
-		    	});
+	    		}
 	    	}
     	});
     }
