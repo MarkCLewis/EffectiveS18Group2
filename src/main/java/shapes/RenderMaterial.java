@@ -184,4 +184,36 @@ public class RenderMaterial {
 	public void setUseTexture(boolean useTexture) {
 		this.useTexture = useTexture;
 	}
+	
+	public static RenderMaterial getRedMaterial() {
+		RenderMaterial red = new RenderMaterial();
+		red.setAmbientColor(RenderColor.Black);
+		red.setDiffuseColor(RenderColor.Red);
+		red.setSpecularColor(RenderColor.VeryDarkGrey);
+		return red;
+	}
+	
+	public static RenderMaterial getGreenMaterial() {
+		RenderMaterial green = new RenderMaterial();
+		green.setAmbientColor(RenderColor.Black);
+		green.setDiffuseColor(RenderColor.Green);
+		green.setSpecularColor(RenderColor.VeryDarkGrey);
+		return green;
+	}
+	
+	public static RenderMaterial getBlueMaterial() {
+		RenderMaterial blue = new RenderMaterial();
+		blue.setAmbientColor(RenderColor.Black);
+		blue.setDiffuseColor(RenderColor.Blue);
+		blue.setSpecularColor(RenderColor.VeryDarkGrey);
+		return blue;
+	}
+	
+	public static RenderMaterial getYellowMaterial() {
+		RenderMaterial yellow = new RenderMaterial();
+		yellow.setAmbientColor(RenderColor.Black);
+		yellow.setDiffuseColor(RenderColor.Yellow);
+		yellow.setSpecularColor(RenderColor.VeryDarkGrey);
+		return yellow;
+	}
 }
