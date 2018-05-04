@@ -111,7 +111,7 @@ public class Game {
 		RenderMaterial cloudMat = new RenderMaterial();
 		cloudMat.setSpecularColor(RenderColor.MediumGrey);
 		cloudMat.setDiffuseColor(RenderColor.MediumGrey);
-		cloudMat.setDiffuseColor(RenderColor.MediumGrey);
+		cloudMat.setAmbientColor(RenderColor.MediumGrey);
 		cloudMat.setUseTexture(true);
 		cloudMat.setShininess(0.001f);
 		cloudMat.setTextureDiffusePath("Textures/Terrain/splat/clouddiffuse.jpg");
