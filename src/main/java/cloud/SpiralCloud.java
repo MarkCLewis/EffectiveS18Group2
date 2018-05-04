@@ -51,18 +51,16 @@ public class SpiralCloud implements Cloud{
 		float size = (float)(gap * 20);
 		double theta = 0.0;
 		double thetaInc = 2*Math.PI/100.0;
-		int count = 0;
 		for (int i = 0; i < 350; i++) {
-			if (count % 4 == 0)
+			if (i % 2 == 0)
 			{
 			    double x = Math.cos(theta)*radius;
 			    double z = Math.sin(theta)*radius;
 			    y += 0.01;
-			    best.add(new Sphere(2 * (size + (float)(i/300.0) * size), x , y + 0.01 * i, z ));
+			    secondBest.add(new Sphere((float)(1.5 * (size + (i/300.0) * size)), x , y + 0.15 * i, z ));
 			    radius+= gap + (i/100) * gap;
 			    theta += thetaInc;
 			}
-			count ++;
 		}
 	}
 	

@@ -10,7 +10,7 @@ import shapes.Sphere;
 import virtualworld.terrain.Point;
 
 public class PerlinCloud implements Cloud{
-	public PerlinCloud (double x, double y, double z, CloudArr arr, double newF2)
+	public PerlinCloud (double x, double y, double z, CloudArr arr, double newF2, double newScalingFactor)
 	{
 		this.y = y;
 		center = new Point(x,z);
@@ -19,6 +19,7 @@ public class PerlinCloud implements Cloud{
 		height = cloudArr[0][0].length;
 		width = cloudArr[0].length;
 		f2 = newF2;
+		scalingFactor = newScalingFactor;
 		
 		//method calls to make 3 levels of details
 		makeShape3dBest();
@@ -27,7 +28,7 @@ public class PerlinCloud implements Cloud{
 	}
 	//determine how big the cloud is 
 	
-	
+	private final double scalingFactor;
 	private final int width;
 	private final int length;
 	private final int height;
@@ -53,8 +54,7 @@ public class PerlinCloud implements Cloud{
 		int midY = height/2;
 		int midZ = width/2;
 		
-		//use this to scale up
-		double sF = 1;
+		//use this to scale ups
 		
 		double originX = center.getX();
 		double originZ = center.getZ();
@@ -71,12 +71,12 @@ public class PerlinCloud implements Cloud{
 				{
 					if (cloudArr[x][z][y] > f2)
 					{
-						posX = originX - midX + x; //xcoord
-						posY = originY + midY - y; //yCoord
-						posZ = originZ - midZ + z;
+						posX = originX - (midX * scalingFactor) + (x * scalingFactor); //xcoord
+						posY = originY + (midY * scalingFactor) - (y * scalingFactor); //yCoord
+						posZ = originZ - (midZ * scalingFactor) + (z * scalingFactor);
 						double variation = Engine.getRandomDouble(-.5, 2);
 						//random offset so that not every cloud of the same kind will look exactly the same, more random
-						best.add(new Sphere((float) ((cloudArr[x][z][y] - 0.1) * 3 + variation) ,posX, posY, posZ));
+						best.add(new Sphere((float) (Math.max(1, scalingFactor / 2) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ));
 					}
 				}
 			}
@@ -90,7 +90,6 @@ public class PerlinCloud implements Cloud{
 		int midZ = width/2;
 		
 		//use this to scale up
-		double sF = 1;
 		
 		double originX = center.getX();
 		double originZ = center.getZ();
@@ -101,7 +100,6 @@ public class PerlinCloud implements Cloud{
 		double posZ = 0;
 		
 		int count = 0;
-		float scale = (float)2;
 		for (int y = 0; y < height; y++)
 		{
 			for (int x = 0; x < length; x++)
@@ -112,12 +110,12 @@ public class PerlinCloud implements Cloud{
 					{
 						if (cloudArr[x][z][y] > f2)
 						{
-							posX = originX - midX + x; //xcoord
-							posY = originY + midY - y; //yCoord
-							posZ = originZ - midZ + z;
+							posX = originX - (midX * scalingFactor) + (x * scalingFactor); //xcoord
+							posY = originY + (midY * scalingFactor) - (y * scalingFactor); //yCoord
+							posZ = originZ - (midZ * scalingFactor) + (z * scalingFactor);
 							double variation = Engine.getRandomDouble(-.5, 2);
 							//random offset so that not every cloud of the same kind will look exactly the same, more random
-							secondBest.add(new Sphere((float) ((cloudArr[x][z][y] - 0.1) * 3 + variation) * scale ,posX, posY, posZ));
+							secondBest.add(new Sphere((float) (Math.max(1, scalingFactor) * ((cloudArr[x][z][y] - 0.1) * 3 + variation)) ,posX, posY, posZ));
 						}
 					}
 					count++;
@@ -143,7 +141,7 @@ public class PerlinCloud implements Cloud{
 	
 	@Override public double getSize() 
 	{
-		return (height * width * length);
+		return (scalingFactor * width * length);
 	}
 	
 	@Override public void distFromCamera(double dist)

@@ -13,7 +13,7 @@ public class test {
 
 		
 		Cloud b = cFactory.getCloud(5, 0000,0);
-		b.distFromCamera(50);
+		b.distFromCamera(150);
 		List<Shape> spheres = b.getShapes();
 		
 		g.start();
