@@ -13,24 +13,24 @@ import virtualworld.terrain.Point;
 
 public class Road implements Entity {
 
-	private int north;
-	private int south;
-	private int east;
-	private int west;
+	public int north;
+	public int south;
+	public int east;
+	public int west;
 	private final float len;
 	private final Point topLeft;
 	private final Point topRight;
 	private final Point bottomLeft;
 	private final Point bottomRight;
-	boolean activeness = true;
+	boolean activeness = false;
 	private final Point center;
 
 	// initial size should be size of world
 	public Road(Point cent, double d) {
-		north = 100;
-		south = 100;
-		east = 100;
-		west = 100;
+		north = 262000;
+		south = 262000;
+		east = 262000;
+		west = 262000;
 		len = (float) d;
 		topLeft = new Point(cent.getX() - (d / 2), cent.getZ() - (d / 2));
 		topRight = new Point(cent.getX() + (d / 2), cent.getZ() - (d / 2));
@@ -41,12 +41,10 @@ public class Road implements Entity {
 
 	// splits the road into four quads
 	public Road[] split() {
-
 		Pair<Integer, Integer> northPair = splitLine(topLeft, topRight, north);
 		Pair<Integer, Integer> southPair = splitLine(bottomLeft, bottomRight, south);
 		Pair<Integer, Integer> westPair = splitLine(topLeft, bottomLeft, west);
 		Pair<Integer, Integer> eastPair = splitLine(topRight, bottomRight, east);
-		activeness = false;
 		Road[] roadArray = new Road[] {
 				// topLeft
 				new Road(new Point(center.getX() - (len / 4), center.getZ() - (len / 4)), len / 2),
@@ -58,30 +56,53 @@ public class Road implements Entity {
 				new Road(new Point(center.getX() + (len / 4), center.getZ() + (len / 4)), len / 2),
 
 		};
+		int middleTop = findNum(westPair.getRight(), eastPair.getRight());
+		int middleBottom = findNum(westPair.getLeft(), eastPair.getLeft());
+		int middleLeft = findNum(northPair.getLeft(), southPair.getLeft());
+		int middleRight = findNum(northPair.getRight(), southPair.getRight());
 		// topLeft
+		boolean active0 = true;
 		roadArray[0].north = northPair.getLeft();
-		roadArray[0].south = findNum(northPair.getLeft(), southPair.getLeft());
-		roadArray[0].east = findNum(westPair.getRight(), eastPair.getRight());
+		roadArray[0].south = middleLeft;
+		roadArray[0].east = middleTop;
 		roadArray[0].west = westPair.getRight();
-
+		if(northPair.getLeft() > 1 || middleLeft > 1 || middleTop > 1 || westPair.getRight() >1) {
+			active0 = false;
+		}
+		roadArray[0].activeness = active0;
+		
 		/// topRight
+		boolean active1 = true;
 		roadArray[1].north = northPair.getRight();
-		roadArray[1].south = findNum(northPair.getRight(), southPair.getRight());
+		roadArray[1].south = middleRight;
 		roadArray[1].east = eastPair.getRight();
-		roadArray[1].west = findNum(westPair.getRight(), eastPair.getRight());
+		roadArray[1].west = middleTop;
+		if(northPair.getRight() > 1 || middleRight > 1 || eastPair.getRight() > 1 || middleTop >1) {
+			active1 = false;
+		}
+		roadArray[1].activeness = active1;
 
 		// bottomLeft
-		roadArray[2].north = findNum(northPair.getLeft(), southPair.getLeft());
+		boolean active2 = true;
+		roadArray[2].north = middleLeft;
 		roadArray[2].south = southPair.getLeft();
-		roadArray[2].east = findNum(westPair.getLeft(), eastPair.getLeft());
+		roadArray[2].east = middleBottom;
 		roadArray[2].west = westPair.getLeft();
+		if(middleLeft > 1 || southPair.getLeft() > 1 || middleBottom > 1 || westPair.getLeft() >1) {
+			active2 = false;
+		}
+		roadArray[2].activeness = active2;
 
 		// bottomRight
-		roadArray[3].north = findNum(northPair.getRight(), southPair.getLeft());
+		boolean active3 = true;
+		roadArray[3].north = middleRight;
 		roadArray[3].south = southPair.getRight();
 		roadArray[3].east = eastPair.getLeft();
-		roadArray[3].west = findNum(westPair.getLeft(), eastPair.getLeft());
-		roadArray[3].activeness = isActive();
+		roadArray[3].west = middleBottom;
+		if(middleRight > 1 || southPair.getRight() > 1 || eastPair.getLeft() > 1 || middleBottom >1) {
+			active3 = false;
+		}
+		roadArray[3].activeness = active3;
 		return roadArray;
 	}
 
@@ -129,10 +150,10 @@ public class Road implements Entity {
 	// finds a semi-random number
 	// right now it's inbetween two numbers but i'll change it if i have time
 	private int findNum(int side2, int side1) {
-		if (side1 == 0 || side2 == 0) {
+		/*if (side1 == 0 || side2 == 0) {
 			return 1;
 		}
-		Random rand = new Random();
+		Random rand = new Random(side2*side1);
 		int upperBound;
 		int lowerBound;
 		if (side1 > side2) {
@@ -142,7 +163,11 @@ public class Road implements Entity {
 			upperBound = side2;
 			lowerBound = side1;
 		}
-		int val = rand.nextInt((upperBound - lowerBound) + lowerBound);
+		int val = rand.nextInt((upperBound - lowerBound) + lowerBound);*/
+		if((side1 == 0 && side2 == 1) || (side2 == 0 && side1 == 1)) {
+			return 1;
+		}
+		int val = (side1+side2)/2;
 		return val;
 	}
 
@@ -194,7 +219,23 @@ public class Road implements Entity {
 		List<Shape> shapes = new ArrayList<Shape>();
 		//WorldManager world  = WorldManager.getInstance();
 		//double tHeight = world.getHeight(center);
-		if (north == 1 && south == 1) {
+		if(north == 1) {
+			RectangularPrism road = new RectangularPrism(50, 10, len/4, center.getX(), 700, center.getZ()-len/4);
+			shapes.add(road);
+		}
+		if(south == 1) {
+			RectangularPrism road = new RectangularPrism(50, 10, len/4, center.getX(), 700, center.getZ()+len/4);
+			shapes.add(road);
+		}
+		if(west == 1) {
+			RectangularPrism road = new RectangularPrism(len/4, 10, 50, center.getX()+len/4, 700, center.getZ());
+			shapes.add(road);
+		}
+		if(east == 1) {
+			RectangularPrism road = new RectangularPrism(len/4, 10, 50, center.getX()-len/4, 700, center.getZ());
+			shapes.add(road);
+		}
+		/*if (north == 1 && south == 1) {
 			RectangularPrism road = new RectangularPrism(50, 10, len, center.getX(), 700, center.getZ());
 			shapes.add(road);
 		} else if (north == 1 && south == 0) {
@@ -214,7 +255,7 @@ public class Road implements Entity {
 			RectangularPrism road = new RectangularPrism(len/2, 10, 50, center.getX()+len/2, 700, center.getZ());
 			shapes.add(road);
 			
-		}
+		}*/
 		return shapes;
 		
 	}

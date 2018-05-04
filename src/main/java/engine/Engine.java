@@ -183,6 +183,7 @@ public class Engine extends SimpleApplication {
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
 
+
 		this.flyCam.setMoveSpeed(flySpeed);
     	ScreenshotAppState state = new ScreenshotAppState();
     	this.stateManager.attach(state);
