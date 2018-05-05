@@ -6,6 +6,7 @@ import java.util.List;
 import cloud.Cloud;
 import cloud.CloudFactory;
 import entity.Entity;
+import plants.Truffula;
 import roads.Road;
 import shapes.Shape;
 import sheep.Sheep;
@@ -45,7 +46,7 @@ public class WorldManager {
 	
 	public static synchronized WorldManager getInstance() {
 		if (world == null) {
-			world = new WorldManager(new Point(0,0),5000);
+			world = new WorldManager(new Point(0,0),536870912);
 		}
 		return world;
 	}
@@ -141,7 +142,7 @@ public class WorldManager {
 		WorldManager world = WorldManager.getInstance();
 		Point cent = world.rootNode.center;
 		double worldSize = world.getSize();
-		Terrain t = Terrain.forMountains(cent, worldSize, 3);
+		Terrain t = Terrain.forFields(cent, worldSize, 3);
 		Road r = new Road(cent, worldSize);
 		world.addEntity(t);
 		world.addEntity(r);
@@ -161,7 +162,9 @@ public class WorldManager {
 				}
 				if(ter.getSize() < 4000 && ter.getSize() > 2000) {
 					Sheep sheep = Sheep.randSheep(ter.getCenter(), ter.getSize());
+					Truffula truff = Truffula.randTree(ter.getCenter(), ter.getSize());
 					WorldManager.getInstance().addEntity(sheep);
+					WorldManager.getInstance().addEntity(truff);
 				}
 				WorldManager.getInstance().addEntity(ter);
 				defineWorld(ter,cent);

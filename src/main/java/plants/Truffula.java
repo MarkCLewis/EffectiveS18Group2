@@ -2,13 +2,15 @@ package plants;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
 import entity.Entity;
-import shapes.Shape;
 import shapes.Cylinder;
-import shapes.RenderColor;
+import shapes.RenderMaterial;
+import shapes.Shape;
 import shapes.Sphere;
 import virtualworld.terrain.Point;
-import shapes.RenderMaterial;
+import worldmanager.WorldManager;
 
 public class Truffula implements Entity{
 	float height;
@@ -17,6 +19,7 @@ public class Truffula implements Entity{
     double xPos;
     double yPos;
     double zPos;
+    static Random rand = new Random();
 
     List<Shape> theTree = new ArrayList<>();
     double distance;
@@ -68,4 +71,15 @@ public class Truffula implements Entity{
     public boolean isActive(){
     	return true;
     }
+    public static Truffula randTree(Point cent, double sz) {
+		rand.setSeed((long)(cent.getX()*cent.getZ())+1);
+		double minX = cent.getX() - sz/2;
+		double maxX = cent.getX() + sz/2;
+		double newX = minX  + (rand.nextDouble() * (maxX-minX));
+		double minZ = cent.getZ() - sz/2;
+		double maxZ = cent.getZ() + sz/2;
+		double newZ = minZ  + (rand.nextDouble() * (maxZ-minZ));
+		double newY = WorldManager.getInstance().getHeight(new Point(newX,newZ));
+		return new Truffula(50,3,20,newX,newY+20,newZ);
+	}
 }

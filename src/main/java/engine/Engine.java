@@ -145,7 +145,7 @@ public class Engine extends SimpleApplication {
 	
 	private WorldManager world;
 	
-	public static final float drawDistance = 50000;
+	public static final float drawDistance = 20000;
 
     private Material matWire;
     private boolean wireframe = false;
