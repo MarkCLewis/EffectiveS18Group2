@@ -59,15 +59,20 @@ public class Engine extends SimpleApplication {
 	private static class EngineLoader {
 		private static Engine INSTANCE = null;
 		public static Engine getInstance() {
-			try {
-				EngineLoader.INSTANCE = new Engine();
-				INSTANCE.setShowSettings(false);
-				AppSettings settings = new AppSettings(true);
-				settings.setResolution(1000, 800);
-				INSTANCE.setSettings(settings);
+			if(INSTANCE != null) {
 				return INSTANCE;
-			} catch (Exception e) {
-				throw new ExceptionInInitializerError(e);
+			}
+			else {
+				try {
+					EngineLoader.INSTANCE = new Engine();
+					INSTANCE.setShowSettings(false);
+					AppSettings settings = new AppSettings(true);
+					settings.setResolution(1000, 800);
+					INSTANCE.setSettings(settings);
+					return INSTANCE;
+				} catch (Exception e) {
+					throw new ExceptionInInitializerError(e);
+				}
 			}
 		}
 	}
