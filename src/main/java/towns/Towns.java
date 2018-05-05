@@ -17,18 +17,29 @@ import shapes.RenderMaterial;
 public class Towns implements Entity {
     private float radius, seed;
 	private ArrayList<Point> middle;
-	private ArrayList<RectangularPrism> shopStalls;
+	private ArrayList<RectangularPrism> shopStalls, completeListofRec;
 	private Point Shopcenter, Schoolcenter, Housecenter, Parkcenter, center;
-	private RectangularPrism Shops, House, Park, School, 
-			Townwallnorth, Townwallsouth, Townwalleast, Townwall, Townwallwest;
+	private RectangularPrism Shops;
+	private RectangularPrism House;
+	private RectangularPrism Park;
+	private RectangularPrism School; 
+	private RectangularPrism Townwallnorth;
+	private RectangularPrism Townwallsouth;
+	private RectangularPrism Townwalleast; 
+	private RectangularPrism Townwallwest;
 	private Cylinder Towntower;
+	private ArrayList<Cylinder> grass, completeListofCyc;
+	private double houseseed, schoolseed ;
 	
 //DrawSqure takes a radius of Square and center of the rectangle Once implemented
 
+	
+	
 	public Towns (Point cent, float ... a) {
 		for (float i: a){
 		    seed=i;
 		}
+		
 		seed= (float) (Math.random()*50);
 		radius= seed* mthpnt (cent);
 		center= cent;
@@ -65,7 +76,28 @@ public class Towns implements Entity {
 	    		WorldManager.getInstance().getHeight(center)); 
 		
 	    //Grass
-	    Grass=Makegrass(Parkcenter, double (radius/2), double ()
+	    grass=Makegrass(Parkcenter, (radius/2));
+	   
+	    //School generation
+	    //House generation
+	    //Both will rely on seed to determine the amount of school buildings and houses
+	    //set to a maximum of10 and must be greater than one
+	    houseseed=Math.floor(seed/5);
+	    schoolseed=Math.floor(seed/6);
+	    //makeHouses= MakeHouse(Housecenter,radius /2 ))
+	    completeListofRec.add(Shops);
+	    completeListofRec.add(House);
+	    completeListofRec.add(Park);
+	    completeListofRec.add(School);
+	    completeListofRec.add(Townwallnorth);
+	    completeListofRec.add(Townwallsouth);
+	    completeListofRec.add(Townwalleast);
+	    completeListofRec.add(Townwallwest);
+	    completeListofCyc.addAll(grass);
+	    completeListofCyc.add(Towntower);
+	 
+	    
+	    
 	    
 		
 		
@@ -94,7 +126,6 @@ public class Towns implements Entity {
 		}
 		return grass;
 	}
-	
 	private void resetGShifter(Point seed, double PatchR){
 		//return Point(seed.getX()-PatchR, PatchR) 
 	}
@@ -131,17 +162,13 @@ public class Towns implements Entity {
 	}
 	
     public static ArrayList<Point> GenerateCenters (Point cent, float rad){
-		Point shop = new Point(cent.getX() - Math.sqrt(Math.pow(rad,2)/2), cent.getZ() - 
-				       Math.sqrt(Math.pow(rad,2)/2)); 
+		Point shop = new Point(cent.getX() - Math.sqrt(Math.pow(rad,2)/2), cent.getZ() - Math.sqrt(Math.pow(rad,2)/2)); 
 		//shopCenter SOUTHWEST
-		Point house = new Point(cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + 
-					Math.sqrt(Math.pow(rad,2))/2);
+		Point house = new Point(cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + Math.sqrt(Math.pow(rad,2))/2);
 		//houseCenter NORTHEAST
-		Point park = new Point (cent.getX() - Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + 
-					Math.sqrt(Math.pow(rad,2))/2);
+		Point park = new Point (cent.getX() - Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + Math.sqrt(Math.pow(rad,2))/2);
 		//parkCenter NORTHWEST
-		Point school = new Point (cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() - 
-					  Math.sqrt(Math.pow(rad,2))/2);
+		Point school = new Point (cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() - Math.sqrt(Math.pow(rad,2))/2);
 		//schoolCenter SOUTHEAST
 		ArrayList<Point> pass = new ArrayList<Point>();
 		pass.add(shop);
@@ -166,6 +193,7 @@ public class Towns implements Entity {
     public double getSize (Towns p){ 
     		return (double) seed; 
     }
+    
     //private int town ratios
 	//public createShops(cent, rad)
 	//public House(cent,rad)
