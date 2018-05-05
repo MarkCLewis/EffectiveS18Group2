@@ -190,7 +190,7 @@ public class CloudFactory {
 				int z = getRandomInt(LL, LR);
 				int type = getRandomInt(0, 2);
 				double size = getRandomSize(type);
-				clouds.add(getCloud(x, 0, z, type, size));
+				clouds.add(getCloud(x, 6500, z, type, size));
 			}
 		}
 		
@@ -198,7 +198,7 @@ public class CloudFactory {
 		{
 			int type = getRandomInt(3,4);
 			double size = getRandomSize(type);
-			clouds.add(getCloud(center.getX(), 0, center.getZ(),type, size));
+			clouds.add(getCloud(center.getX(), 6500, center.getZ(),type, size));
 		}
 		
 		return clouds;
