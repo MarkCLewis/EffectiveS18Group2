@@ -49,7 +49,8 @@ public class Game {
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
 
-		world.updateMaxView(10000);
+		world.updateMaxView(100000);
+		world.updateCameraStep(1000);
 		
 		/*Road road = new Road(center,200000);
 		System.out.println(road.isActive());
@@ -62,8 +63,6 @@ public class Game {
 		List<shapes.Shape> allShapes = world.getGeometry(center);
 		g.addShapes(allShapes);
 		
-		System.out.println("allShapes size: " + allShapes.size());
-
 		/*Terrain t = Terrain.forMountains(center, 2048, 6);
 		world.addEntity(t);*/
 		/*RectangularPrism r = new RectangularPrism(50, 50, 50, 1026, 250,-1026); 
@@ -109,7 +108,7 @@ public class Game {
 			g.addShapes(allShapes);
 		}*/
 		
-		RenderMaterial cloudMat = new RenderMaterial();
+		/*RenderMaterial cloudMat = new RenderMaterial();
 		cloudMat.setSpecularColor(RenderColor.MediumGrey);
 		cloudMat.setDiffuseColor(RenderColor.MediumGrey);
 		cloudMat.setAmbientColor(RenderColor.MediumGrey);
