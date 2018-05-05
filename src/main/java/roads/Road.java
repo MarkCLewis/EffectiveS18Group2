@@ -185,13 +185,13 @@ public class Road implements Entity {
 		
 		if (north == 1) {
 			if (east == 0) {
-				RectangularPrism col = new RectangularPrism(10, 1400, 10, topLeft.getX(), 0, topLeft.getZ());
+				RectangularPrism col = new RectangularPrism(10, 5000, 10, topLeft.getX(), 0, topLeft.getZ());
 				shapes.add(col);
 			}
-			RectangularPrism road = new RectangularPrism(50, 10, len / 4, center.getX()-(len/2), 1400, center.getZ() - len / 4);
+			RectangularPrism road = new RectangularPrism(50, 10, len / 4, center.getX()-(len/2), 5000, center.getZ() - len / 4);
 			road.setMaterialColor(RenderColor.Black);
 			shapes.add(road);
-			RectangularPrism line = new RectangularPrism(5, 7, len/8-4, center.getX()-(len/2), 1410, center.getZ()- len/4);
+			RectangularPrism line = new RectangularPrism(5, 7, len/8-4, center.getX()-(len/2), 5000, center.getZ()- len/4);
 			line.setMaterialColor(RenderColor.White);
 			shapes.add(line);
 			
@@ -201,22 +201,22 @@ public class Road implements Entity {
 				RectangularPrism col = new RectangularPrism(10, 1400, 10, bottomLeft.getX(), 0, bottomLeft.getZ());
 				shapes.add(col);
 			}*/
-			RectangularPrism road = new RectangularPrism(50, 10, len / 4, center.getX()-(len/2), 1400, center.getZ() + len / 4);
+			RectangularPrism road = new RectangularPrism(50, 10, len / 4, center.getX()-(len/2), 5000, center.getZ() + len / 4);
 			shapes.add(road);
 			road.setMaterialColor(RenderColor.Black);
-			RectangularPrism line = new RectangularPrism(5, 7, len/8-4, center.getX()-(len/2), 1410, center.getZ()+len/4);
+			RectangularPrism line = new RectangularPrism(5, 7, len/8-4, center.getX()-(len/2), 5000, center.getZ()+len/4);
 			line.setMaterialColor(RenderColor.White);
 			shapes.add(line);
 		}
 		if (west == 1) {
 			if (south == 0) {
-				RectangularPrism col = new RectangularPrism(10, 1400, 10, topLeft.getX(), 0, topLeft.getZ());
+				RectangularPrism col = new RectangularPrism(10, 5000, 10, topLeft.getX(), 0, topLeft.getZ());
 				shapes.add(col);
 			}
-			RectangularPrism road = new RectangularPrism(len / 4, 10, 50, center.getX() + len / 4, 1400, center.getZ()-(len/2));
+			RectangularPrism road = new RectangularPrism(len / 4, 10, 50, center.getX() + len / 4, 5000, center.getZ()-(len/2));
 			shapes.add(road);
 			road.setMaterialColor(RenderColor.Black);
-			RectangularPrism line = new RectangularPrism(len/8-4, 7, 5, center.getX()+(len/4), 1410, center.getZ()-len/2);
+			RectangularPrism line = new RectangularPrism(len/8-4, 7, 5, center.getX()+(len/4), 5000, center.getZ()-len/2);
 			line.setMaterialColor(RenderColor.White);
 			shapes.add(line);
 		}
@@ -225,10 +225,10 @@ public class Road implements Entity {
 				RectangularPrism col = new RectangularPrism(10, 1400, 10, topRight.getX(), 0, topRight.getZ());
 				shapes.add(col);
 			}*/
-			RectangularPrism road = new RectangularPrism(len / 4, 10, 50, center.getX() - len / 4, 1400, center.getZ()-(len/2));
+			RectangularPrism road = new RectangularPrism(len / 4, 10, 50, center.getX() - len / 4, 5000, center.getZ()-(len/2));
 			shapes.add(road);
 			road.setMaterialColor(RenderColor.Black);
-			RectangularPrism line = new RectangularPrism(len/8-4, 7, 5, center.getX()-(len/4), 1410, center.getZ()-len/2);
+			RectangularPrism line = new RectangularPrism(len/8-4, 7, 5, center.getX()-(len/4), 5000, center.getZ()-len/2);
 			line.setMaterialColor(RenderColor.White);
 			shapes.add(line);
 		}/*
