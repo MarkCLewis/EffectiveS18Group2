@@ -42,6 +42,10 @@ public class Herd {
 	double getXBound(Sheep sheep){
 		return 0;
 	}
+	
+	double getZBound(Sheep sheep){
+		return 0;
+	}
 
 	List<Shape> drawSheep(int xPos, int yPos, int zPos) {
 		List<Shape> sheep = new ArrayList<Shape>();
@@ -67,5 +71,5 @@ public class Herd {
 		return herd;
 	}
 	
-	//boolean collision(Point loc, )
+	//boolean collision(Point agent, Point newAgent){}
 }

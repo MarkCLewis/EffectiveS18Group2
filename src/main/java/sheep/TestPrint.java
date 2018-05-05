@@ -9,7 +9,11 @@ public class TestPrint {
 	public static void main(String[] args) {
 		Game g = new Game(400f);
 		g.start();
-
+		
+		//Point center = new Point(0,0);
+		//WorldManager world = WorldManager.getInstance();
+		//Terrain t = Terrain.forFields(center, 20000, 16000);
+		
 		/*
 		 * public static void main(String[] args) { Game g = new Game(250f);
 		 * Point center = new Point(0,0);
