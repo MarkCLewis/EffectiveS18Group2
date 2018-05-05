@@ -31,7 +31,7 @@ public class Herd {
 		Cylinder bl = new Cylinder(20, 2, xPos+10, yPos+10, zPos+10);
 		Cylinder br = new Cylinder(20, 2, xPos+10, yPos+10, zPos+10);
 		
-		head.setMaterialColor(RenderColor.DarkGrey);
+		head.setMaterialColor(RenderColor.Black);
 		fl.setMaterialColor(RenderColor.Black);
 		fr.setMaterialColor(RenderColor.Black);
 		bl.setMaterialColor(RenderColor.Black);
