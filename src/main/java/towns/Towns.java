@@ -131,13 +131,17 @@ public class Towns implements Entity {
 	}
 	
     public static ArrayList<Point> GenerateCenters (Point cent, float rad){
-		Point shop = new Point(cent.getX() - Math.sqrt(Math.pow(rad,2)/2), cent.getZ() - Math.sqrt(Math.pow(rad,2)/2)); 
+		Point shop = new Point(cent.getX() - Math.sqrt(Math.pow(rad,2)/2), cent.getZ() - 
+				       Math.sqrt(Math.pow(rad,2)/2)); 
 		//shopCenter SOUTHWEST
-		Point house = new Point(cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + Math.sqrt(Math.pow(rad,2))/2);
+		Point house = new Point(cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + 
+					Math.sqrt(Math.pow(rad,2))/2);
 		//houseCenter NORTHEAST
-		Point park = new Point (cent.getX() - Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + Math.sqrt(Math.pow(rad,2))/2);
+		Point park = new Point (cent.getX() - Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + 
+					Math.sqrt(Math.pow(rad,2))/2);
 		//parkCenter NORTHWEST
-		Point school = new Point (cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() - Math.sqrt(Math.pow(rad,2))/2);
+		Point school = new Point (cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() - 
+					  Math.sqrt(Math.pow(rad,2))/2);
 		//schoolCenter SOUTHEAST
 		ArrayList<Point> pass = new ArrayList<Point>();
 		pass.add(shop);
