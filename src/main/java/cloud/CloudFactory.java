@@ -87,6 +87,11 @@ public class CloudFactory {
 				length = 50;
 				height = 15;
 				width = 35;
+				
+				//length = 25;
+				//height = 15;
+				//width = 35;
+				
 				arr = new CloudArr(length, height,width);
 				arr.setOffSets(2, 1, 1, 2, 4);
 				arr.setFilters(0.45, 0.65);
@@ -103,9 +108,13 @@ public class CloudFactory {
 			CloudArr arr = arrMap.get("sky");
 			if (arr == null)
 			{
-				length = 75;
-				height = 20;
-				width = 100;
+				//length = 75;
+				//height = 20;
+				//width = 100;
+				
+				length = 36;
+				height = 10;
+				width = 50;
 				arr = new CloudArr(length,height,width);
 				arr.setOffSets(3,5,2,2,4);
 				arr.setFilters(0.65, 0.75);
@@ -153,7 +162,7 @@ public class CloudFactory {
 			
 		
 		List<Cloud> clouds = new ArrayList<Cloud>();
-		
+		//return clouds;
 		if (requiredSize < 1024)
 			return clouds;
 		
@@ -191,7 +200,6 @@ public class CloudFactory {
 			double size = getRandomSize(type);
 			clouds.add(getCloud(center.getX(), 0, center.getZ(),type, size));
 		}
-		System.out.println(spiral);
 		
 		return clouds;
 	}
