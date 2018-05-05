@@ -1,6 +1,7 @@
 package virtualworld.terrain;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.joml.Math;
 
@@ -37,22 +38,6 @@ public abstract class TerrainHeightAlgorithm {
 		return acc;
 	}
 	
-	public Point3D placeTree(double x, double z) {
-		Point3D max = new Point3D(0,0,0);
-		for(int zn = (int) (z - treeSparseness); zn <= z + treeSparseness; zn++) {
-			for(int xn = (int) (x - treeSparseness); xn <= x + treeSparseness; xn++) {
-				double e = noise.noise2D(xn, zn);
-				if (e > max.getY()) {
-					max = new Point3D(xn, e, zn);
-				}
-			}
-		}
-		if (Math.floor(z) == max.getZ() && Math.floor(x) == max.getX()) {
-			return max;
-		} else {
-			return null;
-		}
-	}
 	
 	public List<Region> getRegions () {
 		return null;

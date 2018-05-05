@@ -17,8 +17,8 @@ public class ValleyHeightAlgorithm extends TerrainHeightAlgorithm {
 	}
 	
 	public static TerrainHeightAlgorithm forNormalValley(double size) {
-		double freq = size/80000;
-		return new ValleyHeightAlgorithm (freq, 4, 3, 800, 4, 3);
+		double freq = size/50000;
+		return new ValleyHeightAlgorithm (freq, 4, 3, 800, 2, 3);
 	}
 	
 	@Override
