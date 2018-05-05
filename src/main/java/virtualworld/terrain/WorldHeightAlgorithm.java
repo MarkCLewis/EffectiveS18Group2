@@ -80,7 +80,7 @@ public class WorldHeightAlgorithm extends TerrainHeightAlgorithm {
 		}
 		
 		double d = euclideanDistance((x+.5), (z+.5));
-		return (((e/layers) + .3) * (1 - (.95*Math.pow(d, 1.05)))) * (avgBaseHeight/layers);
+		return (((e/layers) + .3) * (1 - (3*Math.pow(d, 2.05)))) * (avgBaseHeight/layers);
 		
 	}
 	

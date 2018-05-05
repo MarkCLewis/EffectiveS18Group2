@@ -135,7 +135,7 @@ public class WorldManager {
 		WorldManager world = WorldManager.getInstance();
 		Point cent = world.rootNode.center;
 		double worldSize = world.getSize();
-		Terrain t = Terrain.forFields(cent, worldSize, 6);
+		Terrain t = Terrain.forHills(cent, worldSize, 6);
 		//Road r = new Road(cent, worldSize);
 		world.addEntity(t);
 		//world.addEntity(r);

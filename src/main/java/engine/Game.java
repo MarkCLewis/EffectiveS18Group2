@@ -42,7 +42,7 @@ public class Game {
      */
 	public static void main(String[] args) {
 
-		Game g = new Game(100f);
+		Game g = new Game(250f);
 		g.start();
 		Point center = new Point(0,0);
 		

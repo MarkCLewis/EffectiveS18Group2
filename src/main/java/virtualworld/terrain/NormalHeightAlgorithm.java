@@ -14,13 +14,13 @@ public class NormalHeightAlgorithm extends TerrainHeightAlgorithm {
 	
 	
 	public static TerrainHeightAlgorithm forFields(double size) {
-		double freq = size/1200;
-		return new NormalHeightAlgorithm(freq, 3, 4, 250, 1);
+		double freq = size/40000;
+		return new NormalHeightAlgorithm(freq, 3, 4, 650, 4);
 	}
 	
 	public static TerrainHeightAlgorithm forHills(double size) {
-		double freq = size / 800;
-		return new NormalHeightAlgorithm(freq, 3, 4, 350, 1);
+		double freq = size / 18000;
+		return new NormalHeightAlgorithm(freq, 3, 4, 900, 4);
 	}
 	
 	public static TerrainHeightAlgorithm forMountains(double size) {

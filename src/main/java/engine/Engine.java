@@ -143,7 +143,7 @@ public class Engine extends SimpleApplication {
     private BulletAppState bulletAppState;
 
     private boolean flyCamera;
-    private float flySpeed = 500f;
+    private float flySpeed = 10000f;
     
     private CharacterControl player;
     
