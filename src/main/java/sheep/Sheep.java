@@ -1,6 +1,7 @@
 package sheep;
 
 import java.util.List;
+import java.util.Random;
 
 import entity.Entity;
 import shapes.Shape;
@@ -13,10 +14,10 @@ public class Sheep implements Entity {
 	Herd herd = null;
 	Point cent;
 	double size = 20;
-	
+	static Random rand = new Random();
 	
 	public Sheep(Point start) {
-		herd = new Herd(start);
+		herd = new Herd();
 		cent = start;
 	}
 	
@@ -43,4 +44,20 @@ public class Sheep implements Entity {
 	public boolean isActive(){
 		return true;
 	}
+	
+	public static Sheep randSheep(Point cent, double sz) {
+		rand.setSeed((long)(cent.getX()*cent.getZ()));
+		double minX = cent.getX() - sz/2;
+		double maxX = cent.getX() + sz/2;
+		double newX = minX  + (rand.nextDouble() * (maxX-minX));
+		double minZ = cent.getZ() - sz/2;
+		double maxZ = cent.getZ() + sz/2;
+		double newZ = minZ  + (rand.nextDouble() * (maxZ-minZ));
+		return new Sheep(new Point(newX,newZ));
+	}
+	
+	
+	
+	
+	
 }
