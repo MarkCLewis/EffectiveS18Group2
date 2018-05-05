@@ -75,7 +75,7 @@ public class CloudFactory {
 				arrMap.put("single", arr);
 			}
 			double sf = size;
-			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, null));
+			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, cloudMat));
 		}
 		
 		//A little bit scatter cloud
@@ -95,7 +95,7 @@ public class CloudFactory {
 				arrMap.put("scatter", arr);
 			}
 			double sf = size;
-			return (new PerlinCloud(x, newY, z, arr, 0.65, sf, null));
+			return (new PerlinCloud(x, newY, z, arr, 0.65, sf, cloudMat));
 		}
 		
 		else if (rand == 2)
@@ -114,7 +114,7 @@ public class CloudFactory {
 				arrMap.put("sky", arr);
 			}
 			double sf = size;
-			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, null));	
+			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, cloudMat));	
 		}
 		else if (rand == 3)
 		{

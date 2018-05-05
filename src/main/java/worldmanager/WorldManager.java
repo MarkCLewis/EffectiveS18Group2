@@ -147,12 +147,12 @@ public class WorldManager {
 		if(Node.findDist(t.getCenter(),cent) < t.getSize()*2 && t.getSize() > 2000) {
 			Terrain[] ters = t.split();
 			for(Terrain ter: ters) {
-				/*if(ter.getSize() < 8000 && ter.getSize() > 4000) {
+				if(ter.getSize() < 16000 && ter.getSize() > 8000) {
 					List<Cloud> clouds = CloudFactory.getInstance().getClouds(ter.getCenter(), ter.getSize());
 					for (Cloud c: clouds) {
 						WorldManager.getInstance().addEntity(c);
 					}
-				}*/
+				}
 				WorldManager.getInstance().addEntity(ter);
 				defineWorld(ter,cent);
 			}
@@ -175,7 +175,7 @@ public class WorldManager {
 		for(Terrain t: actives) {
 			defineWorld(t,cent);
 		}
-		System.out.println("updating world...");
+		System.out.println("updating world to: " + cent.getX() + "," + cent.getZ());
 	}
 	
 	private List<Terrain> activeTerrains() {
