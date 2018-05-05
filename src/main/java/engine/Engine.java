@@ -150,6 +150,7 @@ public class Engine extends SimpleApplication {
     private Material matWire;
     private boolean wireframe = false;
     private boolean showAxes = false;
+    private boolean useWorldManager = true;
     
     protected BitmapText hintText;
     protected BitmapText hitLocText;
@@ -182,11 +183,12 @@ public class Engine extends SimpleApplication {
      */
     @Override
     public void simpleInitApp() {
-    	
-    	WorldManager.initializeWorld();
-    	world = WorldManager.getInstance();
-    	world.updateMaxView(drawDistance/5.0);
-    	world.updateCameraStep(1000);
+    	if(useWorldManager) {
+	    	WorldManager.initializeWorld();
+	    	world = WorldManager.getInstance();
+	    	world.updateMaxView(drawDistance/5.0);
+	    	world.updateCameraStep(1000);
+    	}
     	
     	this.mainNode = new Node("MainNode");
     	this.playerNode = new Node("PlayerNode");
@@ -419,7 +421,7 @@ public class Engine extends SimpleApplication {
     	else {
     		playerLocText = new BitmapText(guiFont, false);
     		playerLocText.setSize(guiFont.getCharSet().getRenderedSize());
-    		playerLocText.setLocalTranslation(300, getCamera().getHeight() - 100, 0);
+    		playerLocText.setLocalTranslation(0, getCamera().getHeight() - 100, 0);
     	}
     	playerLocText.setText("Player location: " + loc.toString());
     	guiNode.attachChild(playerLocText);
@@ -475,11 +477,13 @@ public class Engine extends SimpleApplication {
 
         updateWater();
         
-        Vector3d pos = this.getWorldPosition();
-    	List<shapes.Shape> shapes = world.getGeometry(new Point(pos.x,pos.z));
-    	if(!shapes.isEmpty()) {
-    		this.addShapes(shapes);
-    	}
+        if(useWorldManager) {
+	        Vector3d pos = this.getWorldPosition();
+	    	List<shapes.Shape> shapes = world.getGeometry(new Point(pos.x,pos.z));
+	    	if(!shapes.isEmpty()) {
+	    		this.addShapes(shapes);
+	    	}
+        }
     }
     
     private void resetSpatialMaterialsInNode(Node node) {
@@ -652,7 +656,7 @@ public class Engine extends SimpleApplication {
     	});
     }
     
-    public void removeShapes(List<shapes.Shape> shapes) {
+    /*public void removeShapes(List<shapes.Shape> shapes) {
     	this.enqueue(new Runnable() {
     		public void run() {
     			for(shapes.Shape shape : shapes) {
@@ -660,7 +664,7 @@ public class Engine extends SimpleApplication {
     			}
     		}
     	});
-    }
+    }*/
     
     /**
      * Returns a random double between min (inclusive) and max (exclusive)
