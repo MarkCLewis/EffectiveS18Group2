@@ -5,6 +5,7 @@ import java.util.List;
 
 import cloud.Cloud;
 import cloud.CloudFactory;
+import engine.Engine;
 import entity.Entity;
 import roads.Road;
 import shapes.Shape;
@@ -77,7 +78,12 @@ public class WorldManager {
 	
 	//update camera location
 	public boolean updateCamera(Point point) {
-		if (cameraLoc == null || Node.findDist(point, cameraLoc) > cameraStep) {
+		if(cameraLoc == null) {
+			rootNode.cameraDist(point);
+			cameraLoc = point;
+			return true;
+		}
+		if (Node.findDist(point, cameraLoc) > cameraStep) {
 			rootNode.cameraDist(point);
 			cameraLoc = point;
 			updateWorld(point);
@@ -135,7 +141,7 @@ public class WorldManager {
 		WorldManager world = WorldManager.getInstance();
 		Point cent = world.rootNode.center;
 		double worldSize = world.getSize();
-		Terrain t = Terrain.forFields(cent, worldSize, 6);
+		Terrain t = Terrain.forWorld(cent, worldSize, 6);
 		//Road r = new Road(cent, worldSize);
 		world.addEntity(t);
 		//world.addEntity(r);
@@ -147,12 +153,12 @@ public class WorldManager {
 		if(Node.findDist(t.getCenter(),cent) < t.getSize()*2 && t.getSize() > 2000) {
 			Terrain[] ters = t.split();
 			for(Terrain ter: ters) {
-				if(ter.getSize() < 16000 && ter.getSize() > 8000) {
+				/*if(ter.getSize() < 16000 && ter.getSize() > 8000) {
 					List<Cloud> clouds = CloudFactory.getInstance().getClouds(ter.getCenter(), ter.getSize());
 					for (Cloud c: clouds) {
 						WorldManager.getInstance().addEntity(c);
 					}
-				}
+				}*/
 				WorldManager.getInstance().addEntity(ter);
 				defineWorld(ter,cent);
 			}
