@@ -87,8 +87,8 @@ public class EngineShape {
 	public void setupVectorCylinder(final VectorCylinder shape) {
 		Vector3d startPos = Utils.getVectorFromArray(shape.getStartPos());
 		Vector3d endPos = Utils.getVectorFromArray(shape.getEndPos());
-		Vector3d midPoint = endPos.subtract((endPos.subtract(startPos).divide(2.0)));
-		Vector3f rotBaseAxis = (((endPos.subtract(startPos)).normalize()).toVector3f()).normalize();
+		Vector3d midPoint = startPos.subtract((startPos.subtract(endPos).divide(2.0)));
+		Vector3f rotBaseAxis = (((startPos.subtract(endPos)).normalize()).toVector3f()).normalize();
 		float tmpRot = rotBaseAxis.angleBetween(new Vector3f(0,1,0));
 		Quaternion rot = new Quaternion();
 		rot.fromAngleNormalAxis(tmpRot, (rotBaseAxis.cross(new Vector3f(0,1,0))));

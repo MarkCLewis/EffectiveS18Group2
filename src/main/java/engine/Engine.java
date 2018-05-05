@@ -151,6 +151,7 @@ public class Engine extends SimpleApplication {
     private boolean wireframe = false;
     private boolean showAxes = false;
     protected BitmapText hintText;
+    protected BitmapText hitLocText;
     private Geometry collisionMarker;
     private BulletAppState bulletAppState;
 
@@ -322,6 +323,7 @@ public class Engine extends SimpleApplication {
                         createCollisionMarker();
                     }
                     collisionMarker.setLocalTranslation(hit.getContactPoint().x,hit.getContactPoint().y,hit.getContactPoint().z);
+                    updateHitLocText(hit.getContactPoint());
                 }
             } else if (name.equals("cameraDown") && !keyPressed) {
             	if(moves) {
@@ -386,6 +388,19 @@ public class Engine extends SimpleApplication {
         hintText.setLocalTranslation(0, getCamera().getHeight(), 0);
         hintText.setText("Hit T to switch to wireframe\nHit Left Ctrl to toggle gravity\nHit X to toggle showing local axes of objects");
         guiNode.attachChild(hintText);
+    }
+    
+    public void updateHitLocText(Vector3f hitLoc) {
+    	if(hitLocText != null) {
+    		guiNode.detachChild(hitLocText);
+    	}
+    	else {
+    		hitLocText = new BitmapText(guiFont, false);
+    		hitLocText.setSize(guiFont.getCharSet().getRenderedSize());
+        	hitLocText.setLocalTranslation(300, getCamera().getHeight(), 0);
+    	}
+    	hitLocText.setText(hitLoc.toString());
+    	guiNode.attachChild(hitLocText);
     }
 
     protected void initCrossHairs() {
