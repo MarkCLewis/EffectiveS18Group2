@@ -504,7 +504,6 @@ public class Engine extends SimpleApplication {
         WorldManager world = WorldManager.getInstance();
         Point p = new Point(this.worldPosition.x,this.worldPosition.z);
         world.updateCamera(p);
-        addShapes(world.getGeometry(p));
     }
     
     private void updateSkyDomeLocation(final Vector3f camLoc) {
