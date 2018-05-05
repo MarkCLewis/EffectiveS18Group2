@@ -10,6 +10,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.debug.DebugTools;
@@ -23,6 +24,7 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
@@ -34,6 +36,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.plugins.blender.math.Vector3d;
+import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Dome;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
@@ -154,7 +157,8 @@ public class Engine extends SimpleApplication {
     private boolean flyCamera;
     private float flySpeed = 1000f;
     
-    private CharacterControl player;
+    private BetterCharacterControl player;
+    private Geometry playerModel;
     
     private final Vector3f walkDirection = new Vector3f();
 
@@ -193,6 +197,7 @@ public class Engine extends SimpleApplication {
         bulletAppState = new BulletAppState();
         bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bulletAppState);
+        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-1,0));
         
         matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWire.getAdditionalRenderState().setWireframe(true);
@@ -242,12 +247,22 @@ public class Engine extends SimpleApplication {
 		viewPort.addProcessor(fpp);
 		
 		// set up player physics object
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
+        /*CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(10f, 20f, 1);
         player = new CharacterControl(capsuleShape, 0.5f);
         player.setJumpSpeed(50);
-        player.setFallSpeed(2000);
-        player.setGravity(new Vector3f(0,-80,0));
-        player.setPhysicsLocation(cam.getLocation().clone());
+        player.setFallSpeed(2000);*/
+		Box box1 = new Box(1,1,1);
+		playerModel = new Geometry("Player",box1);
+		Material playerMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+		playerMat.setColor("Color", ColorRGBA.Blue);
+		playerMat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.FrontAndBack);
+		playerModel.setMaterial(playerMat);
+		playerModel.setLocalTranslation(cam.getLocation());
+        player = new BetterCharacterControl(4f,10f,1);
+        player.setJumpForce(new Vector3f(0,4f,0));
+        player.warp(cam.getLocation());
+        playerModel.addControl(player);
+        mainNode.attachChild(playerModel);
         
         this.rootNode.attachChild(mainNode);
         
@@ -356,20 +371,12 @@ public class Engine extends SimpleApplication {
                     Engine.this.down = false;
                 }
             } else if (name.equals("Jumps") && !Engine.this.flyCamera) {
-            	Engine.this.player.jump(new Vector3f(0,30,0));;
+            	Engine.this.player.jump();
             } else if(name.equals("Fly") && !keyPressed) {
             	if(Engine.this.flyCamera) {
-            		player.setJumpSpeed(50);
-                    player.setFallSpeed(2000);
-                    player.setGravity(new Vector3f(0,-80,0));
-                    player.setPhysicsLocation(cam.getLocation().clone());
             		bulletAppState.getPhysicsSpace().add(player);
             		Engine.this.flyCamera = false;
             	} else {
-            		player.setJumpSpeed(0);
-                    player.setFallSpeed(0);
-                    player.setGravity(new Vector3f(0,0,0));
-                    player.setPhysicsLocation(cam.getLocation().clone());
             		bulletAppState.getPhysicsSpace().remove(player);
             		Engine.this.flyCam.setMoveSpeed(flySpeed);
             		Engine.this.flyCamera = true;
@@ -451,7 +458,7 @@ public class Engine extends SimpleApplication {
         Vector3d pos = this.getWorldPosition();
     	List<shapes.Shape> shapes = world.getGeometry(new Point(pos.x,pos.z));
     	if(!shapes.isEmpty()) {
-    		this.changeShapes(shapes);
+    		this.addShapes(shapes);
     	}
     }
     
@@ -470,7 +477,8 @@ public class Engine extends SimpleApplication {
 		for (int i = 0; i < spatialBuffer.size(); i++) {
         	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
             EngineShape engSpatial = spatialBuffer.get(i);
-			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
+			//Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
+            Vector3f localPos = engSpatial.getJME3Position().toVector3f();
             Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
             tmpNode.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             if(wireframe) {
@@ -487,7 +495,8 @@ public class Engine extends SimpleApplication {
         	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
             EngineShape engSpatial = spatialsToAdd.get(i);
 			spatialBuffer.add(engSpatial);
-			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
+			//Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
+			Vector3f localPos = engSpatial.getJME3Position().toVector3f();
             Node tmpNode = engSpatial.getJME3Node(this.assetManager,this.showAxes);
             tmpNode.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
             if(wireframe) {
@@ -523,7 +532,7 @@ public class Engine extends SimpleApplication {
         if (!flyCamera) {
             this.player.setWalkDirection(this.walkDirection);
             if(this.moves) {
-            	this.cam.setLocation(this.player.getPhysicsLocation());
+            	this.cam.setLocation(playerModel.getLocalTranslation());
             }
         }
         if(this.moves) {
