@@ -19,7 +19,7 @@ import shapes.RenderMaterial;
 public class Towns implements Entity {
     private float radius, seed;
 	private ArrayList<Point> middle;
-	private ArrayList<RectangularPrism> shopStalls, completeListofRec;
+	private ArrayList<RectangularPrism> shopStalls, completeListofRec, houselist;
 	private Point Shopcenter, Schoolcenter, Housecenter, Parkcenter, center;
 	private RectangularPrism Shops;
 	private RectangularPrism House;
@@ -86,7 +86,7 @@ public class Towns implements Entity {
 	    //set to a maximum of10 and must be greater than one
 	    houseseed=Math.floor(seed/5);
 	    double housesizes= Math.floor(Math.floor(radius)/(houseseed));
-	    
+	    houselist= MakeHouses((int) houseseed, (int) housesizes, Housecenter,radius/3);
 	    schoolseed=Math.floor(seed/6);
 	    
 	    double schoolsizes=Math.floor(Math.floor(seed/6)/(radius/3))-1;
