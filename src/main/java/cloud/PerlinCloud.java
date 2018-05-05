@@ -22,12 +22,13 @@ public class PerlinCloud implements Cloud{
 		height = cloudArr[0][0].length;
 		width = cloudArr[0].length;
 		f2 = newF2;
-		scalingFactor = newScalingFactor * 4;
+		scalingFactor = newScalingFactor;
 		
 		//method calls to make 3 levels of details
 		makeShape3dBest();
 		secondBestShapes();
 		furthest();
+		currentLevel = best;
 		
 
 	}
@@ -138,7 +139,7 @@ public class PerlinCloud implements Cloud{
 				}
 			}
 		}
-		currentLevel = secondBest;
+		//currentLevel = secondBest;
 	}
 	
 	private void furthest()

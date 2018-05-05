@@ -75,7 +75,7 @@ public class CloudFactory {
 				arrMap.put("single", arr);
 			}
 			double sf = size;
-			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, cloudMat));
+			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, null));
 		}
 		
 		//A little bit scatter cloud
@@ -84,9 +84,9 @@ public class CloudFactory {
 			CloudArr arr = arrMap.get("scatter");
 			if (arr == null)
 			{
-				length = 25;
-				height = 7;
-				width = 17;
+				length = 50;
+				height = 15;
+				width = 35;
 				arr = new CloudArr(length, height,width);
 				arr.setOffSets(2, 1, 1, 2, 4);
 				arr.setFilters(0.45, 0.65);
@@ -95,7 +95,7 @@ public class CloudFactory {
 				arrMap.put("scatter", arr);
 			}
 			double sf = size;
-			return (new PerlinCloud(x, newY, z, arr, 0.65, sf, cloudMat));
+			return (new PerlinCloud(x, newY, z, arr, 0.65, sf, null));
 		}
 		
 		else if (rand == 2)
@@ -103,9 +103,9 @@ public class CloudFactory {
 			CloudArr arr = arrMap.get("sky");
 			if (arr == null)
 			{
-				length = 37;
-				height = 10;
-				width = 50;
+				length = 75;
+				height = 20;
+				width = 100;
 				arr = new CloudArr(length,height,width);
 				arr.setOffSets(3,5,2,2,4);
 				arr.setFilters(0.65, 0.75);
@@ -114,7 +114,7 @@ public class CloudFactory {
 				arrMap.put("sky", arr);
 			}
 			double sf = size;
-			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, cloudMat));	
+			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, null));	
 		}
 		else if (rand == 3)
 		{
@@ -135,9 +135,9 @@ public class CloudFactory {
 	public double getRandomSize(int type)
 	{
 		if (type == 0)
-			return getRandomDouble(1, 5);	
+			return getRandomDouble(3, 5);	
 		if (type == 1)
-			return getRandomDouble(3, 9);
+			return getRandomDouble(5, 9);
 		if (type == 2)
 			return getRandomDouble(5, 12); //kinda laggy at 10
 		if (type == 3)
