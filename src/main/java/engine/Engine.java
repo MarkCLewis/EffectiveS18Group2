@@ -10,7 +10,6 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.debug.DebugTools;
@@ -26,33 +25,22 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.math.Plane;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
-import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.plugins.blender.math.Vector3d;
 import com.jme3.scene.shape.Dome;
-import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
-import com.jme3.terrain.geomipmap.TerrainGrid;
-import com.jme3.terrain.geomipmap.TerrainGridListener;
-import com.jme3.terrain.geomipmap.TerrainGridLodControl;
-import com.jme3.terrain.geomipmap.TerrainLodControl;
-import com.jme3.terrain.geomipmap.TerrainQuad;
-import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
-import com.jme3.texture.Texture;
-import com.jme3.texture.Texture.WrapMode;
-import com.jme3.water.SimpleWaterProcessor;
 import com.jme3.water.WaterFilter;
+
+import virtualworld.terrain.Point;
+import worldmanager.WorldManager;
 
 /**
  * The game's main engine logic
@@ -513,6 +501,7 @@ public class Engine extends SimpleApplication {
         if(this.moves) {
         	updateWorldLocation();
         }
+        WorldManager.updateWorld(new Point(this.getWorldPosition().x,this.getWorldPosition().z));
     }
     
     private void updateSkyDomeLocation(final Vector3f camLoc) {

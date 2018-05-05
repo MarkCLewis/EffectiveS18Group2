@@ -136,23 +136,23 @@ public class WorldManager {
 		Point cent = world.rootNode.center;
 		double worldSize = world.getSize();
 		Terrain t = Terrain.forFields(cent, worldSize, 6);
-		Road r = new Road(cent, worldSize);
+		//Road r = new Road(cent, worldSize);
 		world.addEntity(t);
-		world.addEntity(r);
+		//world.addEntity(r);
 		defineWorld(t, cent);
-		defineRoads(r, cent);
+		//defineRoads(r, cent);
 	}
 	
 	public static void defineWorld(Terrain t, Point cent) {
 		if(Node.findDist(t.getCenter(),cent) < t.getSize()*2 && t.getSize() > 2000) {
 			Terrain[] ters = t.split();
 			for(Terrain ter: ters) {
-				if(ter.getSize() < 16000 && ter.getSize() > 8000) {
+				/*if(ter.getSize() < 8000 && ter.getSize() > 4000) {
 					List<Cloud> clouds = CloudFactory.getInstance().getClouds(ter.getCenter(), ter.getSize());
 					for (Cloud c: clouds) {
 						WorldManager.getInstance().addEntity(c);
 					}
-				}
+				}*/
 				WorldManager.getInstance().addEntity(ter);
 				defineWorld(ter,cent);
 			}
@@ -175,6 +175,7 @@ public class WorldManager {
 		for(Terrain t: actives) {
 			defineWorld(t,cent);
 		}
+		System.out.println("updating world...");
 	}
 	
 	private List<Terrain> activeTerrains() {
