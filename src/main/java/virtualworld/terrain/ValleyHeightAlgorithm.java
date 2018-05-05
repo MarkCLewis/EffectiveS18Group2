@@ -17,8 +17,8 @@ public class ValleyHeightAlgorithm extends TerrainHeightAlgorithm {
 	}
 	
 	public static TerrainHeightAlgorithm forNormalValley(double size) {
-		double freq = size/1000;
-		return new ValleyHeightAlgorithm (freq, 3, 3, 600, 1, 3.5);
+		double freq = size/50000;
+		return new ValleyHeightAlgorithm (freq, 4, 3, 700, 2, 2.5);
 	}
 	
 	@Override
@@ -28,6 +28,15 @@ public class ValleyHeightAlgorithm extends TerrainHeightAlgorithm {
 			acc += super.generateSubValue(heightSeed / (octaveScale*i), frequency * ((octaveScale*i)/2), x, z);
 		}
 		return Math.pow(acc, redistribution) * baseHeight;
+	}
+	
+	@Override
+	public double partialHeight(double x, double z) {
+		double acc = super.generateSubValue(heightSeed, frequency, x, z);
+		for (int i = 1; i < numOctaves; i++) {
+			acc += super.generateSubValue(heightSeed / (octaveScale*i), frequency * ((octaveScale*i)/2), x, z);
+		}
+		return Math.pow(acc, redistribution);
 	}
 
 	

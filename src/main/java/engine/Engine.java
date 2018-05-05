@@ -10,7 +10,6 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.debug.DebugTools;
@@ -26,33 +25,22 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.math.Plane;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
-import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.plugins.blender.math.Vector3d;
 import com.jme3.scene.shape.Dome;
-import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
-import com.jme3.terrain.geomipmap.TerrainGrid;
-import com.jme3.terrain.geomipmap.TerrainGridListener;
-import com.jme3.terrain.geomipmap.TerrainGridLodControl;
-import com.jme3.terrain.geomipmap.TerrainLodControl;
-import com.jme3.terrain.geomipmap.TerrainQuad;
-import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
-import com.jme3.texture.Texture;
-import com.jme3.texture.Texture.WrapMode;
-import com.jme3.water.SimpleWaterProcessor;
 import com.jme3.water.WaterFilter;
+
+import virtualworld.terrain.Point;
+import worldmanager.WorldManager;
 
 /**
  * The game's main engine logic
@@ -70,9 +58,9 @@ public class Engine extends SimpleApplication {
 	 */
 	private static class EngineLoader {
 		private static Engine INSTANCE = null;
-		public static Engine getInstance(float initialWaterHeight) {
+		public static Engine getInstance() {
 			try {
-				EngineLoader.INSTANCE = new Engine(initialWaterHeight);
+				EngineLoader.INSTANCE = new Engine();
 				INSTANCE.setShowSettings(false);
 				AppSettings settings = new AppSettings(true);
 				settings.setResolution(1000, 800);
@@ -87,12 +75,12 @@ public class Engine extends SimpleApplication {
 	/**
 	 * This constructor throws an exception if Engine has already been instantiated
 	 */
-	private Engine(float initialWaterHeight) {
+	private Engine() {
 		if(EngineLoader.INSTANCE != null) {
 			throw new IllegalStateException("Already instantiated");
 		}
 		else {
-			this.initialWaterHeight = initialWaterHeight;
+			//this.initialWaterHeight = initialWaterHeight;
 		}
 	}
 	
@@ -100,8 +88,8 @@ public class Engine extends SimpleApplication {
 	 * Call this function to retrieve the application's Engine instance
 	 * @return singleton instance of Engine
 	 */
-	public static Engine getInstance(float initialWaterHeight) {
-		return EngineLoader.getInstance(initialWaterHeight);
+	public static Engine getInstance() {
+		return EngineLoader.getInstance();
 	}
 	
 	/**
@@ -133,7 +121,7 @@ public class Engine extends SimpleApplication {
 	private FilterPostProcessor fpp;
 	private WaterFilter waterFilter;
 	private final Vector3f lightDir = (new Vector3f(1f, -0.5f, -0.1f)); 
-	private final float initialWaterHeight;
+	private final float initialWaterHeight = 250f;
 	private float time = 0.0f;
 	private float waterHeight = 0.0f;
 	private DebugTools debugTools;
@@ -156,7 +144,7 @@ public class Engine extends SimpleApplication {
     private BulletAppState bulletAppState;
 
     private boolean flyCamera;
-    private float flySpeed = 500f;
+    private float flySpeed = 10000f;
     
     private CharacterControl player;
     
@@ -183,6 +171,7 @@ public class Engine extends SimpleApplication {
     	cam.setFrustumFar(drawDistance);
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
+
 
 		this.flyCam.setMoveSpeed(flySpeed);
     	ScreenshotAppState state = new ScreenshotAppState();
@@ -527,6 +516,9 @@ public class Engine extends SimpleApplication {
         if(this.moves) {
         	updateWorldLocation();
         }
+        WorldManager world = WorldManager.getInstance();
+        Point p = new Point(this.worldPosition.x,this.worldPosition.z);
+        world.updateCamera(p);
     }
     
     private void updateSkyDomeLocation(final Vector3f camLoc) {

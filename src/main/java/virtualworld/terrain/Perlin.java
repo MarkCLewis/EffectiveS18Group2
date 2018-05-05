@@ -2,19 +2,6 @@ package virtualworld.terrain;
 
 public class Perlin { //singleton class for noise function
 	
-	public static void main(String[] args) {
-		   
-		Perlin noise = Perlin.getInstance();
-		
-		double n1 = noise.noise2D(-400.55, 0.71);
-		double n2 = noise.noise2D(-1.55, 1.71);
-		double n3 = noise.noise2D(0.25, 0.91);
-		
-		System.out.println(noise.scaleAnswer(n1));
-		System.out.println(noise.scaleAnswer(n2));
-		System.out.println(noise.scaleAnswer(n3));
-		
-	}
 	
 	// Hash lookup table base. 
 	//This is a randomly arranged array of all numbers from 0-255 inclusive.

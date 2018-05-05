@@ -1,27 +1,20 @@
 package engine;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.javafx.geom.Shape;
-
-import shapes.Cylinder;
-import shapes.HeightMapSurface;
-import shapes.RectangularPrism;
 import shapes.RenderColor;
 import shapes.RenderMaterial;
 import shapes.Sphere;
 import shapes.VectorCylinder;
 import virtualworld.terrain.Point;
-import virtualworld.terrain.Terrain;
 import worldmanager.WorldManager;
 
 public class Game {
   
-	private Engine e;
+	public Engine e;
 	
 	public Game(float waterHeight) {
-		e = Engine.getInstance(waterHeight);
+		e = Engine.getInstance();
 	}
   
 	public void addShapes(List<shapes.Shape> shapes) {
@@ -49,20 +42,27 @@ public class Game {
      */
 	public static void main(String[] args) {
 
-		Game g = new Game(100f);
+		Game g = new Game(250f);
 		g.start();
 		Point center = new Point(0,0);
 		
 		//WorldManager world = new WorldManager(center, 5000);		
 		WorldManager world = WorldManager.getInstance();
+
 		world.updateMaxView(10000);
+		world.updateCameraStep(1000);
 		
+		/*Road road = new Road(center,200000);
+		System.out.println(road.isActive());
+		Road[] roadarray = road.split();
+		for(Road r: roadarray) {
+			g.addShapes(r.getShapes());
+			System.out.println(r.isActive());
+		}*/
 		WorldManager.initializeWorld();
 		List<shapes.Shape> allShapes = world.getGeometry(center);
 		g.addShapes(allShapes);
 		
-		System.out.println("allShapes size: " + allShapes.size());
-
 		/*Terrain t = Terrain.forMountains(center, 2048, 6);
 		world.addEntity(t);*/
 		/*RectangularPrism r = new RectangularPrism(50, 50, 50, 1026, 250,-1026); 
@@ -108,12 +108,12 @@ public class Game {
 			g.addShapes(allShapes);
 		}*/
 		
-		RenderMaterial cloudMat = new RenderMaterial();
+		/*RenderMaterial cloudMat = new RenderMaterial();
 		cloudMat.setSpecularColor(RenderColor.MediumGrey);
 		cloudMat.setDiffuseColor(RenderColor.MediumGrey);
 		cloudMat.setAmbientColor(RenderColor.MediumGrey);
 		cloudMat.setUseTexture(true);
-		cloudMat.setShininess(0.001f);
+		cloudMat.setShininess(0.01f);
 		cloudMat.setTextureDiffusePath("Textures/Terrain/splat/clouddiffuse.jpg");
 		cloudMat.setTextureAlphaPath("Textures/Terrain/splat/cloudalpha.jpg");
 		cloudMat.setUseTransparency(true);

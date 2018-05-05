@@ -26,7 +26,8 @@ public class CloudFactoryTest {
 			double x = Engine.getRandomDouble(0, 1000);
 			double y = Engine.getRandomDouble(0, 1000);
 			double z = Engine.getRandomDouble(0, 1000);
-			clouds.add(cf.getCloud(x, y, z, Engine.getRandomInt(0, 4)));
+			int type = Engine.getRandomInt(0, 4);
+			clouds.add(cf.getCloud(x, y, z, type, cf.getRandomSize(type)));
 		}
 		
 		assertTrue(clouds.size() == 1000);

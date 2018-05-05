@@ -3,18 +3,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.joml.Math;
 
-import engine.Engine;
+import shapes.RenderMaterial;
 import virtualworld.terrain.Point;
-import virtualworld.terrain.Terrain;
 public class CloudFactory {
 	private CloudFactory()
 	{
-		
+		cloudMat.setUseTexture(true);
+		cloudMat.setShininess(0.1f);
+		cloudMat.setTextureDiffusePath("Textures/Terrain/splat/clouddiffuse.jpg");
+		cloudMat.setTextureAlphaPath("Textures/Terrain/splat/cloudalpha.jpg");
+		cloudMat.setUseTransparency(true);
+		cloudMat.setColorAlphas(0.0f);
 	}
 	
+	Random random = new Random();
+	RenderMaterial cloudMat = new RenderMaterial();
 	
 	private static CloudFactory CF = null;
 	
@@ -29,7 +36,7 @@ public class CloudFactory {
 	}
 	
 	
-	public Cloud getCloud(double x, double y, double z, int rand)
+	public Cloud getCloud(double x, double y, double z, int rand, double size)
 	{
 		//int rand;
 		int length;
@@ -40,7 +47,7 @@ public class CloudFactory {
 		//rand = 4;
 		
 		double newY;
-		double skyLevel = 2500;
+		double skyLevel = 1750;
 		if (y < skyLevel) 
 		{
 			newY = skyLevel;
@@ -57,9 +64,9 @@ public class CloudFactory {
 			CloudArr arr = arrMap.get("single");
 			if (arr == null)
 			{
-				length = 60;//30 original;
-				height = 20;//10 original;
-				width = 40;//20 original;
+				length = 30; //original;
+				height = 10; //original;
+				width = 20; //original;
 				arr = new CloudArr(length,height,width);
 				arr.setOffSets(6.5, 3, 3, 2, 8);
 				arr.setFilters(0.55, 0.75);
@@ -67,8 +74,8 @@ public class CloudFactory {
 				arr.processing();
 				arrMap.put("single", arr);
 			}
-			double sf = getRandomSize("single");
-			return (new PerlinCloud(x, newY, z, arr, 0.75, sf));
+			double sf = size;
+			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, null));
 		}
 		
 		//A little bit scatter cloud
@@ -80,6 +87,11 @@ public class CloudFactory {
 				length = 50;
 				height = 15;
 				width = 35;
+				
+				//length = 25;
+				//height = 15;
+				//width = 35;
+				
 				arr = new CloudArr(length, height,width);
 				arr.setOffSets(2, 1, 1, 2, 4);
 				arr.setFilters(0.45, 0.65);
@@ -87,8 +99,8 @@ public class CloudFactory {
 				arr.processing();
 				arrMap.put("scatter", arr);
 			}
-			double sf = getRandomSize("scatter");
-			return (new PerlinCloud(x, newY, z, arr, 0.65, sf));
+			double sf = size;
+			return (new PerlinCloud(x, newY, z, arr, 0.65, sf, null));
 		}
 		
 		else if (rand == 2)
@@ -96,9 +108,13 @@ public class CloudFactory {
 			CloudArr arr = arrMap.get("sky");
 			if (arr == null)
 			{
-				length = 75;
-				height = 20;
-				width = 100;
+				//length = 75;
+				//height = 20;
+				//width = 100;
+				
+				length = 36;
+				height = 10;
+				width = 50;
 				arr = new CloudArr(length,height,width);
 				arr.setOffSets(3,5,2,2,4);
 				arr.setFilters(0.65, 0.75);
@@ -106,78 +122,96 @@ public class CloudFactory {
 				arr.processing();
 				arrMap.put("sky", arr);
 			}
-			double sf = getRandomSize("sky");
-			return (new PerlinCloud(x, newY, z, arr, 0.75, sf));	
+			double sf = size;
+			return (new PerlinCloud(x, newY, z, arr, 0.75, sf, null));	
 		}
 		else if (rand == 3)
 		{
-			int sizeOfSpiral = (int) getRandomSize("squareSpiral");
-			return (new SquareSpiralCloud(x, newY, z, sizeOfSpiral * 10));
+			int sizeOfSpiral = (int) size;
+			return (new SquareSpiralCloud(x, newY, z, sizeOfSpiral * 10, cloudMat));
 		}
 		
 		else if (rand == 4)
 		{
 			//testing
-			double gap = getRandomSize("regularSpiral");
-			return (new SpiralCloud(x, newY, z, gap));
+			double gap = size;
+			return (new SpiralCloud(x, newY, z, gap, cloudMat));
 			
 		}
 		return null;
 	}
 	
-	private double getRandomSize(String type)
+	public double getRandomSize(int type)
 	{
-		if (type.equals("single"))
-			return Engine.getRandomDouble(1, 7.5);	
-		if (type.equals("scatter"))
-			return Engine.getRandomDouble(3, 9);
-		if (type.equals("sky"))
-			return Engine.getRandomDouble(5, 8); //kinda laggy at 10
-		if (type.equals("squareSpiral"))
-			return Engine.getRandomInt(5, 30);
-		if (type.equals("regularSpiral"))
-			return Engine.getRandomDouble(0.3, 0.5);
+		if (type == 0)
+			return getRandomDouble(3, 5);	
+		if (type == 1)
+			return getRandomDouble(5, 9);
+		if (type == 2)
+			return getRandomDouble(5, 12); //kinda laggy at 10
+		if (type == 3)
+			return getRandomInt(5, 30);
+		if (type == 4)
+			return getRandomDouble(0.3, 0.5);
 		return 0;
 			
 	}
 	
-	public List<Cloud> getClouds(Terrain t)
+	public List<Cloud> getClouds(Point inCenter, double requiredSize)
 	{
+			
+		
 		List<Cloud> clouds = new ArrayList<Cloud>();
+		//return clouds;
+		if (requiredSize < 1024)
+			return clouds;
 		
-		double dim = t.getSize();
-		Point center = t.getCenter();
 		
-		double UL = center.getX() - dim/2;
-		double UR = center.getX() + dim/2;
-		double LL = center.getZ() - dim/2;
-		double LR = center.getZ() + dim/2;
+		double dim = requiredSize;
+		Point center = inCenter;
 		
-		int noOfClouds = Math.min(5,Engine.getRandomInt(6, (int)dim/100 + 1));
+		int UL = (int)(center.getX() - dim/2);
+		int UR = (int)(center.getX() + dim/2);
+		int LL = (int)(center.getZ() - dim/2);
+		int LR = (int)(center.getZ() + dim/2);
+
+		random.setSeed((long)(center.getX() * center.getZ()));
+		
+		int noOfClouds = Math.min(2, getRandomInt(6, (int) dim/100 + 1));//random.nextInt((int)dim/100 + 1) - 6);
 		
 		//int spiral = 1;
-		int spiral = Engine.getRandomInt(0, 7);
+		int spiral = getRandomInt(0, 7);
 		
 		if (spiral != 0)
 		{
 			for (int i = 0; i < noOfClouds; i++)
 			{
-				double x = Engine.getRandomDouble(UL, UR);
-				double z = Engine.getRandomDouble(LL, LR);
-				int type = Engine.getRandomInt(0, 3);
-				clouds.add(getCloud(x, 0, z, type));
+				int x = getRandomInt(UL,UR);
+				int z = getRandomInt(LL, LR);
+				int type = getRandomInt(0, 2);
+				double size = getRandomSize(type);
+				clouds.add(getCloud(x, 6500, z, type, size));
 			}
 		}
 		
 		else
 		{
-			int type = Engine.getRandomInt(3,5) + 3;
-			System.out.println("Type = " + type);
-			clouds.add(getCloud(center.getX(), 0, center.getZ(),type));
+			int type = getRandomInt(3,4);
+			double size = getRandomSize(type);
+			clouds.add(getCloud(center.getX(), 6500, center.getZ(),type, size));
 		}
-		System.out.println(spiral);
 		
 		return clouds;
+	}
+	
+	private int getRandomInt(int low, int high)
+	{
+		return (random.nextInt(high - low + 1) + low);
+	}
+	
+	private double getRandomDouble(double low, double high)
+	{
+		return (random.nextDouble() * (low -high) + low);
 	}
 	
 	public int getSizeMap()

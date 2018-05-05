@@ -192,6 +192,21 @@ public class Node {
 		return height;
 	}
 	
+	public List<Terrain> findActiveTerrains() {
+		List<Terrain> actives = new ArrayList<>();
+		for(Entity e: entities) {
+			if(e instanceof Terrain) {
+				if(e.isActive()) {
+					actives.add((Terrain) e);
+				}
+			}
+		}
+		for(Node n: children) {
+			actives.addAll(n.findActiveTerrains());
+		}
+		return actives;
+	}
+	
 	//find out what position of camera uses
 	//probably won't need, as cameraDist covers pretty much all cases surrounding camera needs
 	public Node findCamera(Point target) {
