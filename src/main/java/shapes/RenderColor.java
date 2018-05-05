@@ -3,6 +3,7 @@ package shapes;
 public class RenderColor {
 	
 	public static RenderColor Red = new RenderColor(255,0,0,255);
+	public static RenderColor Yellow = new RenderColor(255,255,0,255);
 	public static RenderColor Green = new RenderColor(0,255,0,255);
 	public static RenderColor Blue = new RenderColor(0,0,255,255);
 	public static RenderColor Black = new RenderColor(0,0,0,255);

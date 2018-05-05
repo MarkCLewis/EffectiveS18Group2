@@ -16,14 +16,28 @@ public class ValleyHeightAlgorithm extends TerrainHeightAlgorithm {
 		redistribution = redis;
 	}
 	
+	public static TerrainHeightAlgorithm forNormalValley(double size) {
+		double freq = size/80000;
+		return new ValleyHeightAlgorithm (freq, 4, 3, 800, 4, 3);
+	}
+	
 	@Override
 	public double generateHeight(double x, double z) {
-		double height = super.generateHeight(x, z);
-		if (height <= 200) {
-			return Math.pow(height, 1/redistribution);	
-		} else {
-			return Math.pow(height, redistribution);
+		double acc = super.generateSubValue(heightSeed, frequency, x, z);
+		for (int i = 1; i < numOctaves; i++) {
+			acc += super.generateSubValue(heightSeed / (octaveScale*i), frequency * ((octaveScale*i)/2), x, z);
 		}
+		return Math.pow(acc, redistribution) * baseHeight;
 	}
+	
+	@Override
+	public double partialHeight(double x, double z) {
+		double acc = super.generateSubValue(heightSeed, frequency, x, z);
+		for (int i = 1; i < numOctaves; i++) {
+			acc += super.generateSubValue(heightSeed / (octaveScale*i), frequency * ((octaveScale*i)/2), x, z);
+		}
+		return Math.pow(acc, redistribution);
+	}
+
 	
 }

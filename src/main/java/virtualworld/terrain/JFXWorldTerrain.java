@@ -1,29 +1,20 @@
 package virtualworld.terrain;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-
-import entity.Entity;
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import shapes.Shape;
 import virtualworld.terrain.Point;
 
 public class JFXWorldTerrain extends Application {
 	
 	private int height = 800;
 	private int width  = 800;
-	private double x = 400;
+	private double x = 400; 
 	private double z = 400;
 	private Point p = new Point(x,z);
 	private WorldHeightAlgorithm world = new WorldHeightAlgorithm(p, 800);
@@ -67,7 +58,11 @@ public class JFXWorldTerrain extends Application {
 			Point c = r.getTopLeft();
 			System.out.println("TopLeft " + c.getX() + " " + (c.getZ() - 800));
 			rect.setX(c.getX());
-			rect.setY(c.getZ() - 800);
+			if (c.getZ() - 800 < 0) {
+				rect.setY(c.getZ());
+			} else {
+				rect.setY(c.getZ() - 800);
+			}
 			rect.setWidth(r.getWidth());
 			rect.setHeight(r.getHeight()); 
 			rect.setFill(Color.TRANSPARENT);

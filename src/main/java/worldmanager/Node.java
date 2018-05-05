@@ -42,7 +42,7 @@ public class Node {
 				this.createChildren();
 			}
 			for (Node n: children) {
-				if(this.checkIfIn(ent, n)) {
+				if(this.checkIfIn(ent.getCenter(), n)) {
 					n.updateEntites(ent);
 				}
 			}
@@ -70,8 +70,7 @@ public class Node {
 	}
 
 	//for checking if an entity's center exists in a Node
-	public boolean checkIfIn(Entity ent, Node node) {
-		Point cent = ent.getCenter();
+	public boolean checkIfIn(Point cent, Node node) {
 		double nodeSz = node.getSize();
 		Point nodeCent = node.center;
 		boolean inBottom = nodeCent.getZ() <= (cent.getZ() + nodeSz/2);
@@ -168,7 +167,7 @@ public class Node {
 	}
 	
 	//finds the euclidean distance between two points
-	public double findDist(Point target, Point start) {
+	public static double findDist(Point target, Point start) {
 		double b = Math.abs(start.getZ()-target.getZ());
 		double c = Math.abs(start.getX()-target.getX());
 		double a = (b*b) + (c*c);
@@ -177,21 +176,35 @@ public class Node {
 	
 	//finds Terrain that both contains given point and is in an active state and returns height
 	public double findHeight(Point target) {
+		double height = 0;
 		for(Entity e: entities) {
 			if(e instanceof Terrain) {
 				if(e.isActive()) {
 					return ((Terrain) e).getHeightAt(target);
 				}
-				else {
-					for (Node n: children) {
-						if (checkIfIn(e, n)) {
-							n.findHeight(target);
-						}
-					}
+			}
+		}
+		for (Node n: children) {
+			if (checkIfIn(target, n)) {
+				height = n.findHeight(target);
+			}
+		}
+		return height;
+	}
+	
+	public List<Terrain> findActiveTerrains() {
+		List<Terrain> actives = new ArrayList<>();
+		for(Entity e: entities) {
+			if(e instanceof Terrain) {
+				if(e.isActive()) {
+					actives.add((Terrain) e);
 				}
 			}
 		}
-		return 0;
+		for(Node n: children) {
+			actives.addAll(n.findActiveTerrains());
+		}
+		return actives;
 	}
 	
 	//find out what position of camera uses

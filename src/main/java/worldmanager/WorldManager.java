@@ -3,9 +3,14 @@ package worldmanager;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.Cloud;
+import cloud.CloudFactory;
+import engine.Engine;
 import entity.Entity;
+import roads.Road;
 import shapes.Shape;
 import virtualworld.terrain.Point;
+import virtualworld.terrain.Terrain;
 
 public class WorldManager {
 	//	TODO
@@ -22,7 +27,7 @@ public class WorldManager {
 	//data
 	private static WorldManager world = null;
 	Node rootNode;
-	Point cameraLoc = new Point(0,0);
+	Point cameraLoc = null;
 	
 	//This value is how far you can walk before the WorldManager loads more objects
 	double cameraStep = 10;
@@ -36,12 +41,11 @@ public class WorldManager {
 		rootNode.updateCenter(cent);
 		rootNode.updateSize(sz);
 		rootNode.updateDepth(0);
-		cameraLoc = cent;
 	}
 	
 	public static synchronized WorldManager getInstance() {
 		if (world == null) {
-			world = new WorldManager(new Point(0,0), 1600);
+			world = new WorldManager(new Point(0,0),536870912);
 		}
 		return world;
 	}
@@ -73,11 +77,19 @@ public class WorldManager {
 	}
 	
 	//update camera location
-	public void updateCamera(Point point) {
-		if (rootNode.findDist(point, cameraLoc) > cameraStep) {
+	public boolean updateCamera(Point point) {
+		if(cameraLoc == null) {
 			rootNode.cameraDist(point);
 			cameraLoc = point;
+			return true;
 		}
+		if (Node.findDist(point, cameraLoc) > cameraStep) {
+			rootNode.cameraDist(point);
+			cameraLoc = point;
+			updateWorld(point);
+			return true;
+		}
+		return false;
 	}
 	
 	//gets height at a given point
@@ -87,8 +99,10 @@ public class WorldManager {
 	
 	//tree traversal to get geometry that is within the max specified distance
 	public List<Shape> getGeometry(Point point) {
-		updateCamera(point);
-		return traverseGeometry(rootNode, maxView);
+		if(updateCamera(point)) {
+			return traverseGeometry(rootNode, maxView);
+		}
+		return new ArrayList<>();
 	}
 	
 	//traverses through node tree to collect shapes given back by nodeGeometry()
@@ -106,10 +120,10 @@ public class WorldManager {
 	private List<Shape> nodeGeometry(Node node, double max) {
 		List<Entity> ents = node.getEntities();
 		List<Shape> nodeShapes = new ArrayList<>();
-		if (node.findDist(node.center, cameraLoc) < max) {
+		if (Node.findDist(node.center, cameraLoc) < max) {
 			for(Entity e: ents) {
 				if(e.isActive()) {
-					if(node.findDist(e.getCenter(), cameraLoc) < max) {
+					if(Node.findDist(e.getCenter(), cameraLoc) < max) {
 						if (nodeShapes == null || nodeShapes.isEmpty()) {
 							nodeShapes = e.getShapes();
 						}
@@ -121,5 +135,56 @@ public class WorldManager {
 			}
 		}
 		return nodeShapes;
+	}
+	
+	public static void initializeWorld() {
+		WorldManager world = WorldManager.getInstance();
+		Point cent = world.rootNode.center;
+		double worldSize = world.getSize();
+		Terrain t = Terrain.forWorld(cent, worldSize, 6);
+		//Road r = new Road(cent, worldSize);
+		world.addEntity(t);
+		//world.addEntity(r);
+		defineWorld(t, cent);
+		//defineRoads(r, cent);
+	}
+	
+	public static void defineWorld(Terrain t, Point cent) {
+		if(Node.findDist(t.getCenter(),cent) < t.getSize()*2 && t.getSize() > 2000) {
+			Terrain[] ters = t.split();
+			for(Terrain ter: ters) {
+				if(ter.getSize() < 16000 && ter.getSize() > 8000) {
+					List<Cloud> clouds = CloudFactory.getInstance().getClouds(ter.getCenter(), ter.getSize());
+					for (Cloud c: clouds) {
+						WorldManager.getInstance().addEntity(c);
+					}
+				}
+				WorldManager.getInstance().addEntity(ter);
+				defineWorld(ter,cent);
+			}
+		}
+	}
+	
+	public static void defineRoads(Road r, Point cent) {
+		if((Node.findDist(r.getCenter(),cent) < r.getSize()*16) && !r.isActive()) {
+			Road[] roads = r.split();
+			for(Road road: roads) {
+				WorldManager.getInstance().addEntity(road);
+				defineRoads(road,cent);
+			}
+		}
+	}
+	
+	public static void updateWorld(Point cent) {
+		WorldManager world = WorldManager.getInstance();
+		List<Terrain> actives = world.activeTerrains();
+		for(Terrain t: actives) {
+			defineWorld(t,cent);
+		}
+		System.out.println("updating world to: " + cent.getX() + "," + cent.getZ());
+	}
+	
+	private List<Terrain> activeTerrains() {
+		return rootNode.findActiveTerrains();
 	}
 }

@@ -1,12 +1,11 @@
 package virtualworld.terrain;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import engine.Engine;
 import entity.Entity;
 import javafx.geometry.Point3D;
 import shapes.HeightMapSurface;
+import shapes.RenderMaterial;
 import shapes.Shape;
 import worldmanager.WorldManager;
 
@@ -73,33 +72,33 @@ public class Terrain implements Entity {
 		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
-	public static Terrain forFeilds(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forFeilds();
+	public static Terrain forIsland(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = new IslandHeightAlgorithm(c, length, NormalHeightAlgorithm.forMountains(length));
+		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
+	}
+	
+	public static Terrain forFields(Point c, double length, int lod) {
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forFields(length);
 		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
 	public static Terrain forHills(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forHills();
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forHills(length);
 		return new Terrain(c, length, pointsFromLOD(length, lod) ,  ta);
 	}
 	
 	public static Terrain forMountains(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forMountains();
+		TerrainHeightAlgorithm ta = NormalHeightAlgorithm.forMountains(length);
 		return new Terrain(c, length, pointsFromLOD(length, lod), ta);
 	}
 	
 	public static Terrain forMountainValley(Point c, double length, int lod) {
-		TerrainHeightAlgorithm ta = new ValleyHeightAlgorithm(8, 3, 3, 150, 600, 1.5);
+		TerrainHeightAlgorithm ta = ValleyHeightAlgorithm.forNormalValley(length);
 		return new Terrain(c, length, pointsFromLOD(length, lod) , ta);
 	}
 	
 	private static int pointsFromLOD(double length, int lod) {
-		int possiblePoints = (int)(length/lod);
-		if (possiblePoints % 2 ==0) {
-			return possiblePoints + 1;
-		} else {
-			return possiblePoints;
-		}
+		return (int) (Math.pow(2, lod) + 1);
 		
 	}
 
@@ -231,7 +230,6 @@ public class Terrain implements Entity {
 	// (added by Kayla (for testing height map shape)
 	public HeightMapSurface getHeightMapSurface() {
 		if(!mapIsSet) renderBaseHeights();
-		Point topLeft = new Point(center.getX() - (length/2), center.getZ() + (length/2));
 		float[] convertedHeightMap = new float[heightMap.length * heightMap[0].length];
 		// assuming row-major, turn height map into flat array of floats
 		for(int r = 0; r < heightMap.length; r++) {
@@ -242,21 +240,31 @@ public class Terrain implements Entity {
 		}
 		int patchSize = (int)((pointsPerSide-1) / 4) + 1;
 		float scale = (float) length / (pointsPerSide - 1);
-		Engine.logInfo("Terrain.HeightMapSurface: scale: " + scale);
+		//Engine.logInfo("Terrain.HeightMapSurface: scale: " + scale);
 		HeightMapSurface hms = new HeightMapSurface(pointsPerSide, patchSize, convertedHeightMap, scale, 1f, scale, center.getX(), 0, center.getZ());
 		return hms;
 	}
 	
 	@Override
 	public List<Shape> getShapes() {
+		RenderMaterial hmsMat = new RenderMaterial();
+		hmsMat.setUseTexture(true);
+		hmsMat.setTextureDiffusePath("Textures/Terrain/splat/grass.jpg");
+		hmsMat.setTextureNormalPath("Textures/Terrain/splat/grass_normal.jpg");
 		List<Shape> shapes = new ArrayList<Shape>();
-		shapes.add(getHeightMapSurface());
+		HeightMapSurface hms = getHeightMapSurface();
+		hms.setMaterial(hmsMat);
+		shapes.add(hms);
 		return shapes;
 	}
 	
 	@Override
 	public boolean isActive() {
 		return active;
+	}
+	
+	public List<Region> getRegions() {
+		return noise.getRegions();
 	}
 
 }
