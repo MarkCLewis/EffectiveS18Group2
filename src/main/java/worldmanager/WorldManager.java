@@ -5,10 +5,10 @@ import java.util.List;
 
 import cloud.Cloud;
 import cloud.CloudFactory;
-import engine.Engine;
 import entity.Entity;
 import roads.Road;
 import shapes.Shape;
+import sheep.Sheep;
 import virtualworld.terrain.Point;
 import virtualworld.terrain.Terrain;
 
@@ -141,12 +141,12 @@ public class WorldManager {
 		WorldManager world = WorldManager.getInstance();
 		Point cent = world.rootNode.center;
 		double worldSize = world.getSize();
-		Terrain t = Terrain.forHills(cent, worldSize, 3);
+		Terrain t = Terrain.forMountains(cent, worldSize, 3);
 		Road r = new Road(cent, worldSize);
 		world.addEntity(t);
 		world.addEntity(r);
 		defineWorld(t, cent);
-		//defineRoads(r, cent);
+		defineRoads(r, cent);
 	}
 	
 	public static void defineWorld(Terrain t, Point cent) {
@@ -158,6 +158,10 @@ public class WorldManager {
 					for (Cloud c: clouds) {
 						WorldManager.getInstance().addEntity(c);
 					}
+				}
+				if(ter.getSize() < 4000 && ter.getSize() > 2000) {
+					Sheep sheep = Sheep.randSheep(ter.getCenter(), ter.getSize());
+					WorldManager.getInstance().addEntity(sheep);
 				}
 				WorldManager.getInstance().addEntity(ter);
 				defineWorld(ter,cent);
