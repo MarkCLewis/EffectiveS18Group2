@@ -2,11 +2,14 @@ package engine;
 
 import java.util.List;
 
+import shapes.HeightMapSurface;
+import shapes.RectangularPrism;
 import shapes.RenderColor;
 import shapes.RenderMaterial;
 import shapes.Sphere;
 import shapes.VectorCylinder;
 import virtualworld.terrain.Point;
+import virtualworld.terrain.Terrain;
 import worldmanager.WorldManager;
 
 public class Game {
@@ -42,53 +45,30 @@ public class Game {
      */
 	public static void main(String[] args) {
 
-		Game g = new Game(250f);
+		Game g = new Game(450f);
 		g.start();
-		Point center = new Point(0,0);
 		
-		/*Terrain t = Terrain.forMountains(center, 2048, 6);
-		world.addEntity(t);*/
-		/*RectangularPrism r = new RectangularPrism(50, 50, 50, 1026, 250,-1026); 
-		RectangularPrism r1 = new RectangularPrism(50, 50, 50, 1026, 250, 1026);
-		RectangularPrism r2 = new RectangularPrism(50, 50, 50, -1026, 250, -1026);
-		RectangularPrism r3 = new RectangularPrism(50, 50, 50, -1026, 250, 1026);
-		RectangularPrism r4 = new RectangularPrism(50, 50, 50, 0, 250, 0);
+		/*Terrain t = Terrain.forMountains(new Point(0,0), 2048, 6);
 		
-
 		RenderMaterial hmsMat = new RenderMaterial();
 		hmsMat.setUseTexture(true);
 		hmsMat.setTextureDiffusePath("Textures/Terrain/splat/grass.jpg");
 		hmsMat.setTextureNormalPath("Textures/Terrain/splat/grass_normal.jpg");
 		Terrain[] ters = t.split();
-		//System.out.println("Initial Height: " + ters[3].getHeightAt(new Point(200,-200)));
-		//g.addShape(r);
-		//g.addShape(r1);
-		//g.addShape(r2);
-		//g.addShape(r3);
-		//g.addShape(r4);
 		for(int i = 0; i < ters.length; i++) {
-			world.addEntity(ters[i]);
 			Terrain[] tmpters = ters[i].split();
-			
 			HeightMapSurface hms0 = tmpters[0].getHeightMapSurface();
-
 			hms0.setMaterial(hmsMat);
-			world.addEntity(tmpters[0]);
+			g.addShape(hms0);
 			HeightMapSurface hms1 = tmpters[1].getHeightMapSurface();
 			hms1.setMaterial(hmsMat);
-			world.addEntity(tmpters[1]);
+			g.addShape(hms1);
 			HeightMapSurface hms2 = tmpters[2].getHeightMapSurface();
 			hms2.setMaterial(hmsMat);
-			world.addEntity(tmpters[2]);
+			g.addShape(hms2);
 			HeightMapSurface hms3 = tmpters[3].getHeightMapSurface();
 			hms3.setMaterial(hmsMat);
-			world.addEntity(tmpters[3]);
-			List<shapes.Shape> allShapes = world.getGeometry(center);
-			//g.addShape(hms0);
-			//g.addShape(hms1);
-			//g.addShape(hms2);
-			//g.addShape(hms3);
-			g.addShapes(allShapes);
+			g.addShape(hms3);
 		}*/
 		
 		/*RenderMaterial cloudMat = new RenderMaterial();
@@ -121,7 +101,10 @@ public class Game {
 			Sphere s = new Sphere(10,x,(y+50),z);
 			s.setMaterial(cloudMat);
 			g.addShape(s);
-		}
+			
+			RectangularPrism rp = new RectangularPrism(10,10,10,x,y+100,z);
+			g.addShape(rp);
+		}*/
 		
 		/*WorldManager.initializeWorld();
 		List<shapes.Shape> allShapes = world.getGeometry(center);
