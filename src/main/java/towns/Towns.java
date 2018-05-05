@@ -3,6 +3,8 @@ package towns;
 import worldmanager.Node;
 import java.lang.Object;
 import worldmanager.WorldManager;
+import java.util.*;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import virtualworld.terrain.Point;
@@ -83,7 +85,12 @@ public class Towns implements Entity {
 	    //Both will rely on seed to determine the amount of school buildings and houses
 	    //set to a maximum of10 and must be greater than one
 	    houseseed=Math.floor(seed/5);
+	    double housesizes= Math.floor(Math.floor(radius)/(houseseed));
+	    
 	    schoolseed=Math.floor(seed/6);
+	    
+	    double schoolsizes=Math.floor(Math.floor(seed/6)/(radius/3))-1;
+	    
 	    //makeHouses= MakeHouse(Housecenter,radius /2 ))
 	    completeListofRec.add(Shops);
 	    completeListofRec.add(House);
@@ -102,7 +109,29 @@ public class Towns implements Entity {
 		
 		
 	}
-
+	public ArrayList<RectangularPrism> MakeHouses(int amount, int sizeofhouses, Point housecentr, double rad){
+		ArrayList<RectangularPrism> house= new ArrayList<RectangularPrism>();
+		int temp=0;
+		Double stop =housecentr.getX()+rad;
+		Point Constr=new Point (housecentr.getX()-rad, housecentr.getZ()-rad);
+		Point Sentinel= new Point (housecentr.getX()-rad, housecentr.getZ()-rad);
+		while (temp< amount){
+			double shiftY=WorldManager.getInstance().getHeight(Sentinel);
+			house.add(new RectangularPrism((float) sizeofhouses, (float) sizeofhouses+8,(float) sizeofhouses, Sentinel.getX(), 
+					shiftY, Sentinel.getZ()));
+			double newX=Sentinel.getX()+ sizeofhouses + 3;
+			temp=temp+1;
+			//double newZ=Starter.getY+.2;
+			if (newX>stop&&Sentinel.getZ()<Constr.getZ()+rad){
+				Sentinel=new Point (Constr.getX(),Sentinel.getZ()+3);
+			}else{
+				Sentinel=new Point(newX,Sentinel.getZ());
+						
+			}
+		}
+		return house;
+		
+	}
 //public destroyTown{}
 	public ArrayList<Cylinder> Makegrass(Point grasseed, double Patchrad){
 		//dont need two points if im just doing a square patch
@@ -162,14 +191,19 @@ public class Towns implements Entity {
 	}
 	
     public static ArrayList<Point> GenerateCenters (Point cent, float rad){
-		Point shop = new Point(cent.getX() - Math.sqrt(Math.pow(rad,2)/2), cent.getZ() - Math.sqrt(Math.pow(rad,2)/2)); 
+		Point shop = new Point(cent.getX() - Math.sqrt(Math.pow(rad,2)/2), cent.getZ() 
+				- Math.sqrt(Math.pow(rad,2)/2)); 
 		//shopCenter SOUTHWEST
-		Point house = new Point(cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + Math.sqrt(Math.pow(rad,2))/2);
+		Point house = new Point(cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() 
+				+ Math.sqrt(Math.pow(rad,2))/2);
 		//houseCenter NORTHEAST
-		Point park = new Point (cent.getX() - Math.sqrt(Math.pow(rad,2)/2),cent.getZ() + Math.sqrt(Math.pow(rad,2))/2);
+		Point park = new Point (cent.getX() - Math.sqrt(Math.pow(rad,2)/2),cent.getZ() 
+				+ Math.sqrt(Math.pow(rad,2))/2);
 		//parkCenter NORTHWEST
-		Point school = new Point (cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() - Math.sqrt(Math.pow(rad,2))/2);
+		Point school = new Point (cent.getX() + Math.sqrt(Math.pow(rad,2)/2),cent.getZ() 
+				- Math.sqrt(Math.pow(rad,2))/2);
 		//schoolCenter SOUTHEAST
+		
 		ArrayList<Point> pass = new ArrayList<Point>();
 		pass.add(shop);
 		pass.add(house);
@@ -204,15 +238,50 @@ public class Towns implements Entity {
 
 
 	public void distFromCamera(double dist) {
-		// TODO Auto-generated method stub
+		//using cloud's method
+		double close= 3000;
+		double farther = 6000;
 		
+		if (dist < close){
+			color("normal");
+		}
+		else {
+			color("far");
+		}
 	}
-
+    public void color(String t){
+    	int move=0;
+    	int ndx= completeListofRec.size()+completeListofCyc.size();
+    	if (t.contains("f")){
+        	while(move<ndx){
+        		completeListofRec.get(ndx).setMaterialTransparency((float).3);
+        		
+       		}
+        }
+        else {
+        	while (move< ndx){
+        		completeListofRec.get(ndx).setMaterialTransparency((float).9);
+        	}
+        }
+    }
 	@Override
 	public List<Shape> getShapes() {
-		// TODO Auto-generated method stub
-		return null;
+
+		Shape [] arrC=completeListofCyc.toArray(new Shape [completeListofCyc.size()]);
+		Shape [] arrR=completeListofRec.toArray(new Shape [completeListofRec.size()]);
+		ArrayList<Shape> work=new ArrayList<Shape>();
+		for(int i = 0; i<arrC.length;i++){
+			work.add(arrC[i]);
+		}
+		int o= work.size();
+		for(int i = 0; i<arrR.length;i++){
+			work.add(arrR[i]);
+		}
+		Shape [] gd=work.toArray(new Shape [work.size()]);
+		List<Shape> list=Arrays.asList(gd);
+		return list;
 	}
+
 
 	@Override
 	public boolean isActive() {
