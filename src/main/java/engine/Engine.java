@@ -123,6 +123,7 @@ public class Engine extends SimpleApplication {
 	private DirectionalLight sun;
 	private Geometry skyDome;
 	private Node objectNode;
+	private Node playerNode;
 	private Node mainNode;
 	private final ColorRGBA sunColor = new ColorRGBA(0.50f, 0.40f, 0.50f, 1.0f);
 	private final ColorRGBA skyColor = new ColorRGBA(0.7f, 0.8f, 1f, 1f);
@@ -149,15 +150,18 @@ public class Engine extends SimpleApplication {
     private Material matWire;
     private boolean wireframe = false;
     private boolean showAxes = false;
+    
     protected BitmapText hintText;
     protected BitmapText hitLocText;
+    protected BitmapText playerLocText;
+    
     private Geometry collisionMarker;
     private BulletAppState bulletAppState;
 
     private boolean flyCamera;
     private float flySpeed = 1000f;
     
-    private BetterCharacterControl player;
+    private BetterCharacterControl playerControl;
     private Geometry playerModel;
     
     private final Vector3f walkDirection = new Vector3f();
@@ -181,10 +185,13 @@ public class Engine extends SimpleApplication {
     	
     	WorldManager.initializeWorld();
     	world = WorldManager.getInstance();
-    	world.updateMaxView(drawDistance/10.0);
+    	world.updateMaxView(drawDistance/5.0);
     	world.updateCameraStep(1000);
     	
     	this.mainNode = new Node("MainNode");
+    	this.playerNode = new Node("PlayerNode");
+    	this.objectNode = new Node("ObjectNode");
+    	mainNode.attachChild(objectNode);
     	this.flyCamera = true;
     	cam.setFrustumFar(drawDistance);
     	debugTools = new DebugTools(assetManager);
@@ -197,7 +204,8 @@ public class Engine extends SimpleApplication {
         bulletAppState = new BulletAppState();
         bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bulletAppState);
-        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-1,0));
+        bulletAppState.getPhysicsSpace().setGravity(new Vector3f(0,-30,0));
+        bulletAppState.getPhysicsSpace().setAccuracy(1f/80f);
         
         matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWire.getAdditionalRenderState().setWireframe(true);
@@ -218,10 +226,6 @@ public class Engine extends SimpleApplication {
         skyDome.setCullHint(Spatial.CullHint.Never);
         mainNode.attachChild(skyDome);
         this.viewPort.setBackgroundColor(skyColor);
-        
-        objectNode = new Node("ObjectNode");
-        mainNode.attachChild(objectNode);
-        bulletAppState.getPhysicsSpace().addAll(objectNode);
         
         /**
          * add the sun (white directional light) to the root node
@@ -257,12 +261,12 @@ public class Engine extends SimpleApplication {
 		playerMat.setColor("Color", ColorRGBA.Blue);
 		playerMat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.FrontAndBack);
 		playerModel.setMaterial(playerMat);
-		playerModel.setLocalTranslation(cam.getLocation());
-        player = new BetterCharacterControl(4f,10f,1);
-        player.setJumpForce(new Vector3f(0,4f,0));
-        player.warp(cam.getLocation());
-        playerModel.addControl(player);
-        mainNode.attachChild(playerModel);
+        playerControl = new BetterCharacterControl(4f,10f,1);
+        playerControl.setJumpForce(new Vector3f(0,4f,0));
+        playerNode.addControl(playerControl);
+        playerNode.attachChild(playerModel);
+        playerControl.warp(cam.getLocation());
+        mainNode.attachChild(playerNode);
         
         this.rootNode.attachChild(mainNode);
         
@@ -371,13 +375,15 @@ public class Engine extends SimpleApplication {
                     Engine.this.down = false;
                 }
             } else if (name.equals("Jumps") && !Engine.this.flyCamera) {
-            	Engine.this.player.jump();
+            	Engine.this.playerControl.jump();
             } else if(name.equals("Fly") && !keyPressed) {
             	if(Engine.this.flyCamera) {
-            		bulletAppState.getPhysicsSpace().add(player);
+            		bulletAppState.getPhysicsSpace().addAll(playerNode);
+            		bulletAppState.getPhysicsSpace().add(playerControl);
             		Engine.this.flyCamera = false;
             	} else {
-            		bulletAppState.getPhysicsSpace().remove(player);
+            		bulletAppState.getPhysicsSpace().removeAll(playerNode);
+            		bulletAppState.getPhysicsSpace().remove(playerControl);
             		Engine.this.flyCam.setMoveSpeed(flySpeed);
             		Engine.this.flyCamera = true;
             	}
@@ -404,6 +410,19 @@ public class Engine extends SimpleApplication {
     	}
     	hitLocText.setText(hitLoc.toString());
     	guiNode.attachChild(hitLocText);
+    }
+    
+    public void updatePlayerLocationText(Vector3f loc) {
+    	if(playerLocText != null) {
+    		guiNode.detachChild(playerLocText);
+    	}
+    	else {
+    		playerLocText = new BitmapText(guiFont, false);
+    		playerLocText.setSize(guiFont.getCharSet().getRenderedSize());
+    		playerLocText.setLocalTranslation(300, getCamera().getHeight() - 100, 0);
+    	}
+    	playerLocText.setText("Player location: " + loc.toString());
+    	guiNode.attachChild(playerLocText);
     }
 
     protected void initCrossHairs() {
@@ -441,6 +460,7 @@ public class Engine extends SimpleApplication {
     public void simpleUpdate(final float tpf) {
     	// update Engine time
         time += tpf;
+        updatePlayerLocationText(this.getWorldPosition().toVector3f());
 
     	if(shouldUpdateShapes) {
     		updateSpatialsInNode(objectNode);
@@ -503,13 +523,14 @@ public class Engine extends SimpleApplication {
             	tmpNode.getChild(engSpatial.getShapeNodeName()).setMaterial(matWire);
             }
             node.attachChild(tmpNode);
-            bulletAppState.getPhysicsSpace().add(tmpNode);
+            bulletAppState.getPhysicsSpace().addAll(tmpNode);
         }
 		spatialsToAdd.clear();
     }
     
     private void updateWorldLocation() {
     	this.worldPosition.x = this.cam.getLocation().x;
+    	this.worldPosition.y = this.cam.getLocation().y;
         this.worldPosition.z = this.cam.getLocation().z;
     }
     
@@ -530,13 +551,16 @@ public class Engine extends SimpleApplication {
             this.walkDirection.addLocal(camDir.negate());
         }
         if (!flyCamera) {
-            this.player.setWalkDirection(this.walkDirection);
+            this.playerControl.setWalkDirection(this.walkDirection);
             if(this.moves) {
-            	this.cam.setLocation(playerModel.getLocalTranslation());
+            	this.cam.setLocation(playerNode.getLocalTranslation());
             }
         }
         if(this.moves) {
         	updateWorldLocation();
+        	if(flyCamera) {
+        		playerControl.warp(this.worldPosition.toVector3f());
+        	}
         }
     }
     
@@ -588,11 +612,11 @@ public class Engine extends SimpleApplication {
     }
     
     public Vector3d getWorldPosition() {
-    	return new Vector3d(this.worldPosition.x,0,this.worldPosition.z);
+    	return new Vector3d(this.worldPosition.x,this.worldPosition.y,this.worldPosition.z);
     }
     
     public double[] getWorldPositionArray() {
-    	return new double[] {this.worldPosition.x, 0, this.worldPosition.z};
+    	return new double[] {this.worldPosition.x, this.worldPosition.y, this.worldPosition.z};
     }
 
     public void changeShapes(List<shapes.Shape> shapes) {
