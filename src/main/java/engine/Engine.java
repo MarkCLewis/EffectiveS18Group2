@@ -110,6 +110,7 @@ public class Engine extends SimpleApplication {
 	 * The buffer is cleared when the shapes are added to the render state.
 	 */
 	private final ArrayList<EngineShape> spatialsToAdd = new ArrayList<EngineShape>();
+	private final ArrayList<EngineShape> spatialsToRemove = new ArrayList<EngineShape>();
 	
 	/**
 	 * The position of the camera/player in world coordinates
@@ -138,6 +139,8 @@ public class Engine extends SimpleApplication {
 	private static final Logger logger = Logger.getLogger(Engine.class.getName());
 	private static final Random random = new Random(System.currentTimeMillis());
 	
+	private WorldManager world;
+	
 	public static final float drawDistance = 50000;
 
     private Material matWire;
@@ -149,7 +152,7 @@ public class Engine extends SimpleApplication {
     private BulletAppState bulletAppState;
 
     private boolean flyCamera;
-    private float flySpeed = 10000f;
+    private float flySpeed = 1000f;
     
     private CharacterControl player;
     
@@ -171,13 +174,18 @@ public class Engine extends SimpleApplication {
      */
     @Override
     public void simpleInitApp() {
+    	
+    	WorldManager.initializeWorld();
+    	world = WorldManager.getInstance();
+    	world.updateMaxView(drawDistance/10.0);
+    	world.updateCameraStep(1000);
+    	
     	this.mainNode = new Node("MainNode");
     	this.flyCamera = true;
     	cam.setFrustumFar(drawDistance);
     	debugTools = new DebugTools(assetManager);
     	rootNode.attachChild(debugTools.debugNode);
-
-
+    	
 		this.flyCam.setMoveSpeed(flySpeed);
     	ScreenshotAppState state = new ScreenshotAppState();
     	this.stateManager.attach(state);
@@ -206,6 +214,10 @@ public class Engine extends SimpleApplication {
         mainNode.attachChild(skyDome);
         this.viewPort.setBackgroundColor(skyColor);
         
+        objectNode = new Node("ObjectNode");
+        mainNode.attachChild(objectNode);
+        bulletAppState.getPhysicsSpace().addAll(objectNode);
+        
         /**
          * add the sun (white directional light) to the root node
          */
@@ -214,19 +226,9 @@ public class Engine extends SimpleApplication {
         sun.setColor(sunColor);
         mainNode.addLight(sun);
         
-        // set up object geometries
-        objectNode = new Node("ObjectNode");
-		for (int i = 0; i < spatialBuffer.size(); i++) {
-        	//Engine.logInfo("adding mesh from index " + i + " in meshBuffer, its position is " + geomPositions.get(i).toString());
-            EngineShape engSpatial = spatialBuffer.get(i);
-			Vector3f localPos = (engSpatial.getJME3Position().subtract(this.getWorldPosition())).toVector3f();
-            //Engine.logInfo("mesh origin is " + localPos.toString());
-            Node node = engSpatial.getJME3Node(this.assetManager, this.showAxes);
-            node.getControl(RigidBodyControl.class).setPhysicsLocation(localPos);
-            objectNode.attachChild(node);
-        }
-		mainNode.attachChild(objectNode);
-		bulletAppState.getPhysicsSpace().addAll(objectNode);
+        //List<shapes.Shape> shapes = world.getGeometry(new Point(this.worldPosition.x,this.worldPosition.z));
+        //Engine.logInfo("simpleInitApp:: shapes = " + shapes.toString());
+        //this.addShapes(shapes);
 
 		fpp = new FilterPostProcessor(assetManager);
 		waterFilter = new WaterFilter(rootNode, lightDir);
@@ -432,7 +434,7 @@ public class Engine extends SimpleApplication {
     public void simpleUpdate(final float tpf) {
     	// update Engine time
         time += tpf;
-        
+
     	if(shouldUpdateShapes) {
     		updateSpatialsInNode(objectNode);
     	} else if(shouldResetObjectMaterials) {
@@ -445,6 +447,12 @@ public class Engine extends SimpleApplication {
     	updateSkyDomeLocation(this.cam.getLocation());
 
         updateWater();
+        
+        Vector3d pos = this.getWorldPosition();
+    	List<shapes.Shape> shapes = world.getGeometry(new Point(pos.x,pos.z));
+    	if(!shapes.isEmpty()) {
+    		this.changeShapes(shapes);
+    	}
     }
     
     private void resetSpatialMaterialsInNode(Node node) {
@@ -521,9 +529,6 @@ public class Engine extends SimpleApplication {
         if(this.moves) {
         	updateWorldLocation();
         }
-        WorldManager world = WorldManager.getInstance();
-        Point p = new Point(this.worldPosition.x,this.worldPosition.z);
-        world.updateCamera(p);
     }
     
     private void updateSkyDomeLocation(final Vector3f camLoc) {
@@ -576,6 +581,10 @@ public class Engine extends SimpleApplication {
     public Vector3d getWorldPosition() {
     	return new Vector3d(this.worldPosition.x,0,this.worldPosition.z);
     }
+    
+    public double[] getWorldPositionArray() {
+    	return new double[] {this.worldPosition.x, 0, this.worldPosition.z};
+    }
 
     public void changeShapes(List<shapes.Shape> shapes) {
     	this.enqueue(new Runnable() {
@@ -606,6 +615,16 @@ public class Engine extends SimpleApplication {
     		public void run() {
     			EngineShape es = new EngineShape(shape);
     			spatialsToAdd.add(es);
+    		}
+    	});
+    }
+    
+    public void removeShapes(List<shapes.Shape> shapes) {
+    	this.enqueue(new Runnable() {
+    		public void run() {
+    			for(shapes.Shape shape : shapes) {
+    				
+    			}
     		}
     	});
     }

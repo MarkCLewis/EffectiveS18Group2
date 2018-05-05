@@ -46,23 +46,6 @@ public class Game {
 		g.start();
 		Point center = new Point(0,0);
 		
-		//WorldManager world = new WorldManager(center, 5000);		
-		WorldManager world = WorldManager.getInstance();
-
-		world.updateMaxView(10000);
-		world.updateCameraStep(1000);
-		
-		/*Road road = new Road(center,200000);
-		System.out.println(road.isActive());
-		Road[] roadarray = road.split();
-		for(Road r: roadarray) {
-			g.addShapes(r.getShapes());
-			System.out.println(r.isActive());
-		}*/
-		WorldManager.initializeWorld();
-		List<shapes.Shape> allShapes = world.getGeometry(center);
-		g.addShapes(allShapes);
-		
 		/*Terrain t = Terrain.forMountains(center, 2048, 6);
 		world.addEntity(t);*/
 		/*RectangularPrism r = new RectangularPrism(50, 50, 50, 1026, 250,-1026); 
