@@ -138,7 +138,7 @@ public class Road implements Entity {
 				split1 -= 1;
 			}
 		}
-		
+
 		return new Pair<Integer, Integer>(split1, split2);
 	}
 
@@ -156,7 +156,7 @@ public class Road implements Entity {
 		if ((side1 == 0 && side2 == 1) || (side2 == 0 && side1 == 1)) {
 			return 1;
 		}
-		
+
 		int val = (side1 + side2) / 2;
 		return val;
 	}
@@ -182,29 +182,33 @@ public class Road implements Entity {
 	public List<Shape> getShapes() {
 
 		List<Shape> shapes = new ArrayList<Shape>();
-		
+
 		if (north == 1) {
 			if (east == 0) {
 				RectangularPrism col = new RectangularPrism(10, 5000, 10, topLeft.getX(), 0, topLeft.getZ());
 				shapes.add(col);
 			}
-			RectangularPrism road = new RectangularPrism(50, 10, len / 4, center.getX()-(len/2), 5000, center.getZ() - len / 4);
+			RectangularPrism road = new RectangularPrism(50, 10, len / 4, center.getX() - (len / 2), 5000,
+					center.getZ() - len / 4);
 			road.setMaterialColor(RenderColor.Black);
 			shapes.add(road);
-			RectangularPrism line = new RectangularPrism(5, 7, len/8-4, center.getX()-(len/2), 5000, center.getZ()- len/4);
+			RectangularPrism line = new RectangularPrism(5, 7, len / 8 - 4, center.getX() - (len / 2), 5010,
+					center.getZ() - len / 4);
 			line.setMaterialColor(RenderColor.White);
 			shapes.add(line);
-			
+
 		}
 		if (south == 1) {/*
-			if (west == 0) {
-				RectangularPrism col = new RectangularPrism(10, 1400, 10, bottomLeft.getX(), 0, bottomLeft.getZ());
-				shapes.add(col);
-			}*/
-			RectangularPrism road = new RectangularPrism(50, 10, len / 4, center.getX()-(len/2), 5000, center.getZ() + len / 4);
+							 * if (west == 0) { RectangularPrism col = new
+							 * RectangularPrism(10, 1400, 10, bottomLeft.getX(),
+							 * 0, bottomLeft.getZ()); shapes.add(col); }
+							 */
+			RectangularPrism road = new RectangularPrism(50, 10, len / 4, center.getX() - (len / 2), 5000,
+					center.getZ() + len / 4);
 			shapes.add(road);
 			road.setMaterialColor(RenderColor.Black);
-			RectangularPrism line = new RectangularPrism(5, 7, len/8-4, center.getX()-(len/2), 5000, center.getZ()+len/4);
+			RectangularPrism line = new RectangularPrism(5, 7, len / 8 - 4, center.getX() - (len / 2), 5010,
+					center.getZ() + len / 4);
 			line.setMaterialColor(RenderColor.White);
 			shapes.add(line);
 		}
@@ -213,29 +217,33 @@ public class Road implements Entity {
 				RectangularPrism col = new RectangularPrism(10, 5000, 10, topLeft.getX(), 0, topLeft.getZ());
 				shapes.add(col);
 			}
-			RectangularPrism road = new RectangularPrism(len / 4, 10, 50, center.getX() + len / 4, 5000, center.getZ()-(len/2));
+			RectangularPrism road = new RectangularPrism(len / 4, 10, 50, center.getX() + len / 4, 5000,
+					center.getZ() - (len / 2));
 			shapes.add(road);
 			road.setMaterialColor(RenderColor.Black);
-			RectangularPrism line = new RectangularPrism(len/8-4, 7, 5, center.getX()+(len/4), 5000, center.getZ()-len/2);
+			RectangularPrism line = new RectangularPrism(len / 8 - 4, 7, 5, center.getX() + (len / 4), 5010,
+					center.getZ() - len / 2);
 			line.setMaterialColor(RenderColor.White);
 			shapes.add(line);
 		}
 		if (east == 1) {/*
-			if (north == 0) {
-				RectangularPrism col = new RectangularPrism(10, 1400, 10, topRight.getX(), 0, topRight.getZ());
-				shapes.add(col);
-			}*/
-			RectangularPrism road = new RectangularPrism(len / 4, 10, 50, center.getX() - len / 4, 5000, center.getZ()-(len/2));
+						 * if (north == 0) { RectangularPrism col = new
+						 * RectangularPrism(10, 1400, 10, topRight.getX(), 0,
+						 * topRight.getZ()); shapes.add(col); }
+						 */
+			RectangularPrism road = new RectangularPrism(len / 4, 10, 50, center.getX() - len / 4, 5000,
+					center.getZ() - (len / 2));
 			shapes.add(road);
 			road.setMaterialColor(RenderColor.Black);
-			RectangularPrism line = new RectangularPrism(len/8-4, 7, 5, center.getX()-(len/4), 5000, center.getZ()-len/2);
+			RectangularPrism line = new RectangularPrism(len / 8 - 4, 7, 5, center.getX() - (len / 4), 5010,
+					center.getZ() - len / 2);
 			line.setMaterialColor(RenderColor.White);
 			shapes.add(line);
-		}/*
-		if (north ==1 && south == 0) {
-			RectangularPrism col = new RectangularPrism(10, 1400, 10, topLeft.getX(), 0, topLeft.getZ());
-			shapes.add(col);
-		}*/
+		} /*
+			 * if (north ==1 && south == 0) { RectangularPrism col = new
+			 * RectangularPrism(10, 1400, 10, topLeft.getX(), 0,
+			 * topLeft.getZ()); shapes.add(col); }
+			 */
 		return shapes;
 
 	}
