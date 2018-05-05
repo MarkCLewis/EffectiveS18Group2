@@ -11,10 +11,10 @@ import worldmanager.WorldManager;
 
 public class Game {
   
-	private Engine e;
+	public Engine e;
 	
 	public Game(float waterHeight) {
-		e = Engine.getInstance(waterHeight);
+		e = Engine.getInstance();
 	}
   
 	public void addShapes(List<shapes.Shape> shapes) {

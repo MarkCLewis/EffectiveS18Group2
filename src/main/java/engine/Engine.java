@@ -58,9 +58,9 @@ public class Engine extends SimpleApplication {
 	 */
 	private static class EngineLoader {
 		private static Engine INSTANCE = null;
-		public static Engine getInstance(float initialWaterHeight) {
+		public static Engine getInstance() {
 			try {
-				EngineLoader.INSTANCE = new Engine(initialWaterHeight);
+				EngineLoader.INSTANCE = new Engine();
 				INSTANCE.setShowSettings(false);
 				AppSettings settings = new AppSettings(true);
 				settings.setResolution(1000, 800);
@@ -75,12 +75,12 @@ public class Engine extends SimpleApplication {
 	/**
 	 * This constructor throws an exception if Engine has already been instantiated
 	 */
-	private Engine(float initialWaterHeight) {
+	private Engine() {
 		if(EngineLoader.INSTANCE != null) {
 			throw new IllegalStateException("Already instantiated");
 		}
 		else {
-			this.initialWaterHeight = initialWaterHeight;
+			//this.initialWaterHeight = initialWaterHeight;
 		}
 	}
 	
@@ -88,8 +88,8 @@ public class Engine extends SimpleApplication {
 	 * Call this function to retrieve the application's Engine instance
 	 * @return singleton instance of Engine
 	 */
-	public static Engine getInstance(float initialWaterHeight) {
-		return EngineLoader.getInstance(initialWaterHeight);
+	public static Engine getInstance() {
+		return EngineLoader.getInstance();
 	}
 	
 	/**
@@ -121,7 +121,7 @@ public class Engine extends SimpleApplication {
 	private FilterPostProcessor fpp;
 	private WaterFilter waterFilter;
 	private final Vector3f lightDir = (new Vector3f(1f, -0.5f, -0.1f)); 
-	private final float initialWaterHeight;
+	private final float initialWaterHeight = 250f;
 	private float time = 0.0f;
 	private float waterHeight = 0.0f;
 	private DebugTools debugTools;
