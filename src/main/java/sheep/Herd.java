@@ -6,6 +6,7 @@ import java.util.List;
 import shapes.Cylinder;
 import shapes.Shape;
 import shapes.Sphere;
+import shapes.RenderColor;
 import virtualworld.terrain.Point;
 
 public class Herd {
@@ -29,6 +30,13 @@ public class Herd {
 		Cylinder fr = new Cylinder(20, 2, xPos-10, yPos-10, zPos-10);
 		Cylinder bl = new Cylinder(20, 2, xPos+10, yPos-10, zPos+10);
 		Cylinder br = new Cylinder(20, 2, xPos+10, yPos-10, zPos+10);
+		
+		head.setMaterialColor(RenderColor.DarkGrey);
+		fl.setMaterialColor(RenderColor.Black);
+		fr.setMaterialColor(RenderColor.Black);
+		bl.setMaterialColor(RenderColor.Black);
+		br.setMaterialColor(RenderColor.Black);
+		body.setMaterialColor(RenderColor.White);
 		
 		sheep.add(body);
 		sheep.add(head);
