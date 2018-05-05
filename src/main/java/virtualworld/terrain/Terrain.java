@@ -1,9 +1,7 @@
 package virtualworld.terrain;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import engine.Engine;
 import entity.Entity;
 import javafx.geometry.Point3D;
 import shapes.HeightMapSurface;
@@ -232,7 +230,6 @@ public class Terrain implements Entity {
 	// (added by Kayla (for testing height map shape)
 	public HeightMapSurface getHeightMapSurface() {
 		if(!mapIsSet) renderBaseHeights();
-		Point topLeft = new Point(center.getX() - (length/2), center.getZ() + (length/2));
 		float[] convertedHeightMap = new float[heightMap.length * heightMap[0].length];
 		// assuming row-major, turn height map into flat array of floats
 		for(int r = 0; r < heightMap.length; r++) {
@@ -264,6 +261,10 @@ public class Terrain implements Entity {
 	@Override
 	public boolean isActive() {
 		return active;
+	}
+	
+	public List<Region> getRegions() {
+		return noise.getRegions();
 	}
 
 }

@@ -1,5 +1,7 @@
 package virtualworld.terrain;
 
+import java.util.List;
+
 import org.joml.Math;
 
 import javafx.geometry.Point3D;
@@ -27,6 +29,14 @@ public abstract class TerrainHeightAlgorithm {
 		return acc * baseHeight;
 	}
 	
+	public double partialHeight(double x, double z) {
+		double acc = generateSubValue(heightSeed, frequency, x, z);
+		for (int i = 1; i < numOctaves; i++) {
+			acc += generateSubValue(heightSeed / (octaveScale*i), frequency * ((octaveScale*i)/2), x, z);
+		}
+		return acc;
+	}
+	
 	public Point3D placeTree(double x, double z) {
 		Point3D max = new Point3D(0,0,0);
 		for(int zn = (int) (z - treeSparseness); zn <= z + treeSparseness; zn++) {
@@ -42,6 +52,10 @@ public abstract class TerrainHeightAlgorithm {
 		} else {
 			return null;
 		}
+	}
+	
+	public List<Region> getRegions () {
+		return null;
 	}
 	
 }
