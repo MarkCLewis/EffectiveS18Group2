@@ -5,24 +5,42 @@ import java.util.List;
 import entity.Entity;
 import shapes.Shape;
 import virtualworld.terrain.Point;
+import worldmanager.WorldManager;
 
-public interface Sheep extends Entity {
+public class Sheep implements Entity {
 	// functions to implement
 
-	public Point getCenter();
+	Herd herd = null;
+	Point cent;
+	double size = 20;
+	
+	
+	public Sheep(Point start) {
+		herd = new Herd(start);
+		cent = start;
+	}
+	
+	public Point getCenter() {
+		return cent;
+	}
 
-	public double getSize();
+	public double getSize() {
+		return size;
+	}
 
 	// gives you value for distance from camera
-	public void distFromCamera(double dist);
+	public void distFromCamera(double dist) {}
 
 	// return a list of shapes that can be passed into graphics
 	@Override 
-	public List<Shape> getShapes();
+	public List<Shape> getShapes() {
+		double yPos = WorldManager.getInstance().getHeight(cent);
+		return herd.Sheep(cent.getX(), yPos, cent.getZ());
+	}
 	
 	//determines if an object is active or not. Only really used for Terrain
 	@Override 
-	public default boolean isActive(){
+	public boolean isActive(){
 		return true;
 	}
 }
