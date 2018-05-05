@@ -2,6 +2,7 @@ package sheep;
 
 import engine.Game;
 import shapes.Cylinder;
+import shapes.RenderColor;
 import shapes.Sphere;
 
 public class TestPrint {
@@ -37,16 +38,24 @@ public class TestPrint {
 		// cylinder arguments: height, radius, xPos, yPos, zPos
 		Sphere body = new Sphere(20, 20, 400, 0);
 		Sphere head = new Sphere(10, 0, 400, 0);
-		Cylinder legFL = new Cylinder(20, 2, 10, 390, 10);
-		Cylinder legFR = new Cylinder(20, 2, 10, 390, -10);
-		Cylinder legBL = new Cylinder(20, 2, 30, 390, 10); //ok
-		Cylinder legBR = new Cylinder(20, 2, 30, 390, -10); //xpos ox
+		Cylinder FL = new Cylinder(20, 2, 10, 390, 10);
+		Cylinder FR = new Cylinder(20, 2, 10, 390, -10);
+		Cylinder BL = new Cylinder(20, 2, 30, 390, 10); //ok
+		Cylinder BR = new Cylinder(20, 2, 30, 390, -10); //xpos ox
+		
+		head.setMaterialColor(RenderColor.DarkGrey);
+		FL.setMaterialColor(RenderColor.Black);
+		FR.setMaterialColor(RenderColor.Black);
+		BL.setMaterialColor(RenderColor.Black);
+		BR.setMaterialColor(RenderColor.Black);
+		body.setMaterialColor(RenderColor.White);
+		
 		g.addShape(body);
 		g.addShape(head);
-		g.addShape(legFL);
-		g.addShape(legFR);
-		g.addShape(legBL);
-		g.addShape(legBR);
+		g.addShape(FL);
+		g.addShape(FR);
+		g.addShape(BL);
+		g.addShape(BR);
 
 		// SheepBuilder build = SheepBuilder.getInstance();
 		// List<Shape> shapes = new ArrayList<Shape>();
