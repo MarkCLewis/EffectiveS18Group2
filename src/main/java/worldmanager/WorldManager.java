@@ -141,12 +141,12 @@ public class WorldManager {
 		WorldManager world = WorldManager.getInstance();
 		Point cent = world.rootNode.center;
 		double worldSize = world.getSize();
-		Terrain t = Terrain.forWorld(cent, worldSize, 6);
-		//Road r = new Road(cent, worldSize);
+		Terrain t = Terrain.forWorld(cent, worldSize, 3);
+		Road r = new Road(cent, worldSize);
 		world.addEntity(t);
-		//world.addEntity(r);
+		world.addEntity(r);
 		defineWorld(t, cent);
-		//defineRoads(r, cent);
+		defineRoads(r, cent);
 	}
 	
 	public static void defineWorld(Terrain t, Point cent) {
