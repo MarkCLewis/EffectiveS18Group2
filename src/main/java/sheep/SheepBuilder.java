@@ -26,6 +26,18 @@ public class SheepBuilder {
 		return herd;
 	}
 	
+	public List<Herd> getHerds(Point center, double worldSize){
+		List<Herd> allHerds = new ArrayList<Herd>();
+		double bounds = worldSize;
+		
+		int UL = (int)(center.getX() - bounds/2);
+		int UR = (int)(center.getX() + bounds/2);
+		int LL = (int)(center.getZ() - bounds/2);
+		int LR = (int)(center.getZ() + bounds/2);
+		
+		return allHerds;
+	}
+	
 	/*private static SheepBuilder sb = null;
 	
 	public static SheepBuilder getInstance(){

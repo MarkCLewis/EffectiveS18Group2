@@ -9,7 +9,7 @@ import shapes.Sphere;
 import virtualworld.terrain.Point;
 
 public class Herd {
-	private Herd(Point loc) {
+	public Herd(Point loc) {
 		location = loc;
 		List<Sheep> herd = new ArrayList<Sheep>();
 	}
@@ -21,7 +21,7 @@ public class Herd {
 	private double yPos = 0;
 
 	// sphere arguments: radius, xPos, yPos, zPos
-	List<Shape> Sheep() {
+	List<Shape> Sheep(double xPos, double yPos, double zPos) {
 		List<Shape> sheep = new ArrayList<Shape>();
 		Sphere body = new Sphere(20, xPos, yPos, zPos);
 		Sphere head = new Sphere(10, xPos-20, yPos, zPos-20);
@@ -40,6 +40,10 @@ public class Herd {
 	}
 	
 	double getXBound(Sheep sheep){
+		return 0;
+	}
+	
+	double getZBound(Sheep sheep){
 		return 0;
 	}
 
@@ -67,5 +71,5 @@ public class Herd {
 		return herd;
 	}
 	
-	//boolean collision(Point loc, )
+	//boolean collision(Point agent, Point newAgent){}
 }
