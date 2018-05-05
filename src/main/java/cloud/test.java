@@ -30,7 +30,7 @@ public class test {
 		
 		
 		//Method to create a list of cloud on a given terrain 
-		List<Cloud> clouds = cFactory.getClouds( new Point(1000,1000), 2048);
+		List<Cloud> clouds = cFactory.getClouds( new Point(1000,1000), 16000);
 		//shapes.add(new RectangularPrism(3000, 10, 1000, 0, 1000, 0));
 		
 		for (Cloud cloud : clouds)
