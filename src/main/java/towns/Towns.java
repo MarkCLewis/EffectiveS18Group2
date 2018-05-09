@@ -45,11 +45,7 @@ public class Towns implements Entity {
 		radius= seed* mthpnt (cent);
 		center= cent;
 		middle= GenerateCenters(center, radius); 
-		Shopcenter= middle.get(0);
-		Housecenter= middle.get(1);
-		Parkcenter= middle.get(2);
-		Schoolcenter= middle.get(3);
-		
+		main holdingtower= middle(0);
 		//BASES
 		Shops=new RectangularPrism((2*radius/6), (float) 0.5, (2*radius/6), Shopcenter.getX(), 
 				WorldManager.getInstance().getHeight(center), Shopcenter.getZ()); 	
